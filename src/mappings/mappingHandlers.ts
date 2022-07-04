@@ -58,13 +58,21 @@ interface DistDelegatorClaimMsg {
   validatorAddress: string;
 }
 
+interface Coin {
+  amount: string,
+  denom: string,
+}
+
 interface LegacyBridgeSwapMsg {
+  contract: string,
+  sender: string,
   msg: {
-    legacyBridgeSwap: {
+    swap: {
       destination: string,
       amount: bigint,
-    }
-  }
+    },
+  },
+  funds: Coin[]
 }
 
 export async function handleGovProposalVote(message: CosmosMessage<GovProposalVoteMsg>): Promise<void> {
@@ -92,11 +100,14 @@ export async function handleDistDelegatorClaim(message: CosmosMessage<DistDelega
 }
 
 export async function handleLegacyBridgeSwap(message: CosmosMessage<LegacyBridgeSwapMsg>): Promise<void> {
-  const swap = new LegacyBridgeSwap(`${message.tx.hash}-${message.idx}`);
-  const {destination, amount} = message.msg.decodedMsg.msg.swap;
+  const legacySwap = new LegacyBridgeSwap(`${message.tx.hash}-${message.idx}`);
+  const {msg, funds} = message.msg.decodedMsg;
+  const {destination} = msg.swap;
+  const [{amount, denom}] = funds;
 
-  swap.destination = destination;
-  swap.amount = BigInt(amount);
+  legacySwap.destination = destination;
+  legacySwap.amount = BigInt(amount);
+  legacySwap.denom = denom;
 
-  await swap.save();
+  await legacySwap.save();
 }

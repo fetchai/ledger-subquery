@@ -59,4 +59,5 @@ type LegacyBridgeSwap @entity {
   id: ID! # id field is always required and must look like this
   destination: String!
   amount: BigInt!
+  denom: String!
 }
