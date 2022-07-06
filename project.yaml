@@ -16,8 +16,7 @@ schema:
 
 network:
   chainId: fetchhub-4
-  # You must connect to an archive (non-pruned) node
-  endpoint: https://rpc-fetchhub.fetch.ai
+  endpoint: https://rpc-fetchhub.fetch.ai:443
   # Using a dictionary can massively improve indexing speed
   dictionary: https://api.subquery.network/sq/subquery/cosmos-fetch-ai-dictionary
 
