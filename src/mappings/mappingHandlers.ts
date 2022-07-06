@@ -93,7 +93,7 @@ export async function handleDistDelegatorClaim(message: CosmosMessage<DistDelega
 
 export async function handleLegacyBridgeSwap(message: CosmosMessage<LegacyBridgeSwapMsg>): Promise<void> {
   const swap = new LegacyBridgeSwap(`${message.tx.hash}-${message.idx}`);
-  const {destination, amount} = message.msg.decodedMsg.msg.legacyBridgeSwap;
+  const {destination, amount} = message.msg.decodedMsg.msg.swap;
 
   swap.destination = destination;
   swap.amount = BigInt(amount);

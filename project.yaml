@@ -19,7 +19,7 @@ network:
   # You must connect to an archive (non-pruned) node
   endpoint: https://rpc-fetchhub.fetch.ai
   # Using a dictionary can massively improve indexing speed
-#  dictionary: https://api.subquery.network/sq/subquery/cosmos-juno-dictionary
+  dictionary: https://api.subquery.network/sq/subquery/cosmos-fetch-ai-dictionary
 
 dataSources:
   - kind: cosmos/Runtime
