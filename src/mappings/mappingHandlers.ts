@@ -1,113 +1,154 @@
-import {ExecuteEvent, Message, Transaction, LegacyBridgeSwap, DistDelegatorClaim, GovProposalVote} from "../types";
 import {
-  CosmosEvent,
-  CosmosBlock,
-  CosmosMessage,
-  CosmosTransaction,
-} from "@subql/types-cosmos";
-import { GovProposalVoteOption } from "../types/enums";
+  Block,
+  DistDelegatorClaim,
+  ExecuteContractMessage,
+  ExecuteEvent,
+  GovProposalVote,
+  LegacyBridgeSwap,
+  Message,
+  Transaction,
+  TxStatus
+} from "../types";
+import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction,} from "@subql/types-cosmos";
+import {ExecuteContractMsg, DistDelegatorClaimMsg, GovProposalVoteMsg, LegacyBridgeSwapMsg} from "./types";
+
+// messageId returns the id of the message passed or
+// that of the message which generated the event passed.
+function messageId(msg: CosmosMessage | CosmosEvent): string {
+  return `${msg.tx.hash}-${msg.idx}`;
+}
 
 export async function handleBlock(block: CosmosBlock): Promise<void> {
-  // If you wanted to index each block in Cosmos (Juno), you could do that here
+  const {id, header: {chainId, height, time: timestamp}} = block.block;
+  const blockEntity = Block.create({
+    id,
+    chainId,
+    height: BigInt(height),
+    // TODO: convert to unix timestamp and store as Int.
+    timestamp,
+  });
+
+  await blockEntity.save()
 }
 
 export async function handleTransaction(tx: CosmosTransaction): Promise<void> {
-  const transactionRecord = Transaction.create({
+  let status = TxStatus.Error;
+  if (tx.tx.log) {
+    try {
+      JSON.parse(tx.tx.log)
+      status = TxStatus.Success;
+    } catch {
+      // NB: assume tx failed
+    }
+  }
+
+  const txEntity = Transaction.create({
     id: tx.hash,
-    blockHeight: BigInt(tx.block.block.header.height),
-    timestamp: tx.block.block.header.time,
+    blockId: tx.block.block.id,
     gasUsed: BigInt(Math.trunc(tx.tx.gasUsed)),
     gasWanted: BigInt(Math.trunc(tx.tx.gasWanted)),
-    // TODO:
-    // memo: tx.tx.
-    // fee: BigInt(Math.trunc(tx.)),
+    memo: tx.decodedTx.body.memo,
+    timeoutHeight: BigInt(tx.decodedTx.body.timeoutHeight.toString()),
+    fees: JSON.stringify(tx.decodedTx.authInfo.fee.amount),
+    log: tx.tx.log,
+    status,
   });
-  await transactionRecord.save();
+
+  await txEntity.save();
 }
 
 export async function handleMessage(msg: CosmosMessage): Promise<void> {
-  const messageRecord = Message.create({
-    id: `${msg.tx.hash}-${msg.idx}`,
-    blockHeight: BigInt(msg.block.block.header.height),
-    txHash: msg.tx.hash,
-    sender: msg.msg.decodedMsg.sender,
-    contract: msg.msg.decodedMsg.contract,
+  const msgEntity = Message.create({
+    id: messageId(msg),
+    json: JSON.stringify(msg.msg.decodedMsg),
+    transactionId: msg.tx.hash,
+    blockId: msg.block.block.id,
   });
-  await messageRecord.save();
+
+  await msgEntity.save();
 }
 
 export async function handleEvent(event: CosmosEvent): Promise<void> {
-  const eventRecord = ExecuteEvent.create({
-    id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
-    blockHeight: BigInt(event.block.block.header.height),
-    txHash: event.tx.hash,
-    contractAddress: event.event.attributes.find(attr => attr.key === '_contract_address').value
+  const eventEntity = ExecuteEvent.create({
+    id: `${messageId(event)}-${event.idx}`,
+    json: JSON.stringify(event.event),
+    log: event.log.log,
+    transactionId: event.tx.hash,
+    blockId: event.block.block.id,
   });
 
-  await eventRecord.save();
+  await eventEntity.save();
 }
 
-interface GovProposalVoteMsg {
-    proposalId: string;
-    voter: string;
-    option: GovProposalVoteOption;
+export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteContractMsg>): Promise<void> {
+  const id = messageId(msg);
+  const msgEntity = ExecuteContractMessage.create({
+    id,
+    sender: msg.msg.decodedMsg.sender,
+    contract: msg.msg.decodedMsg.contract,
+    funds: JSON.stringify(msg.msg.decodedMsg.funds),
+    messageId: id,
+    transactionId: msg.tx.hash,
+    blockId: msg.block.block.id,
+  });
+
+  // NB: no need to update msg ids in txs.
+
+  await msgEntity.save();
 }
 
-interface DistDelegatorClaimMsg {
-  delegatorAddress: string;
-  validatorAddress: string;
-}
-
-interface Coin {
-  amount: string,
-  denom: string,
-}
-
-interface LegacyBridgeSwapMsg {
-  contract: string,
-  sender: string,
-  msg: {
-    swap: {
-      destination: string,
-      amount: bigint,
-    },
-  },
-  funds: Coin[]
-}
-
-export async function handleGovProposalVote(message: CosmosMessage<GovProposalVoteMsg>): Promise<void> {
-  const vote = new GovProposalVote(`${message.tx.hash}-${message.idx}`);
-  const {proposalId, voter, option} = message.msg.decodedMsg;
-
-  vote.proposalId = proposalId;
-  vote.voterAddress = voter;
-  vote.option = option;
+export async function handleGovProposalVote(msg: CosmosMessage<GovProposalVoteMsg>): Promise<void> {
+  const id = messageId(msg);
+  const {proposalId, voter, option} = msg.msg.decodedMsg;
+  const vote = GovProposalVote.create({
+    id,
+    proposalId: proposalId,
+    voterAddress: voter,
+    option: option,
+    messageId: id,
+    transactionId: msg.tx.hash,
+    blockId: msg.block.block.id,
+  });
 
   await vote.save();
 }
 
-export async function handleDistDelegatorClaim(message: CosmosMessage<DistDelegatorClaimMsg>): Promise<void> {
-  const claim = new DistDelegatorClaim(`${message.tx.hash}-${message.idx}`);
-  const {delegatorAddress, validatorAddress} = message.msg.decodedMsg;
+export async function handleDistDelegatorClaim(msg: CosmosMessage<DistDelegatorClaimMsg>): Promise<void> {
 
-  claim.delegatorAddress = delegatorAddress;
-  claim.validatorAddress = validatorAddress;
+  const id = messageId(msg);
+  const {delegatorAddress, validatorAddress} = msg.msg.decodedMsg;
+  const claim = DistDelegatorClaim.create({
+    id,
+    delegatorAddress,
+    validatorAddress,
+    messageId: id,
+    transactionId: msg.tx.hash,
+    blockId: msg.block.block.id,
+  });
 
   // TODO:
   // claim.amount =
+  // claim.denom =
 
   await claim.save();
 }
 
-export async function handleLegacyBridgeSwap(message: CosmosMessage<LegacyBridgeSwapMsg>): Promise<void> {
-  const legacySwap = new LegacyBridgeSwap(`${message.tx.hash}-${message.idx}`);
-  const {msg, funds} = message.msg.decodedMsg;
-  const {destination} = msg.swap;
-  const [{amount, denom}] = funds;
+export async function handleLegacyBridgeSwap(msg: CosmosMessage<LegacyBridgeSwapMsg>): Promise<void> {
 
-  legacySwap.destination = destination;
-  legacySwap.amount = BigInt(amount);
-  legacySwap.denom = denom;
+  const id = messageId(msg);
+  const {
+    msg: {swap: {destination}},
+    funds: [{amount, denom}]
+  } = msg.msg.decodedMsg;
+  const legacySwap = LegacyBridgeSwap.create({
+    id,
+    destination,
+    amount: BigInt(amount),
+    denom,
+    messageId: id,
+    transactionId: msg.tx.hash,
+    blockId: msg.block.block.id,
+  });
 
   await legacySwap.save();
 }
