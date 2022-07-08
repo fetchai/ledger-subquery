@@ -18,14 +18,6 @@ type Block @entity {
   timestamp: String!
 }
 
-type ExecuteEvent @entity {
-  id: ID!
-  json: String!
-  log: String!
-  transaction: Transaction!
-  block: Block!
-}
-
 type Transaction @entity {
   id: ID!
   block: Block!
@@ -41,6 +33,14 @@ type Transaction @entity {
 type Message @entity {
   id: ID!
   json: String!
+  transaction: Transaction!
+  block: Block!
+}
+
+type Event @entity {
+  id: ID!
+  json: String!
+  log: String!
   transaction: Transaction!
   block: Block!
 }

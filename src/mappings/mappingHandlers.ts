@@ -2,7 +2,7 @@ import {
   Block,
   DistDelegatorClaim,
   ExecuteContractMessage,
-  ExecuteEvent,
+  Event,
   GovProposalVote,
   LegacyBridgeSwap,
   Message,
@@ -69,7 +69,7 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
 }
 
 export async function handleEvent(event: CosmosEvent): Promise<void> {
-  const eventEntity = ExecuteEvent.create({
+  const eventEntity = Event.create({
     id: `${messageId(event)}-${event.idx}`,
     json: JSON.stringify(event.event),
     log: event.log.log,
