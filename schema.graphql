@@ -16,6 +16,9 @@ type Block @entity {
   chainId: String! @index
   height: BigInt! @index
   timestamp: String!
+  transactions: [Transaction] @derivedFrom(field: "block")
+  messages: [Message] @derivedFrom(field: "block")
+  events: [Event] @derivedFrom(field: "block")
 }
 
 type Transaction @entity {
@@ -28,6 +31,7 @@ type Transaction @entity {
   status: TxStatus!
   log: String!
   timeoutHeight: BigInt @index
+  messages: [Message] @derivedFrom(field: "transaction")
 }
 
 type Message @entity {
