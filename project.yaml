@@ -37,6 +37,8 @@ dataSources:
           kind: cosmos/TransactionHandler
         - handler: handleMessage
           kind: cosmos/MessageHandler
+        - handler: handleEvent
+          kind: cosmos/EventHandler
         - handler: handleGovProposalVote
           kind: cosmos/MessageHandler
           filter:
