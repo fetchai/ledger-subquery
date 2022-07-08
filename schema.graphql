@@ -11,6 +11,11 @@ enum TxStatus {
   Error
 }
 
+type EventAttribute @jsonField {
+  key: String!
+  value: String!
+}
+
 type Block @entity {
   id: ID! # The block header hash
   chainId: String! @index
@@ -43,7 +48,8 @@ type Message @entity {
 
 type Event @entity {
   id: ID!
-  json: String!
+  type: String! @index
+  attributes: [EventAttribute]!
   log: String!
   transaction: Transaction!
   block: Block!

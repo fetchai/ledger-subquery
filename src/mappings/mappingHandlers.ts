@@ -2,6 +2,7 @@ import {
   Block,
   DistDelegatorClaim,
   ExecuteContractMessage,
+  EventAttribute,
   Event,
   GovProposalVote,
   LegacyBridgeSwap,
@@ -83,7 +84,8 @@ export async function handleEvent(event: CosmosEvent): Promise<void> {
 
   const eventEntity = Event.create({
     id: `${messageId(event)}-${event.idx}`,
-    json: JSON.stringify(event.event),
+    type: event.event.type,
+    attributes: event.event.attributes as EventAttribute[],
     log: event.log.log,
     transactionId: event.tx.hash,
     blockId: event.block.block.id,
