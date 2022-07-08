@@ -41,6 +41,7 @@ type Transaction @entity {
 
 type Message @entity {
   id: ID!
+  typeUrl: String! @index
   json: String!
   transaction: Transaction!
   block: Block!
