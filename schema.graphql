@@ -13,8 +13,8 @@ enum TxStatus {
 
 type Block @entity {
   id: ID! # The block header hash
-  chainId: String!
-  height: BigInt!
+  chainId: String! @index
+  height: BigInt! @index
   timestamp: String!
 }
 
@@ -27,7 +27,7 @@ type Transaction @entity {
   memo: String
   status: TxStatus!
   log: String!
-  timeoutHeight: BigInt
+  timeoutHeight: BigInt @index
 }
 
 type Message @entity {
@@ -47,8 +47,8 @@ type Event @entity {
 
 type ExecuteContractMessage @entity {
   id: ID!
-  sender: String!
-  contract: String!
+  sender: String! @index
+  contract: String! @index
   funds: String!
   message: Message!
   transaction: Transaction!
@@ -57,8 +57,8 @@ type ExecuteContractMessage @entity {
 
 type GovProposalVote @entity {
   id: ID!
-  proposalId: String!
-  voterAddress: String!
+  proposalId: String! @index
+  voterAddress: String! @index
   option: GovProposalVoteOption!
   message: Message!
   transaction: Transaction!
