@@ -8,6 +8,11 @@ node_modules/
 # Deployment
 k8s/
 
+# Python E2E Scripts
+Pipfile
+Pipfile.lock
+scripts/*.py
+
 # Git VCS
 .git/
 .gitignore
