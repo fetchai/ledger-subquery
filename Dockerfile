@@ -14,6 +14,10 @@ RUN yarn codegen && yarn build
 
 FROM onfinality/subql-node-cosmos:v0.2.0
 
+# add extra tools that are required
+ADD https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_amd64 /usr/local/bin/yq
+RUN chmod +x /usr/local/bin/yq
+
 WORKDIR /app
 
 # add the dependencies
@@ -23,3 +27,6 @@ RUN yarn install --frozen-lockfile --prod
 COPY --from=builder /app/dist /app/dist
 ADD proto /app/proto
 ADD project.yaml schema.graphql /app/
+ADD scripts/entrypoint.sh /
+
+ENTRYPOINT ["/entrypoint.sh"]
