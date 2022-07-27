@@ -1,0 +1,26 @@
+# Build
+dist/
+package-lock.json
+
+# Node Specific
+node_modules/
+
+# Git VCS
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# IDEs
+.idea/
+
+# MacOS Specific
+.DS_Store
+
+# Extra project files
+*.md
+LICENSE
+.nvmrc
