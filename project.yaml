@@ -33,29 +33,29 @@ dataSources:
       handlers:
         - handler: handleBlock
           kind: cosmos/BlockHandler
-        # - handler: handleTransaction
-        #   kind: cosmos/TransactionHandler
-        # - handler: handleMessage
-        #   kind: cosmos/MessageHandler
-        # - handler: handleEvent
-        #   kind: cosmos/EventHandler
-        # - handler: handleGovProposalVote
-        #   kind: cosmos/MessageHandler
-        #   filter:
-        #     type: "/cosmos.gov.v1beta1.MsgVote"
-        # - handler: handleDistDelegatorClaim
-        #   kind: cosmos/MessageHandler
-        #   filter:
-        #     type: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
-        # - handler: handleExecuteContractMessage
-        #   kind: cosmos/MessageHandler
-        #   filter:
-        #     type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-        # - handler: handleLegacyBridgeSwap
-        #   kind: cosmos/MessageHandler
-        #   filter:
-        #     type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-        #     # Filter to only messages with the vote function call
-        #     contractCall: "swap" # The name of the contract function that was called
-        #     values: # This is the specific smart contract that we are subscribing to
-        #       contract: "fetch1qxxlalvsdjd07p07y3rc5fu6ll8k4tmetpha8n"
+        - handler: handleTransaction
+          kind: cosmos/TransactionHandler
+        - handler: handleMessage
+          kind: cosmos/MessageHandler
+        - handler: handleEvent
+          kind: cosmos/EventHandler
+        - handler: handleGovProposalVote
+          kind: cosmos/MessageHandler
+          filter:
+            type: "/cosmos.gov.v1beta1.MsgVote"
+        - handler: handleDistDelegatorClaim
+          kind: cosmos/MessageHandler
+          filter:
+            type: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+        - handler: handleExecuteContractMessage
+          kind: cosmos/MessageHandler
+          filter:
+            type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+        - handler: handleLegacyBridgeSwap
+          kind: cosmos/MessageHandler
+          filter:
+            type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+            # Filter to only messages with the vote function call
+            contractCall: "swap" # The name of the contract function that was called
+            values: # This is the specific smart contract that we are subscribing to
+              contract: "fetch1qxxlalvsdjd07p07y3rc5fu6ll8k4tmetpha8n"
