@@ -101,3 +101,8 @@ type LegacyBridgeSwap @entity {
   transaction: Transaction!
   block: Block!
 }
+
+type Coin @jsonField {
+  denom: String!
+  amount: String!
+}
