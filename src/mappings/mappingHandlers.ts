@@ -10,6 +10,7 @@ import {
   Message,
   Transaction,
   TxStatus,
+  NativeTransferMsg,
   NativeTransfer
 } from "../types";
 import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction,} from "@subql/types-cosmos";
@@ -17,8 +18,7 @@ import {
     ExecuteContractMsg,
     DistDelegatorClaimMsg,
     GovProposalVoteMsg,
-    LegacyBridgeSwapMsg,
-    NativeTransferMsg
+    LegacyBridgeSwapMsg
 } from "./types";
 
 // messageId returns the id of the message passed or
