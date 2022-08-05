@@ -73,8 +73,8 @@ export async function handleTransaction(tx: CosmosTransaction): Promise<void> {
 }
 
 export async function handleNativeTransfer(msg: CosmosMessage<NativeTransferMsg>): Promise<void> {
-  logger.info(`[handleMessage] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`)
-  logger.debug(`[handleMessage] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+  logger.info(`[handleNativeTransfer] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`)
+  logger.debug(`[handleNativeTransfer] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
 
   const transferEntity = NativeTransfer.create({
     id: messageId(msg),
