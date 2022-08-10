@@ -26,6 +26,7 @@ db:
 
   name: subquery
   user: subquery
-  password: "mVsM2RcYnzMTUjWKT@9qKMT7mJXpDofeX.bFNnneCe"
+  gcpProject: fetch-ai-sandbox
+  gcpSecret: sandbox_subquery_postgres
 
   storageSize: 1Gi
