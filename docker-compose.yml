@@ -8,9 +8,11 @@ services:
     volumes:
       - .data/postgres:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: "subquery"
+      POSTGRES_PASSWORD: "subquery"
+      POSTGRES_DB: "subquery"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U subquery"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,9 +25,9 @@ services:
         condition: service_healthy
     restart: always
     environment:
-      DB_USER: postgres
-      DB_PASS: postgres
-      DB_DATABASE: postgres
+      DB_USER: "subquery"
+      DB_PASS: "subquery"
+      DB_DATABASE: "subquery"
       DB_HOST: postgres
       DB_PORT: 5432
       START_BLOCK: "7099815"
@@ -52,9 +54,9 @@ services:
         condition: service_started
     restart: always
     environment:
-      DB_USER: postgres
-      DB_PASS: postgres
-      DB_DATABASE: postgres
+      DB_USER: "subquery"
+      DB_PASS: "subquery"
+      DB_DATABASE: "subquery"
       DB_HOST: postgres
       DB_PORT: 5432
     command:
