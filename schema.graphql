@@ -58,12 +58,15 @@ type Event @entity {
 
 type ExecuteContractMessage @entity {
   id: ID!
-  sender: String! @index
-  contract: String! @index
-  funds: String!
-  message: Message!
-  transaction: Transaction!
-  block: Block!
+  timestamp: String! @index
+  from: String! @index
+  to: String @index
+  blockHeight: Int! @index
+  txIndex: Int!
+  msgIndex: Int!
+  method: String! @index
+  payload: String! # json payload for the contract
+  funds: [Coin!]
 }
 
 type GovProposalVote @entity {

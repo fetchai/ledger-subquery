@@ -126,14 +126,18 @@ export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteCon
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`)
   logger.debug(`[handleExecuteContractMessage] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
   const id = messageId(msg);
+  const method = Object.keys(msg.msg.decodedMsg.msg)[0];
   const msgEntity = ExecuteContractMessage.create({
-    id,
-    sender: msg.msg.decodedMsg.sender,
-    contract: msg.msg.decodedMsg.contract,
-    funds: JSON.stringify(msg.msg.decodedMsg.funds),
-    messageId: id,
-    transactionId: msg.tx.hash,
-    blockId: msg.block.block.id,
+    id: id,
+    timestamp: msg.block.block.header.time,
+    from: msg.msg.decodedMsg.sender,
+    method: method,
+    to: msg.msg.decodedMsg.msg[method]["destination"],
+    blockHeight: msg.block.block.header.height,
+    txIndex: msg.tx.idx,
+    msgIndex: msg.idx,
+    payload: msg.msg.decodedMsg.contract,
+    funds: msg.msg.decodedMsg.funds,
   });
 
   // NB: no need to update msg ids in txs.
