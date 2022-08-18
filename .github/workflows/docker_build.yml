@@ -16,6 +16,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Get image tag
         id: vars
@@ -56,4 +58,4 @@ jobs:
           file: ./docker/api.dockerfile
           push: true
           tags: |
-            gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag_name }}
+            gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.API_IMAGE_NAME }}:${{ steps.vars.outputs.tag_name }}
