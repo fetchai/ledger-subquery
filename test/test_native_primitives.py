@@ -1,16 +1,11 @@
 import json
-import re
-
-import base
 import time
 import unittest
 
+import base
 from helpers.field_enums import BlockFields, TxFields, MsgFields, EventFields
+from helpers.regexes import block_id_regex, tx_id_regex, msg_id_regex, event_id_regex
 
-block_id_regex = re.compile("^\w{64}$")
-tx_id_regex = block_id_regex
-msg_id_regex = re.compile("^\w{64}-\d+$")
-event_id_regex = msg_id_regex
 
 class TestNativePrimitives(base.Base):
     tables = ("blocks", "transactions", "messages", "events")
@@ -21,7 +16,13 @@ class TestNativePrimitives(base.Base):
     expected_blocks_len = 2
     expected_txs_len = 2
     expected_msgs_len = 2
-    expected_events_len = 2
+    expected_msg_type_url = '/cosmos.bank.v1beta1.MsgSend'
+    # NB: for each transfer:
+    #   - coin_received
+    #   - coin_spent
+    #   - message
+    #   - transfer
+    expected_events_len = 2 * 4
 
     @classmethod
     def setUpClass(cls):
@@ -52,23 +53,23 @@ class TestNativePrimitives(base.Base):
         blocks = self.db_cursor.execute(BlockFields.select_query()).fetchall()
         self.assertNotEqual(blocks, [], f"\nDBError: block table is empty - maybe indexer did not find an entry?")
 
-        self.assertGreaterEqual(len(blocks), self.__class__.expected_blocks_len)
+        self.assertGreaterEqual(len(blocks), self.expected_blocks_len)
         for block in blocks:
             # NB: continually increments while test run
-            # self.assertEqual(len(blocks), 2)
-            self.assertRegexpMatches(block[BlockFields.id.value], block_id_regex)
-            # TODO:
-            # self.assertEqual(block["chainId"], )
+            self.assertGreaterEqual(len(blocks), 2)
+            self.assertRegex(block[BlockFields.id.value], block_id_regex)
+            # TODO: expect proper chainId
+            self.assertNotEqual(block[BlockFields.chain_id.value], "")
             self.assertTrue(block[BlockFields.height.value] > 0)
             # TODO: assert timestamp within last 5 min
             # TODO: timestamp is a number
-            # self.assertTrue(block["timestamp"], )
+            self.assertNotEqual(block[BlockFields.timestamp.value], "")
 
     def test_transactions(self):
         txs = self.db_cursor.execute(TxFields.select_query()).fetchall()
-        self.assertEqual(len(txs), self.__class__.expected_txs_len)
+        self.assertEqual(len(txs), self.expected_txs_len)
         for tx in txs:
-            self.assertRegexpMatches(tx[TxFields.id.value], tx_id_regex)
+            self.assertRegex(tx[TxFields.id.value], tx_id_regex)
             self.assertTrue(len(tx[TxFields.block_id.value]) == 64)
             self.assertGreater(tx[TxFields.gas_used.value], 0)
             self.assertGreater(tx[TxFields.gas_wanted.value], 0)
@@ -83,25 +84,25 @@ class TestNativePrimitives(base.Base):
             self.assertNotEqual(tx[TxFields.log.value], "")
 
     def test_messages(self):
-        expected_type_url = '/cosmos.bank.v1beta1.MsgSend'
 
         msgs = self.db_cursor.execute(MsgFields.select_query()).fetchall()
-        self.assertEqual(len(msgs), self.__class__.expected_msgs_len)
+        self.assertEqual(len(msgs), self.expected_msgs_len)
         for msg in msgs:
-            self.assertRegexpMatches(msg[MsgFields.id.value], msg_id_regex)
-            self.assertRegexpMatches(msg[MsgFields.transaction_id.value], tx_id_regex)
+            self.assertRegex(msg[MsgFields.id.value], msg_id_regex)
+            self.assertRegex(msg[MsgFields.transaction_id.value], tx_id_regex)
             self.assertNotEqual(msg[MsgFields.block_id.value], "")
-            self.assertEqual(msg[MsgFields.type_url.value], expected_type_url)
+            self.assertEqual(msg[MsgFields.type_url.value], self.expected_msg_type_url)
             self.assertNotEqual(msg[MsgFields.json.value], "")
 
     def test_events(self):
         events = self.db_cursor.execute(EventFields.select_query()).fetchall()
-        self.assertEqual(len(events), self.__class__.expected_events_len)
+        self.assertEqual(len(events), self.expected_events_len)
         for event in events:
-            self.assertRegexpMatches(event[EventFields.id.value], event_id_regex)
-            self.assertRegexpMatches(event[EventFields.transaction_id.value], tx_id_regex)
+            self.assertRegex(event[EventFields.id.value], event_id_regex)
+            self.assertRegex(event[EventFields.transaction_id.value], tx_id_regex)
             self.assertNotEqual(event[EventFields.block_id.value], "")
-            # TODO: more assertions
+            self.assertNotEqual(event[EventFields.type.value], "")
+            # TODO: more assertions (?)
 
 
 if __name__ == '__main__':

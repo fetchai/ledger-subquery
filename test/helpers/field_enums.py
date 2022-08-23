@@ -54,10 +54,10 @@ class EventFields(NamedFields):
     id = 0
     transaction_id = 1
     block_id = 2
-    type_url = 3
-    json = 4
+    type = 3
+    attributes = 4
 
     @classmethod
-    def select_query(cls, table="messages"):
+    def select_query(cls, table="events"):
         return super().select_query(table)
 
