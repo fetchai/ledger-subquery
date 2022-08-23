@@ -197,6 +197,45 @@ class TestNativePrimitives(base.Base):
             self.assertNotEqual(event[EventFields.type.value], "")
             # TODO: more assertions (?)
 
+    def test_events_query(self):
+        query = gql("""
+            query {
+                events {
+                    nodes {
+                        id
+                        block {
+                            id
+                        }
+                        transaction {
+                            id
+                        }
+                        attributes
+                    }
+                }
+            }
+        """)
+
+        result = self.gql_client.execute(query)
+        events = result["events"]["nodes"]
+        self.assertIsNotNone(events)
+        self.assertEqual(len(events), self.expected_events_len)
+
+        for event in events:
+            self.assertRegex(event["id"], event_id_regex)
+            self.assertRegex(event["block"]["id"], block_id_regex)
+            self.assertRegex(event["transaction"]["id"], tx_id_regex)
+
+            attributes = event["attributes"]
+            self.assertGreater(len(attributes), 0)
+            for attr in attributes:
+                for field in ["key", "value"]:
+                    self.assertTrue(field in list(attr))
+                    self.assertNotEqual(attr[field], "")
+
+                # These three event types have an "amount" key/value
+                if attr["key"] in ["coin_spent", "coin_received", "transfer"]:
+                    self.assertEqual(attr["value"], f"{self.amount}{self.denom}")
+
 
 if __name__ == '__main__':
     unittest.main()
