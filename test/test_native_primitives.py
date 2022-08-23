@@ -1,4 +1,9 @@
 import json
+import re
+
+from gql import gql
+
+import base
 import time
 import unittest
 
@@ -64,6 +69,32 @@ class TestNativePrimitives(base.Base):
             # TODO: assert timestamp within last 5 min
             # TODO: timestamp is a number
             self.assertNotEqual(block[BlockFields.timestamp.value], "")
+
+    def test_blocks_query(self):
+        query = gql("""
+            query {
+                blocks {
+                    nodes {
+                        id,
+                        chainId,
+                        height,
+                        timestamp
+                    }
+                }
+            }
+        """)
+
+        result = self.gql_client.execute(query)
+        blocks = result["blocks"]["nodes"]
+        self.assertIsNotNone(blocks)
+        self.assertGreater(len(blocks), 0)
+
+        for block in blocks:
+            # TODO: expect proper chainId
+            self.assertNotEqual(block["chainId"], "")
+            self.assertGreater(int(block["height"]), 0)
+            # TODO: timestamp should be unix timestamp
+            self.assertNotEqual(block["timestamp"], "")
 
     def test_transactions(self):
         txs = self.db_cursor.execute(TxFields.select_query()).fetchall()
