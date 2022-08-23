@@ -114,6 +114,36 @@ class TestNativePrimitives(base.Base):
             self.assertEqual(tx[TxFields.status.value], "Success")
             self.assertNotEqual(tx[TxFields.log.value], "")
 
+    def test_transactions_query(self):
+        query = gql("""
+            query {
+                transactions {
+                    nodes {
+                        id
+                        block {
+                            id
+                        }
+                        gasUsed
+                        gasWanted
+                        # TODO:
+                        # fees
+                    }
+                }
+            }
+        """)
+
+        result = self.gql_client.execute(query)
+        txs = result["transactions"]["nodes"]
+        self.assertIsNotNone(txs)
+        self.assertEqual(len(txs), self.expected_txs_len)
+
+        for tx in txs:
+            self.assertRegex(tx["id"], tx_id_regex)
+            self.assertRegex(tx["block"]["id"], block_id_regex)
+            self.assertGreater(int(tx["gasUsed"]), 0)
+            self.assertGreater(int(tx["gasWanted"]), 0)
+            # TODO: fees
+
     def test_messages(self):
 
         msgs = self.db_cursor.execute(MsgFields.select_query()).fetchall()
