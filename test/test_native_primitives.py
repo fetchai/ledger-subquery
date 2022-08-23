@@ -155,6 +155,38 @@ class TestNativePrimitives(base.Base):
             self.assertEqual(msg[MsgFields.type_url.value], self.expected_msg_type_url)
             self.assertNotEqual(msg[MsgFields.json.value], "")
 
+    def test_messages_query(self):
+        query = gql("""
+            query {
+                messages {
+                    nodes {
+                        id
+                        block {
+                            id
+                        }
+                        transaction {
+                            id
+                        }
+                        typeUrl
+                        json
+                    }
+                }
+            }
+        """)
+
+        result = self.gql_client.execute(query)
+        msgs = result["messages"]["nodes"]
+        self.assertIsNotNone(msgs)
+        self.assertEqual(len(msgs), self.expected_msgs_len)
+
+        for msg in msgs:
+            self.assertRegex(msg["id"], msg_id_regex)
+            self.assertRegex(msg["block"]["id"], block_id_regex)
+            self.assertRegex(msg["transaction"]["id"], tx_id_regex)
+            self.assertEqual(msg["typeUrl"], self.expected_msg_type_url)
+            # TODO: assert on parsed json (?)
+            self.assertNotEqual(msg["json"], "")
+
     def test_events(self):
         events = self.db_cursor.execute(EventFields.select_query()).fetchall()
         self.assertEqual(len(events), self.expected_events_len)
