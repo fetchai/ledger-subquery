@@ -17,7 +17,7 @@ class TestNativeTransfer(base.Base):
         tx.wait_to_complete()
         self.assertTrue(tx.response.is_successful(), "\nTXError: transfer tx unsuccessful")
 
-        # primitive solution to wait for indexer to observe and handle new tx
+        # primitive solution to wait for indexer to observe and handle new tx - TODO: add robust solution
         time.sleep(5)
 
         native_transfer = self.db_cursor.execute(self.db_query).fetchone()
@@ -126,11 +126,11 @@ class TestNativeTransfer(base.Base):
             This provides {"toAddress":address, "fromAddress":address, "denom":denom, "amount":["amount":amount, "denom":denom]}
             which can be destructured for the values of interest.
             """
-            message_ = result["nativeTransfers"]["nodes"]
-            self.assertTrue(message_, "\nGQLError: No results returned from query")
-            self.assertEqual(message_[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
-            self.assertEqual(message_[0]["toAddress"], self.delegator_address, "\nGQLError: destination address does not match")
-            self.assertEqual(message_[0]["fromAddress"], self.validator_address, "\nGQLError: from address does not match")
+            message = result["nativeTransfers"]["nodes"]
+            self.assertTrue(message, "\nGQLError: No results returned from query")
+            self.assertEqual(message[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
+            self.assertEqual(message[0]["toAddress"], self.delegator_address, "\nGQLError: destination address does not match")
+            self.assertEqual(message[0]["fromAddress"], self.validator_address, "\nGQLError: from address does not match")
 
 
 if __name__ == '__main__':
