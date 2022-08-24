@@ -21,7 +21,7 @@ class TestDelegation(base.Base):
         claim_tx.wait_to_complete()
         self.assertTrue(claim_tx.response.is_successful(), "\nTXError: reward claim tx unsuccessful")
 
-        # primitive solution to wait for indexer to observe and handle new tx
+        # primitive solution to wait for indexer to observe and handle new tx - TODO: add robust solution
         time.sleep(5)
 
         row = self.db_cursor.execute(self.db_query).fetchone()
@@ -106,10 +106,10 @@ class TestDelegation(base.Base):
             This provides {"delegatorAddress":delegator address, "validatorAddress":validator option}
             which can be destructured for the values of interest.
             """
-            message_ = result["distDelegatorClaims"]["nodes"]
-            self.assertTrue(message_[0], "\nGQLError: No results returned from query")
-            self.assertEqual(message_[0]["delegatorAddress"], self.validator_address, "\nGQLError: delegation address does not match")
-            self.assertEqual(message_[0]["validatorAddress"], self.validator_operator_address, "\nGQLError: validator address does not match")
+            message = result["distDelegatorClaims"]["nodes"]
+            self.assertTrue(message[0], "\nGQLError: No results returned from query")
+            self.assertEqual(message[0]["delegatorAddress"], self.validator_address, "\nGQLError: delegation address does not match")
+            self.assertEqual(message[0]["validatorAddress"], self.validator_operator_address, "\nGQLError: validator address does not match")
 
 
 if __name__ == '__main__':
