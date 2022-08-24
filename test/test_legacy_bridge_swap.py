@@ -50,7 +50,7 @@ class TestContractSwap(base.Base):
             funds=str(self.amount)+self.denom
         )
 
-        # primitive solution to wait for indexer to observe and handle new tx
+        # primitive solution to wait for indexer to observe and handle new tx - TODO: add robust solution
         time.sleep(12)
 
         row = self.db_cursor.execute(self.db_query).fetchone()
@@ -88,7 +88,7 @@ class TestContractSwap(base.Base):
             """
         )
 
-        # query bridge swaps, filter by destination address - TODO: match correct address
+        # query bridge swaps, filter by destination address - TODO: match correct 'destination' address
         query_get_by_address = gql(
             """
             query getByAddress {
@@ -136,11 +136,11 @@ class TestContractSwap(base.Base):
             This provides {"destination":destination address, "amount":amount, "denom":denomination}
             which can be destructured for the values of interest.
             """
-            message_ = result["legacyBridgeSwaps"]["nodes"]
-            self.assertTrue(message_, "\nGQLError: No results returned from query")
-            self.assertEqual(message_[0]["destination"], self.validator_address, "\nGQLError: swap sender address does not match")
-            self.assertEqual(int(message_[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
-            self.assertEqual(message_[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
+            message = result["legacyBridgeSwaps"]["nodes"]
+            self.assertTrue(message, "\nGQLError: No results returned from query")
+            self.assertEqual(message[0]["destination"], self.validator_address, "\nGQLError: swap sender address does not match")
+            self.assertEqual(int(message[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
+            self.assertEqual(message[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
 
 
 if __name__ == '__main__':
