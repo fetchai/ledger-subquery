@@ -54,7 +54,7 @@ class TestGovernance(base.Base):
         tx.wait_to_complete()
         self.assertTrue(tx.response.is_successful(), "\nTXError: vote tx unsuccessful")
 
-        # primitive solution to wait for indexer to observe and handle new tx
+        # primitive solution to wait for indexer to observe and handle new tx - TODO: add robust solution
         time.sleep(5)
 
         row = self.db_cursor.execute(self.db_query).fetchone()
@@ -139,10 +139,10 @@ class TestGovernance(base.Base):
             This provides {"voterAddress":voter address, "option":voter option}
             which can be destructured for the values of interest.
             """
-            message_ = result["govProposalVotes"]["nodes"]
-            self.assertTrue(message_[0], "\nGQLError: No results returned from query")
-            self.assertEqual(message_[0]["voterAddress"], self.validator_address, "\nGQLError: voter address does not match")
-            self.assertEqual(message_[0]["option"], self.option, "\nGQLError: voter option does not match")
+            message = result["govProposalVotes"]["nodes"]
+            self.assertTrue(message[0], "\nGQLError: No results returned from query")
+            self.assertEqual(message[0]["voterAddress"], self.validator_address, "\nGQLError: voter address does not match")
+            self.assertEqual(message[0]["option"], self.option, "\nGQLError: voter option does not match")
 
 
 if __name__ == '__main__':
