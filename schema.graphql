@@ -121,3 +121,17 @@ type NativeTransfer @entity {
   transaction: Transaction!
   block: Block!
 }
+
+type Account @entity {
+  # id is the address
+  id: ID!
+  nativeBalances: [NativeBalance]! @derivedFrom(field: "account")
+}
+
+type NativeBalance @entity {
+  id: ID!
+  genesisBalance: BigInt!
+  balanceOffset: BigInt!
+  denom: String!
+  account: Account!
+}

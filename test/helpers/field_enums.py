@@ -130,3 +130,9 @@ class DistDelegatorClaimFields(NamedFields):
     @classmethod
     def select_query(cls, table="dist_delegator_claims"):
         return super().select_query(table)
+
+class NativeBalanceFields(NamedFields):
+    id = 0
+    address = 1
+    amount = 1
+    denom = 2
