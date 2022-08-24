@@ -58,7 +58,6 @@ type Event @entity {
 
 type ExecuteContractMessage @entity {
   id: ID!
-  sender: String! @index
   contract: String! @index
   method: String! @index
   funds: [Coin]!

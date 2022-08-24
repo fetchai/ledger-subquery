@@ -125,12 +125,11 @@ export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteCon
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`)
   logger.debug(`[handleExecuteContractMessage] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
   const id = messageId(msg);
-  const {funds, contract, msg: _msg, sender} = msg.msg.decodedMsg;
+  const {funds, contract, msg: _msg} = msg.msg.decodedMsg;
   const method = Object.keys(_msg)[0];
   const msgEntity = ExecuteContractMessage.create({
     id,
     method,
-    sender,
     contract,
     funds,
     messageId: id,
