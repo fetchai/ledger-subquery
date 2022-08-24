@@ -30,13 +30,12 @@ function messageId(msg: CosmosMessage | CosmosEvent): string {
 export async function handleBlock(block: CosmosBlock): Promise<void> {
   logger.info(`[handleBlock] (block.header.height): indexing block ${block.block.header.height}`)
 
-  const {id, header: {chainId, height, time}} = block.block;
-  const timestamp = new Date(time);
+  const {id, header: {chainId, height, time: timestamp}} = block.block;
   const blockEntity = Block.create({
     id,
     chainId,
     height: BigInt(height),
-    timestamp,
+    timestamp
   });
 
   await blockEntity.save()
@@ -126,18 +125,17 @@ export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteCon
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`)
   logger.debug(`[handleExecuteContractMessage] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
   const id = messageId(msg);
-  const method = Object.keys(msg.msg.decodedMsg.msg)[0];
+  const {funds, contract, msg: _msg, sender} = msg.msg.decodedMsg;
+  const method = Object.keys(_msg)[0];
   const msgEntity = ExecuteContractMessage.create({
-    id: id,
-    timestamp: msg.block.block.header.time,
-    from: msg.msg.decodedMsg.sender,
-    method: method,
-    to: msg.msg.decodedMsg.msg[method]["destination"],
-    blockHeight: msg.block.block.header.height,
-    txIndex: msg.tx.idx,
-    msgIndex: msg.idx,
-    payload: msg.msg.decodedMsg.contract,
-    funds: msg.msg.decodedMsg.funds,
+    id,
+    method,
+    sender,
+    contract,
+    funds,
+    messageId: id,
+    transactionId: msg.tx.hash,
+    blockId: msg.block.block.id
   });
 
   // NB: no need to update msg ids in txs.
