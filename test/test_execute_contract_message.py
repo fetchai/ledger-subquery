@@ -8,7 +8,6 @@ class TestContractExecution(BaseContract):
     denom = "atestfet"
     method = 'swap'
     db_query = 'SELECT contract, method, funds from execute_contract_messages'
-    contract = None
 
     def test_contract_execution(self):
         self.db_cursor.execute('TRUNCATE table execute_contract_messages')

@@ -19,12 +19,6 @@ FETCHD_GRPC_PORT = "9090"
 GRAPHQL_API_URL = "http://localhost:3000"
 
 
-def get_wallet(mnemonic):
-    seed_bytes = Bip39SeedGenerator(mnemonic).Generate()
-    bip44_def_ctx = Bip44.FromSeed(seed_bytes, Bip44Coins.COSMOS).DeriveDefaultPath()
-    return LocalWallet(PrivateKey(bip44_def_ctx.PrivateKey().Raw().ToBytes()))
-
-
 class Base(unittest.TestCase):
     delegator_wallet = None
     delegator_address = None
@@ -40,7 +34,6 @@ class Base(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        print("BASE SETUP")
         validator_mnemonic = "nut grocery slice visit barrel peanut tumble patch slim logic install evidence fiction shield rich brown around arrest fresh position animal butter forget cost"
         cls.validator_wallet = get_wallet(validator_mnemonic)
         cls.validator_address = str(cls.validator_wallet.address())
@@ -99,6 +92,10 @@ class Base(unittest.TestCase):
         return result
 
 
+def get_wallet(mnemonic):
+    seed_bytes = Bip39SeedGenerator(mnemonic).Generate()
+    bip44_def_ctx = Bip44.FromSeed(seed_bytes, Bip44Coins.COSMOS).DeriveDefaultPath()
+    return LocalWallet(PrivateKey(bip44_def_ctx.PrivateKey().Raw().ToBytes()))
 
 
 if __name__ == '__main__':

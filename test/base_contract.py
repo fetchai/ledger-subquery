@@ -3,11 +3,11 @@ from cosmpy.aerial.contract import LedgerContract
 
 
 class BaseContract(base.Base):
+    contract = None
 
     @classmethod
     def setUpClass(cls):
         super(BaseContract, cls).setUpClass()
-        print("CLASS SETUP")
         url = "https://github.com/fetchai/fetch-ethereum-bridge-v1/releases/download/v0.2.0/bridge.wasm"
         if not os.path.exists("../.contract"):
             os.mkdir("../.contract")
