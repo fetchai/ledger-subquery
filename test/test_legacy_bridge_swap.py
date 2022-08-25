@@ -95,7 +95,7 @@ class TestContractSwap(base.Base):
                 legacyBridgeSwaps (
                 filter: {
                     destination: {
-                        equalTo:\""""+str(self.contract.address)+"""\"
+                        equalTo:\""""+str(self.validator_address)+"""\"
                     }
                 }) {
                     nodes {
