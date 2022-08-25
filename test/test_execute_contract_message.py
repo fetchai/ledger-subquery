@@ -1,18 +1,19 @@
 from gql import gql
-import time, unittest, datetime as dt, json, test_legacy_bridge_swap
+from base_contract import BaseContract
+import time, unittest, datetime as dt, json
 
 
-class TestContractExecution(test_legacy_bridge_swap.TestContractSwap):
+class TestContractExecution(BaseContract):
     amount = '10000'
     denom = "atestfet"
     method = 'swap'
     db_query = 'SELECT contract, method, funds from execute_contract_messages'
+    contract = None
 
     def test_contract_execution(self):
         self.db_cursor.execute('TRUNCATE table execute_contract_messages')
         self.db.commit()
         self.assertFalse(self.db_cursor.execute(self.db_query).fetchall(), "\nDBError: table not empty after truncation")
-
         self.contract.execute(
             {self.method: {"destination": self.validator_address}},
             self.validator_wallet,
@@ -29,7 +30,7 @@ class TestContractExecution(test_legacy_bridge_swap.TestContractSwap):
         self.assertEqual(row[2][0]["amount"], self.amount, "\nDBError: fund amount does not match")
         self.assertEqual(row[2][0]["denom"], self.denom, "\nDBError: fund denomination does not match")
 
-    def test_retrieve_contract_execution(self):  # As of now, this test depends on the execution of the previous test in this class.
+    def test_contract_execution_retrieval(self):  # As of now, this test depends on the execution of the previous test in this class.
         result = self.get_latest_block_timestamp()
         time_before = result - dt.timedelta(minutes=5)  # create a second timestamp for five minutes before
         time_before = json.dumps(time_before.isoformat())  # convert both to JSON ISO format
@@ -86,13 +87,12 @@ class TestContractExecution(test_legacy_bridge_swap.TestContractSwap):
             This provides {"contract":contract address, "method":method, "funds":funds}
             which can be destructured for the values of interest.
             """
-            message_ = result["executeContractMessages"]["nodes"]
-            self.assertTrue(message_, "\nGQLError: No results returned from query")
-            # TODO: assert and reference correct contract address
-            # self.assertEqual(message_[0]["contract"], self.contract.address, "\nGQLError: contract address does not match")
-            self.assertEqual(message_[0]["method"], self.method, "\nGQLError: contract method does not match")
-            self.assertEqual(int(message_[0]["funds"][0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
-            self.assertEqual(message_[0]["funds"][0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
+            message = result["executeContractMessages"]["nodes"]
+            self.assertTrue(message, "\nGQLError: No results returned from query")
+            self.assertEqual(message[0]["contract"], self.contract.address, "\nGQLError: contract address does not match")
+            self.assertEqual(message[0]["method"], self.method, "\nGQLError: contract method does not match")
+            self.assertEqual(int(message[0]["funds"][0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
+            self.assertEqual(message[0]["funds"][0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
 
 
 if __name__ == '__main__':
