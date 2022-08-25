@@ -68,7 +68,7 @@ class TestContractSwap(base.Base):
         # query legacy bridge swaps, query related block and filter by timestamp, returning all within last five minutes
         query_get_by_range = gql(
             """
-            query blocker {
+            query getByRange {
                 legacyBridgeSwaps (
                 filter: {
                     block: {
@@ -88,7 +88,7 @@ class TestContractSwap(base.Base):
             """
         )
 
-        # query bridge swaps, filter by destination address - TODO: match correct 'destination' address
+        # query bridge swaps, filter by destination address
         query_get_by_address = gql(
             """
             query getByAddress {
