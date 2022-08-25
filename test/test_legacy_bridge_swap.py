@@ -138,7 +138,7 @@ class TestContractSwap(base.Base):
             """
             message = result["legacyBridgeSwaps"]["nodes"]
             self.assertTrue(message, "\nGQLError: No results returned from query")
-            self.assertEqual(message[0]["destination"], self.validator_address, "\nGQLError: swap sender address does not match")
+            self.assertEqual(message[0]["destination"], self.validator_address, "\nGQLError: swap destination address does not match")
             self.assertEqual(int(message[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
             self.assertEqual(message[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
 
