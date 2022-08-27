@@ -9,19 +9,21 @@ class TestContractExecution(BaseContract):
     method = 'swap'
     db_query = 'SELECT contract, method, funds from execute_contract_messages'
 
-    def test_contract_execution(self):
-        self.db_cursor.execute('TRUNCATE table execute_contract_messages')
-        self.db.commit()
-        self.assertFalse(self.db_cursor.execute(self.db_query).fetchall(), "\nDBError: table not empty after truncation")
-        self.contract.execute(
-            {self.method: {"destination": self.validator_address}},
-            self.validator_wallet,
-            funds=str(self.amount)+self.denom
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.clean_db({"execute_contract_messages"})
+
+        cls.contract.execute(
+            {cls.method: {"destination": cls.validator_address}},
+            cls.validator_wallet,
+            funds=str(cls.amount) + cls.denom
         )
 
         # primitive solution to wait for indexer to observe and handle new tx - TODO: substitute with more robust solution
         time.sleep(12)
 
+    def test_contract_execution(self):
         row = self.db_cursor.execute(self.db_query).fetchone()
         self.assertIsNotNone(row, "\nDBError: table is empty - maybe indexer did not find an entry?")
         self.assertEqual(row[0], self.contract.address, "\nDBError: contract address does not match")

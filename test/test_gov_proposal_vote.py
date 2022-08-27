@@ -14,7 +14,11 @@ class TestGovernance(base.Base):
     option = 'YES'
     db_query = 'SELECT voter_address, option from gov_proposal_votes'
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.clean_db({"gov_proposal_votes"})
+
         proposal_content = any_pb2.Any()
         proposal_content.Pack(gov_pb2.TextProposal(
             title="Test Proposal",
@@ -24,32 +28,28 @@ class TestGovernance(base.Base):
         msg = gov_tx.MsgSubmitProposal(
             content=proposal_content,
             initial_deposit=[coin_pb2.Coin(
-                denom=self.denom,
-                amount=self.amount
+                denom=cls.denom,
+                amount=cls.amount
             )],
-            proposer=self.validator_address
+            proposer=cls.validator_address
         )
 
         tx = Transaction()
         tx.add_message(msg)
 
-        tx = utils.prepare_and_broadcast_basic_transaction(self.ledger_client, tx, self.validator_wallet)
+        tx = utils.prepare_and_broadcast_basic_transaction(cls.ledger_client, tx, cls.validator_wallet)
         tx.wait_to_complete()
-        self.assertTrue(tx.response.is_successful(), "\nTXError: governance proposal tx unsuccessful")
+        cls.assertTrue(tx.response.is_successful(), "\nTXError: governance proposal tx unsuccessful")
 
-        self.msg = gov_tx.MsgVote(
+        cls.msg = gov_tx.MsgVote(
             proposal_id=1,
-            voter=self.validator_address,
+            voter=cls.validator_address,
             option=gov_pb2.VoteOption.VOTE_OPTION_YES
         )
-        self.vote_tx = Transaction()
-        self.vote_tx.add_message(self.msg)
+        cls.vote_tx = Transaction()
+        cls.vote_tx.add_message(cls.msg)
 
     def test_proposal_vote(self):
-        self.db_cursor.execute('TRUNCATE table gov_proposal_votes')
-        self.db.commit()
-        self.assertFalse(self.db_cursor.execute(self.db_query).fetchall(), "\nDBError: table not empty after truncation")
-
         tx = utils.prepare_and_broadcast_basic_transaction(self.ledger_client, self.vote_tx, self.validator_wallet)
         tx.wait_to_complete()
         self.assertTrue(tx.response.is_successful(), "\nTXError: vote tx unsuccessful")
