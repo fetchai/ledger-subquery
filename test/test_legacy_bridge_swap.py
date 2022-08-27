@@ -1,13 +1,13 @@
-from cosmpy.aerial.contract import LedgerContract
 from gql import gql
 from base_contract import BaseContract
 import time, unittest, decimal, datetime as dt, json
+
+from helpers.field_enums import LegacyBridgeSwapFields
 
 
 class TestContractSwap(BaseContract):
     amount = decimal.Decimal(10000)
     denom = "atestfet"
-    db_query = 'SELECT destination, amount, denom from legacy_bridge_swaps'\
 
     @classmethod
     def setUpClass(cls):

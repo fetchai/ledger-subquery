@@ -5,6 +5,7 @@ from cosmpy.aerial.client import utils
 from google.protobuf import any_pb2
 from gql import gql
 import base, json, time, unittest, datetime as dt
+from helpers.field_enums import GovProposalVoteFields
 
 
 class TestGovernance(base.Base):
@@ -12,7 +13,6 @@ class TestGovernance(base.Base):
     denom = "atestfet"
     amount = "10000000"
     option = 'YES'
-    db_query = 'SELECT voter_address, option from gov_proposal_votes'
 
     @classmethod
     def setUpClass(cls):
@@ -57,10 +57,10 @@ class TestGovernance(base.Base):
         # primitive solution to wait for indexer to observe and handle new tx - TODO: add robust solution
         time.sleep(5)
 
-        row = self.db_cursor.execute(self.db_query).fetchone()
-        self.assertIsNotNone(row, "\nDBError: table is empty - maybe indexer did not find an entry?")
-        self.assertEqual(row[0], self.validator_address, "\nDBError: voter address does not match")
-        self.assertEqual(row[1], self.option, "\nDBError: voter option does not match")
+        vote = self.db_cursor.execute(GovProposalVoteFields.select_query()).fetchone()
+        self.assertIsNotNone(vote, "\nDBError: table is empty - maybe indexer did not find an entry?")
+        self.assertEqual(vote[GovProposalVoteFields.voter_address.value], self.validator_address, "\nDBError: voter address does not match")
+        self.assertEqual(vote[GovProposalVoteFields.option.value], self.option, "\nDBError: voter option does not match")
 
     def test_retrieve_vote(self):  # As of now, this test depends on the execution of the previous test in this class.
         result = self.get_latest_block_timestamp()

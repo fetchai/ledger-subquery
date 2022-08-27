@@ -1,12 +1,13 @@
 from gql import gql
 import time, unittest, base, dateutil.parser as dp, datetime as dt, json
 
+from helpers.field_enums import NativeTransferFields
+
 
 class TestNativeTransfer(base.Base):
     amount = 5000000
     denom = "atestfet"
     msg_type = '/cosmos.bank.v1beta1.MsgSend'
-    db_query = 'SELECT amounts, denom, to_address, from_address from native_transfers'
 
     @classmethod
     def setUpClass(cls):
@@ -23,10 +24,10 @@ class TestNativeTransfer(base.Base):
     def test_native_transfer(self):
         native_transfer = self.db_cursor.execute(NativeTransferFields.select_query()).fetchone()
         self.assertIsNotNone(native_transfer, "\nDBError: table is empty - maybe indexer did not find an entry?")
-        self.assertEqual(native_transfer[0][0]['amount'], str(self.amount), "\nDBError: fund amount does not match")
-        self.assertEqual(native_transfer[1], self.denom, "\nDBError: fund denomination does not match")
-        self.assertEqual(native_transfer[2], self.delegator_address, "\nDBError: swap sender address does not match")
-        self.assertEqual(native_transfer[3], self.validator_address, "\nDBError: sender address does not match")
+        self.assertEqual(native_transfer[NativeTransferFields.amounts.value][0]['amount'], str(self.amount), "\nDBError: fund amount does not match")
+        self.assertEqual(native_transfer[NativeTransferFields.denom.value], self.denom, "\nDBError: fund denomination does not match")
+        self.assertEqual(native_transfer[NativeTransferFields.to_address.value], self.delegator_address, "\nDBError: swap sender address does not match")
+        self.assertEqual(native_transfer[NativeTransferFields.from_address.value], self.validator_address, "\nDBError: sender address does not match")
 
     def test_retrieve_transfer(self):  # As of now, this test depends on the execution of the previous test in this class.
         result = self.get_latest_block_timestamp()

@@ -2,10 +2,11 @@ import base
 from gql import gql
 import time, unittest, datetime as dt, json
 
+from helpers.field_enums import DistDelegatorClaimFields
+
 
 class TestDelegation(base.Base):
     amount = 100
-    db_query = 'SELECT delegator_address, validator_address from dist_delegator_claims'
 
     @classmethod
     def setUpClass(cls):
@@ -26,8 +27,8 @@ class TestDelegation(base.Base):
     def test_claim_rewards(self):
         row = self.db_cursor.execute(DistDelegatorClaimFields.select_query()).fetchone()
         self.assertIsNotNone(row, "\nDBError: table is empty - maybe indexer did not find an entry?")
-        self.assertEqual(row[0], self.validator_address, "\nDBError: delegation address does not match")
-        self.assertEqual(row[1], self.validator_operator_address, "\nDBError: delegation address does not match")
+        self.assertEqual(row[DistDelegatorClaimFields.delegator_address.value], self.validator_address, "\nDBError: delegation address does not match")
+        self.assertEqual(row[DistDelegatorClaimFields.validator_address.value], self.validator_operator_address, "\nDBError: delegation address does not match")
 
     def test_retrieve_claim(self):  # As of now, this test depends on the execution of the previous test in this class.
         result = self.get_latest_block_timestamp()

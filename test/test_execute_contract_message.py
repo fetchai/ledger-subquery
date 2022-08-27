@@ -2,12 +2,13 @@ from gql import gql
 from base_contract import BaseContract
 import time, unittest, datetime as dt, json
 
+from helpers.field_enums import ExecuteContractMessageFields
+
 
 class TestContractExecution(BaseContract):
     amount = '10000'
     denom = "atestfet"
     method = 'swap'
-    db_query = 'SELECT contract, method, funds from execute_contract_messages'
 
     @classmethod
     def setUpClass(cls):
@@ -24,12 +25,12 @@ class TestContractExecution(BaseContract):
         time.sleep(12)
 
     def test_contract_execution(self):
-        row = self.db_cursor.execute(self.db_query).fetchone()
-        self.assertIsNotNone(row, "\nDBError: table is empty - maybe indexer did not find an entry?")
-        self.assertEqual(row[0], self.contract.address, "\nDBError: contract address does not match")
-        self.assertEqual(row[1], self.method, "\nDBError: contract method does not match")
-        self.assertEqual(row[2][0]["amount"], self.amount, "\nDBError: fund amount does not match")
-        self.assertEqual(row[2][0]["denom"], self.denom, "\nDBError: fund denomination does not match")
+        execMsgs = self.db_cursor.execute(ExecuteContractMessageFields.select_query()).fetchone()
+        self.assertIsNotNone(execMsgs, "\nDBError: table is empty - maybe indexer did not find an entry?")
+        self.assertEqual(execMsgs[ExecuteContractMessageFields.contract.value], self.contract.address, "\nDBError: contract address does not match")
+        self.assertEqual(execMsgs[ExecuteContractMessageFields.method.value], self.method, "\nDBError: contract method does not match")
+        self.assertEqual(execMsgs[ExecuteContractMessageFields.funds.value][0]["amount"], self.amount, "\nDBError: fund amount does not match")
+        self.assertEqual(execMsgs[ExecuteContractMessageFields.funds.value][0]["denom"], self.denom, "\nDBError: fund denomination does not match")
 
     def test_contract_execution_retrieval(self):  # As of now, this test depends on the execution of the previous test in this class.
         result = self.get_latest_block_timestamp()
