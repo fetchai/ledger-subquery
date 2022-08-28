@@ -63,10 +63,10 @@ class TestGovernance(base.Base):
         self.assertEqual(vote[GovProposalVoteFields.option.value], self.option, "\nDBError: voter option does not match")
 
     def test_retrieve_vote(self):  # As of now, this test depends on the execution of the previous test in this class.
-        result = self.get_latest_block_timestamp()
-        time_before = result - dt.timedelta(minutes=5)  # create a second timestamp for five minutes before
-        time_before = json.dumps(time_before.isoformat())  # convert both to JSON ISO format
-        time_latest = json.dumps(result.isoformat())
+        latest_block_timestamp = self.get_latest_block_timestamp()
+        # create a second timestamp for five minutes before
+        min_timestamp = (latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
+        max_timestamp = latest_block_timestamp.isoformat()
 
         # query governance votes, query related block and filter by timestamp, returning all within last five minutes
         query_by_timestamp = gql(
@@ -76,8 +76,8 @@ class TestGovernance(base.Base):
                 filter: {
                     block: {
                     timestamp: {
-                        greaterThanOrEqualTo: """ + time_before + """,
-                                lessThanOrEqualTo: """ + time_latest + """
+                        greaterThanOrEqualTo: """ + json.dumps(min_timestamp) + """,
+                                lessThanOrEqualTo: """ + json.dumps(max_timestamp) + """
                             }
                         }
                     }) {
@@ -131,18 +131,18 @@ class TestGovernance(base.Base):
             """
         )
 
-        queries = [query_by_timestamp, query_by_voter, query_by_option]
-        for query in queries:
+        for query in [query_by_timestamp, query_by_voter, query_by_option]:
             result = self.gql_client.execute(query)
             """
             ["govProposalVotes"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
             This provides {"voterAddress":voter address, "option":voter option}
             which can be destructured for the values of interest.
             """
-            message = result["govProposalVotes"]["nodes"]
-            self.assertTrue(message[0], "\nGQLError: No results returned from query")
-            self.assertEqual(message[0]["voterAddress"], self.validator_address, "\nGQLError: voter address does not match")
-            self.assertEqual(message[0]["option"], self.option, "\nGQLError: voter option does not match")
+            votes = result["govProposalVotes"]["nodes"]
+            self.assertTrue(votes[0], "\nGQLError: No results returned from query")
+            self.assertEqual(votes[0]["voterAddress"], self.validator_address,
+                             "\nGQLError: voter address does not match")
+            self.assertEqual(votes[0]["option"], self.option, "\nGQLError: voter option does not match")
 
 
 if __name__ == '__main__':

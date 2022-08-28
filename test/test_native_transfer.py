@@ -128,11 +128,11 @@ class TestNativeTransfer(base.Base):
             This provides {"toAddress":address, "fromAddress":address, "denom":denom, "amount":["amount":amount, "denom":denom]}
             which can be destructured for the values of interest.
             """
-            message = result["nativeTransfers"]["nodes"]
-            self.assertTrue(message, "\nGQLError: No results returned from query")
-            self.assertEqual(message[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
-            self.assertEqual(message[0]["toAddress"], self.delegator_address, "\nGQLError: destination address does not match")
-            self.assertEqual(message[0]["fromAddress"], self.validator_address, "\nGQLError: from address does not match")
+            native_transfers = result["nativeTransfers"]["nodes"]
+            self.assertNotEqual(native_transfers, [], "\nGQLError: No results returned from query")
+            self.assertEqual(native_transfers[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
+            self.assertEqual(native_transfers[0]["toAddress"], self.delegator_address, "\nGQLError: destination address does not match")
+            self.assertEqual(native_transfers[0]["fromAddress"], self.validator_address, "\nGQLError: from address does not match")
 
 
 if __name__ == '__main__':

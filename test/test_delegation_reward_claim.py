@@ -31,10 +31,10 @@ class TestDelegation(base.Base):
         self.assertEqual(row[DistDelegatorClaimFields.validator_address.value], self.validator_operator_address, "\nDBError: delegation address does not match")
 
     def test_retrieve_claim(self):  # As of now, this test depends on the execution of the previous test in this class.
-        result = self.get_latest_block_timestamp()
-        time_before = result - dt.timedelta(minutes=5)  # create a second timestamp for five minutes before
-        time_before = json.dumps(time_before.isoformat())  # convert both to JSON ISO format
-        time_latest = json.dumps(result.isoformat())
+        latest_block_timestamp = self.get_latest_block_timestamp()
+        # create a second timestamp for five minutes before
+        min_timestamp = (latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
+        max_timestamp = latest_block_timestamp.isoformat()
 
         # query governance votes, query related block and filter by timestamp, returning all within last five minutes
         query_by_timestamp = gql(
@@ -44,8 +44,8 @@ class TestDelegation(base.Base):
                 filter: {
                     block: {
                     timestamp: {
-                        greaterThanOrEqualTo: """ + time_before + """,
-                                lessThanOrEqualTo: """ + time_latest + """
+                        greaterThanOrEqualTo: """ + json.dumps(min_timestamp) + """,
+                                lessThanOrEqualTo: """ + json.dumps(max_timestamp) + """
                             }
                         }
                     }) {

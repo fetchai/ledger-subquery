@@ -107,11 +107,11 @@ class TestContractSwap(BaseContract):
             This provides {"destination":destination address, "amount":amount, "denom":denomination}
             which can be destructured for the values of interest.
             """
-            message = result["legacyBridgeSwaps"]["nodes"]
-            self.assertTrue(message, "\nGQLError: No results returned from query")
-            self.assertEqual(message[0]["destination"], self.validator_address, "\nGQLError: swap destination address does not match")
-            self.assertEqual(int(message[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
-            self.assertEqual(message[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
+            swaps = result["legacyBridgeSwaps"]["nodes"]
+            self.assertNotEqual(swaps, [], "\nGQLError: No results returned from query")
+            self.assertEqual(swaps[0]["destination"], self.validator_address, "\nGQLError: swap destination address does not match")
+            self.assertEqual(int(swaps[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
+            self.assertEqual(swaps[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
 
 
 if __name__ == '__main__':
