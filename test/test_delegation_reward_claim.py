@@ -66,7 +66,7 @@ class TestDelegation(base.Base):
                 distDelegatorClaims (
                 filter: {
                     validatorAddress: { 
-                        equalTo:\""""+str(self.validator_operator_address)+"""\"
+                        equalTo:\"""" + str(self.validator_operator_address) + """\"
                     }
                 }) {
                     nodes {
@@ -86,7 +86,7 @@ class TestDelegation(base.Base):
                 distDelegatorClaims (
                 filter: {
                     delegatorAddress: { 
-                        equalTo:\""""+str(self.validator_address)+"""\"
+                        equalTo:\"""" + str(self.validator_address) + """\"
                     }
                 }) {
                     nodes {

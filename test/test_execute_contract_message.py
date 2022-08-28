@@ -68,7 +68,7 @@ class TestContractExecution(BaseContract):
                 executeContractMessages (
                 filter: {
                     method: {
-                        equalTo:\""""+str(self.method)+"""\"
+                        equalTo:\"""" + str(self.method) + """\"
                     }
                 }) {
                     nodes {

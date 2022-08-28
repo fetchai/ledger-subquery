@@ -98,7 +98,7 @@ class TestGovernance(base.Base):
                 govProposalVotes (
                 filter: {
                     voterAddress: {
-                        equalTo: \""""+str(self.validator_address)+"""\"
+                        equalTo: \"""" + str(self.validator_address) + """\"
                     }
                 }) {
                     nodes {
@@ -118,7 +118,7 @@ class TestGovernance(base.Base):
                 govProposalVotes (
                 filter: {
                     option: {
-                        equalTo: """+self.option+"""
+                        equalTo: """ + self.option + """
                     }
                 }) {
                     nodes {
