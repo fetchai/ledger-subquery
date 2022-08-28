@@ -1,10 +1,15 @@
-from cosmpy.aerial.tx import Transaction
-from cosmpy.protos.cosmos.gov.v1beta1 import tx_pb2 as gov_tx, gov_pb2
-from cosmpy.protos.cosmos.base.v1beta1 import coin_pb2
 from cosmpy.aerial.client import utils
+from cosmpy.aerial.tx import Transaction
+from cosmpy.protos.cosmos.base.v1beta1 import coin_pb2
+from cosmpy.protos.cosmos.gov.v1beta1 import tx_pb2 as gov_tx, gov_pb2
 from google.protobuf import any_pb2
 from gql import gql
-import base, json, time, unittest, datetime as dt
+
+import base
+import datetime as dt
+import json
+import time
+import unittest
 from helpers.field_enums import GovProposalVoteFields
 
 

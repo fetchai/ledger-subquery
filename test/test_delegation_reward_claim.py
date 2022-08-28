@@ -1,7 +1,11 @@
-import base
-from gql import gql
-import time, unittest, datetime as dt, json
+import datetime as dt
+import json
+import time
+import unittest
 
+from gql import gql
+
+import base
 from helpers.field_enums import DistDelegatorClaimFields
 
 

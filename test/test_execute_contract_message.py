@@ -1,7 +1,11 @@
-from gql import gql
-from base_contract import BaseContract
-import time, unittest, datetime as dt, json
+import datetime as dt
+import json
+import time
+import unittest
 
+from gql import gql
+
+from base_contract import BaseContract
 from helpers.field_enums import ExecuteContractMessageFields
 
 

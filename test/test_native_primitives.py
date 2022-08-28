@@ -1,9 +1,7 @@
 import json
-import re
 
 from gql import gql
 
-import base
 import time
 import unittest
 

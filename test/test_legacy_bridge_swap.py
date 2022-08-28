@@ -1,7 +1,12 @@
-from gql import gql
-from base_contract import BaseContract
-import time, unittest, decimal, datetime as dt, json
+import datetime as dt
+import decimal
+import json
+import time
+import unittest
 
+from gql import gql
+
+from base_contract import BaseContract
 from helpers.field_enums import LegacyBridgeSwapFields
 
 
