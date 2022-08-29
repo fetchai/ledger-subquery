@@ -1,6 +1,7 @@
 import datetime as dt
 import decimal
 import json
+import re
 import time
 import unittest
 
@@ -8,6 +9,8 @@ from gql import gql
 
 from base_contract import BaseContract
 from helpers.field_enums import LegacyBridgeSwapFields
+from helpers.graphql import test_filtered_query
+from helpers.regexes import msg_id_regex, tx_id_regex, block_id_regex
 
 
 class TestContractSwap(BaseContract):
@@ -41,81 +44,63 @@ class TestContractSwap(BaseContract):
         min_timestamp = (latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
         max_timestamp = latest_block_timestamp.isoformat()
 
-        # query legacy bridge swaps, query related block and filter by timestamp, returning all within last five minutes
-        query_get_by_range = gql(
-            """
-            query getByRange {
-                legacyBridgeSwaps (
-                filter: {
-                    block: {
-                    timestamp: {
-                        greaterThanOrEqualTo: """ + time_before + """,
-                                lessThanOrEqualTo: """ + time_latest + """
-                            }
-                        }
-                    }) {
-                    nodes {
-                        destination
-                        amount
-                        denom
-                    }
-                }
+        legacy_bridge_swap_nodes = """
+            {
+                id
+                destination
+                amount
+                denom
+                executeContractMessage { id }
+                message { id }
+                transaction { id }
+                block { id }
             }
             """
-        )
+
+        def filtered_legacy_bridge_swap_query(_filter):
+            return test_filtered_query("legacyBridgeSwaps", _filter, legacy_bridge_swap_nodes)
+
+        # query legacy bridge swaps, query related block and filter by timestamp, returning all within last five minutes
+        filter_by_block_timestamp_range = filtered_legacy_bridge_swap_query({
+            "block": {
+                "timestamp": {
+                    "greaterThanOrEqualTo": min_timestamp,
+                    "lessThanOrEqualTo": max_timestamp
+                }
+            }
+        })
 
         # query bridge swaps, filter by destination address
-        query_get_by_address = gql(
-            """
-            query getByAddress {
-                legacyBridgeSwaps (
-                filter: {
-                    destination: {
-                        equalTo:\""""+str(self.validator_address)+"""\"
-                    }
-                }) {
-                    nodes {
-                        destination
-                        amount
-                        denom
-                    }
-                }
+        filter_by_destination_equals = filtered_legacy_bridge_swap_query({
+            "destination": {
+                "equalTo": str(self.validator_address)
             }
-            """
-        )
+        })
 
         # query legacy bridge swaps, filter by amount
-        query_get_by_amount = gql(
-            """
-            query getByAmount {
-                legacyBridgeSwaps (
-                filter: {
-                    amount: {
-                        greaterThan: "1"
-                    }
-                }) {
-                    nodes {
-                        destination
-                        amount
-                        denom
-                    }
-                }
+        filter_by_amount_above = filtered_legacy_bridge_swap_query({
+            "amount": {
+                "greaterThan": "1"
             }
-            """
-        )
+        })
 
-        for query in [query_get_by_range, query_get_by_amount, query_get_by_address]:
-            result = self.gql_client.execute(query)
-            """
-            ["legacyBridgeSwaps"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
-            This provides {"destination":destination address, "amount":amount, "denom":denomination}
-            which can be destructured for the values of interest.
-            """
-            swaps = result["legacyBridgeSwaps"]["nodes"]
-            self.assertNotEqual(swaps, [], "\nGQLError: No results returned from query")
-            self.assertEqual(swaps[0]["destination"], self.validator_address, "\nGQLError: swap destination address does not match")
-            self.assertEqual(int(swaps[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
-            self.assertEqual(swaps[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
+        for (name, query) in [
+            ("by block timestamp range", filter_by_block_timestamp_range),
+            ("by amount above", filter_by_amount_above),
+            ("by destination equals", filter_by_destination_equals)
+        ]:
+            with self.subTest(name):
+                result = self.gql_client.execute(query)
+                """
+                ["legacyBridgeSwaps"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
+                This provides {"destination":destination address, "amount":amount, "denom":denomination}
+                which can be destructured for the values of interest.
+                """
+                swaps = result["legacyBridgeSwaps"]["nodes"]
+                self.assertNotEqual(swaps, [], "\nGQLError: No results returned from query")
+                self.assertEqual(swaps[0]["destination"], self.validator_address, "\nGQLError: swap destination address does not match")
+                self.assertEqual(int(swaps[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
+                self.assertEqual(swaps[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
 
 
 if __name__ == '__main__':
