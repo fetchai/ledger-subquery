@@ -36,10 +36,10 @@ class TestContractSwap(BaseContract):
         self.assertEqual(swap[LegacyBridgeSwapFields.denom.value], self.denom, "\nDBError: fund denomination does not match")
 
     def test_retrieve_swap(self):
-        result = self.get_latest_block_timestamp()
-        time_before = result - dt.timedelta(minutes=5)  # create a second timestamp for five minutes before
-        time_before = json.dumps(time_before.isoformat())  # convert both to JSON ISO format
-        time_latest = json.dumps(result.isoformat())
+        latest_block_timestamp = self.get_latest_block_timestamp()
+        # create a second timestamp for five minutes before
+        min_timestamp = (latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
+        max_timestamp = latest_block_timestamp.isoformat()
 
         # query legacy bridge swaps, query related block and filter by timestamp, returning all within last five minutes
         query_get_by_range = gql(
@@ -104,8 +104,7 @@ class TestContractSwap(BaseContract):
             """
         )
 
-        queries = [query_get_by_range, query_get_by_amount, query_get_by_address]
-        for query in queries:
+        for query in [query_get_by_range, query_get_by_amount, query_get_by_address]:
             result = self.gql_client.execute(query)
             """
             ["legacyBridgeSwaps"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
