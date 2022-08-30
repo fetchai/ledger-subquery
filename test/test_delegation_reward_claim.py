@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import re
 import time
 import unittest
 
@@ -7,6 +8,7 @@ from gql import gql
 
 import base
 from helpers.field_enums import DistDelegatorClaimFields
+from helpers.regexes import msg_id_regex, block_id_regex, tx_id_regex
 
 
 class TestDelegation(base.Base):
@@ -40,81 +42,72 @@ class TestDelegation(base.Base):
         min_timestamp = (latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
         max_timestamp = latest_block_timestamp.isoformat()
 
-        # query governance votes, query related block and filter by timestamp, returning all within last five minutes
-        query_by_timestamp = gql(
-            """
-            query get_votes_by_timestamp {
-                distDelegatorClaims (
-                filter: {
-                    block: {
-                    timestamp: {
-                        greaterThanOrEqualTo: """ + json.dumps(min_timestamp) + """,
-                                lessThanOrEqualTo: """ + json.dumps(max_timestamp) + """
-                            }
-                        }
-                    }) {
+        # TODO: refactor with `TestContractSwap`'s `test_filtered_swaps_query`
+        def test_filtered_claim_query(_filter):
+            quoted_key_regex = re.compile('"(\w+)":')
+            # NB: strip quotes from object keys
+            filter_string = quoted_key_regex.sub("\g<1>:", json.dumps(_filter))
+
+            return gql("""
+            query {
+                distDelegatorClaims (filter: """ + filter_string + """) {
                     nodes {
-                        transactionId
+                        id
+                        message { id }
+                        transaction { id }
+                        block { id }
                         validatorAddress
                         delegatorAddress
+                        amount
+                        denom
                     }
                 }
             }
-            """
-        )
+            """)
+
+        # query governance votes, query related block and filter by timestamp, returning all within last five minutes
+        query_by_timestamp = test_filtered_claim_query({
+            "block": {
+                "timestamp": {
+                    "greaterThanOrEqualTo": min_timestamp,
+                    "lessThanOrEqualTo": max_timestamp
+                }
+            }
+        })
 
         # query delegator reward claims, filter by validator address
-        query_by_validator = gql(
-            """
-            query getByValidator {
-                distDelegatorClaims (
-                filter: {
-                    validatorAddress: { 
-                        equalTo:\"""" + str(self.validator_operator_address) + """\"
-                    }
-                }) {
-                    nodes {
-                        transactionId
-                        validatorAddress
-                        delegatorAddress
-                    }
-                }
+        query_by_validator = test_filtered_claim_query({
+            "validatorAddress": {
+                "equalTo": str(self.validator_operator_address)
             }
-            """
-        )
+        })
 
         # query delegator reward claims, filter by delegator address
-        query_by_delegator = gql(
-            """
-            query getByValidator {
-                distDelegatorClaims (
-                filter: {
-                    delegatorAddress: { 
-                        equalTo:\"""" + str(self.validator_address) + """\"
-                    }
-                }) {
-                    nodes {
-                        transactionId
-                        validatorAddress
-                        delegatorAddress
-                    }
-                }
+        query_by_delegator = test_filtered_claim_query({
+            "delegatorAddress": {
+                "equalTo": str(self.validator_address)
             }
-            """
-        )
+        })
 
-        queries = [query_by_timestamp, query_by_validator, query_by_delegator]
-        for query in queries:
+        for query in [query_by_timestamp, query_by_validator, query_by_delegator]:
             result = self.gql_client.execute(query)
             """
             ["distDelegatorClaims"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
             This provides {"delegatorAddress":delegator address, "validatorAddress":validator option}
             which can be destructured for the values of interest.
             """
-            message = result["distDelegatorClaims"]["nodes"]
-            self.assertTrue(message[0], "\nGQLError: No results returned from query")
-            self.assertEqual(message[0]["delegatorAddress"], self.validator_address, "\nGQLError: delegation address does not match")
-            self.assertEqual(message[0]["validatorAddress"], self.validator_operator_address, "\nGQLError: validator address does not match")
+            claims = result["distDelegatorClaims"]["nodes"]
+            self.assertTrue(claims[0], "\nGQLError: No results returned from query")
+            self.assertRegex(claims[0]["id"], msg_id_regex)
+            self.assertRegex(claims[0]["message"]["id"], msg_id_regex)
+            self.assertRegex(claims[0]["transaction"]["id"], tx_id_regex)
+            self.assertRegex(claims[0]["block"]["id"], block_id_regex)
+            self.assertEqual(claims[0]["delegatorAddress"], self.validator_address,
+                             "\nGQLError: delegation address does not match")
+            self.assertEqual(claims[0]["validatorAddress"], self.validator_operator_address,
+                             "\nGQLError: validator address does not match")
+            self.assertRegex(claims[0]["amount"], re.compile("^\d{1,30}$"))
+            self.assertRegex(claims[0]["denom"], re.compile("^\w{1,50}$"))
 
 
 if __name__ == '__main__':

@@ -23,6 +23,9 @@ import {SignerInfo} from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
 
+const MAX_AMOUNT_CHAR_LENGTH = 30;
+const MAX_DENOM_CHAR_LENGTH = 50;
+
 // messageId returns the id of the message passed or
 // that of the message which generated the event passed.
 function messageId(msg: CosmosMessage | CosmosEvent): string {
@@ -203,6 +206,8 @@ export async function handleDistDelegatorClaim(msg: CosmosMessage<DistDelegatorC
     messageId: id,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id,
+    amount: BigInt(-1),
+    denom: "",
   });
 
   // TODO:
@@ -233,4 +238,43 @@ export async function handleLegacyBridgeSwap(msg: CosmosMessage<LegacyBridgeSwap
   });
 
   await legacySwap.save();
+}
+
+export async function handleDelegatorWithdrawRewardEvent(event: CosmosEvent): Promise<void> {
+  logger.debug(`[handleDelegateWithdrawRewardEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`)
+  logger.debug(`[handleDelegateWithdrawRewardEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`)
+
+  const attrs: Record<string, any> = event.event.attributes.reduce((acc, attr) => {
+    acc[attr.key] = attr.value;
+    return acc;
+  }, {});
+
+  if (typeof(attrs.amount) === "undefined" || typeof(attrs.validator) === "undefined") {
+    // Skip this call as unprocessable and allow indexer to continue.
+    logger.warn(`[handleDelegateWithdrawRewardEvent] (!SKIPPED!) malformed attributes: ${JSON.stringify(attrs)}`);
+    return;
+  }
+
+  const claims = await DistDelegatorClaim.getByTransactionId(event.tx.hash);
+
+  const {amount: amountStr, validator} = attrs as {amount: string, validator: string};
+  const claim = claims.find((claim) => claim.validatorAddress === validator);
+  if (typeof(claim) === "undefined") {
+    // Skip this call as unprocessable and allow indexer to continue.
+    logger.warn(`[handleDelegateWithdrawRewardEvent] (!SKIPPED!) no claim msgs found in tx: ${event.tx.hash}`);
+    return;
+  }
+
+  const amount_denom_split_regex = new RegExp(`^(\\d{1,${MAX_AMOUNT_CHAR_LENGTH}})(\\w{1,${MAX_DENOM_CHAR_LENGTH}})`);
+  const match = amountStr.match(amount_denom_split_regex)
+  if (match === null) {
+    // Skip this call as unprocessable and allow indexer to continue.
+    logger.warn(`[handleDelegateWithdrawRewardEvent] (!SKIPPED!) error parsing claim amount: ${amountStr}`);
+    return;
+  }
+
+  const [_, amount, denom] = match;
+  claim.amount = BigInt(amount);
+  claim.denom = denom;
+  await claim.save();
 }
