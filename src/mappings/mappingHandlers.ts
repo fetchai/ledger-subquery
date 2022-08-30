@@ -8,7 +8,6 @@ import {
   LegacyBridgeSwap,
   Message,
   NativeTransfer,
-  NativeTransferMsg,
   Transaction,
   TxStatus
 } from "../types";
@@ -18,6 +17,7 @@ import {
     DistDelegatorClaimMsg,
     GovProposalVoteMsg,
     LegacyBridgeSwapMsg
+  NativeTransferMsg
 } from "./types";
 import {SignerInfo} from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import {toBech32} from "@cosmjs/encoding";

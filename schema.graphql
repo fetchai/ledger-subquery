@@ -109,12 +109,6 @@ type Coin @jsonField {
   amount: String!
 }
 
-type NativeTransferMsg @jsonField {
-  toAddress: String! @index
-  fromAddress: String! @index
-  amount: [Coin]! @index
-}
-
 type NativeTransfer @entity {
   id: ID!
   toAddress: String! @index
