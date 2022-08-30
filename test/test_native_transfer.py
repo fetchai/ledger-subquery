@@ -105,6 +105,7 @@ class TestNativeTransfer(base.Base):
                 native_transfers = result["nativeTransfers"]["nodes"]
                 self.assertNotEqual(native_transfers, [], "\nGQLError: No results returned from query")
                 self.assertRegex(native_transfers[0]["id"], msg_id_regex)
+                self.assertRegex(native_transfers[0]["message"]["id"], msg_id_regex)
                 self.assertRegex(native_transfers[0]["transaction"]["id"], tx_id_regex)
                 self.assertRegex(native_transfers[0]["block"]["id"], block_id_regex)
                 # NB: `amount` is a list of `Coin`s (i.e. [{amount: "", denom: ""}, ...])

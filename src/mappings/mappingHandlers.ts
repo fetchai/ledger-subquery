@@ -98,12 +98,14 @@ export async function handleNativeTransfer(msg: CosmosMessage<NativeTransferMsg>
   const {toAddress, fromAddress, amount: amounts} = msg.msg.decodedMsg;
   // workaround: assuming one denomination per transfer message
   const denom = amounts[0].denom;
+  const id = messageId(msg);
   const transferEntity = NativeTransfer.create({
-    id: messageId(msg),
+    id,
     toAddress,
     fromAddress,
     amounts,
     denom,
+    messageId: id,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id
   });
