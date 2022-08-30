@@ -13,10 +13,10 @@ import {
 } from "../types";
 import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction,} from "@subql/types-cosmos";
 import {
-    ExecuteContractMsg,
-    DistDelegatorClaimMsg,
-    GovProposalVoteMsg,
-    LegacyBridgeSwapMsg
+  ExecuteContractMsg,
+  DistDelegatorClaimMsg,
+  GovProposalVoteMsg,
+  LegacyBridgeSwapMsg,
   NativeTransferMsg
 } from "./types";
 import {SignerInfo} from "cosmjs-types/cosmos/tx/v1beta1/tx";
