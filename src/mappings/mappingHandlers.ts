@@ -22,9 +22,7 @@ import {
 import {SignerInfo} from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
-
-const MAX_AMOUNT_CHAR_LENGTH = 30;
-const MAX_DENOM_CHAR_LENGTH = 50;
+import {parseCoins} from "@cosmjs/stargate";
 
 // messageId returns the id of the message passed or
 // that of the message which generated the event passed.
@@ -265,15 +263,14 @@ export async function handleDelegatorWithdrawRewardEvent(event: CosmosEvent): Pr
     return;
   }
 
-  const amount_denom_split_regex = new RegExp(`^(\\d{1,${MAX_AMOUNT_CHAR_LENGTH}})(\\w{1,${MAX_DENOM_CHAR_LENGTH}})`);
-  const match = amountStr.match(amount_denom_split_regex)
-  if (match === null) {
+  const coins = parseCoins(amountStr);
+  if (coins.length === 0) {
     // Skip this call as unprocessable and allow indexer to continue.
     logger.warn(`[handleDelegateWithdrawRewardEvent] (!SKIPPED!) error parsing claim amount: ${amountStr}`);
     return;
   }
 
-  const [_, amount, denom] = match;
+  const {amount, denom} = coins[0];
   claim.amount = BigInt(amount);
   claim.denom = denom;
   await claim.save();
