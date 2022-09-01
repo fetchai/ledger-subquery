@@ -16,7 +16,8 @@ class BridgeContract(base.Base):
             temp.close()
         except:
             contract_request = requests.get(url)
-            file = open("../.contract/bridge.wasm", "wb").write(contract_request.content)
+            file = open("../.contract/bridge.wasm", "wb")
+            file.write(contract_request.content)
             file.close()
 
         # LedgerContract will attempt to discover any existing contract having the same bytecode hash
