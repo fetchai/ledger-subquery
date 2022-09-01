@@ -3,7 +3,6 @@
  */
 
 import { Coin } from "@cosmjs/amino";
-import { Uint64 } from "@cosmjs/math";
 
 /**
  * Takes a coins list like "819966000ucosm,700000000ustake" and parses it.
