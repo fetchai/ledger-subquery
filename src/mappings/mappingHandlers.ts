@@ -219,11 +219,13 @@ export async function handleLegacyBridgeSwap(msg: CosmosMessage<LegacyBridgeSwap
   const id = messageId(msg);
   const {
     msg: {swap: {destination}},
-    funds: [{amount, denom}]
+    funds: [{amount, denom}],
+    contract,
   } = msg.msg.decodedMsg;
   const legacySwap = LegacyBridgeSwap.create({
     id,
     destination,
+    contract,
     amount: BigInt(amount),
     denom,
     executeContractMessageId: id,
