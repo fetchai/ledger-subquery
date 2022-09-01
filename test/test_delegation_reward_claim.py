@@ -1,10 +1,7 @@
 import datetime as dt
-import json
 import re
 import time
 import unittest
-
-from gql import gql
 
 import base
 from helpers.field_enums import DistDelegatorClaimFields
@@ -105,8 +102,8 @@ class TestDelegation(base.Base):
                                  "\nGQLError: delegation address does not match")
                 self.assertEqual(claims[0]["validatorAddress"], self.validator_operator_address,
                                  "\nGQLError: validator address does not match")
-                self.assertRegex(claims[0]["amount"], re.compile("^\d{1,30}$"))
-                self.assertRegex(claims[0]["denom"], re.compile("^\w{1,50}$"))
+                self.assertRegex(claims[0]["amount"], re.compile("^\d+$"))
+                self.assertRegex(claims[0]["denom"], re.compile("^[\w/]{2,127}$"))
 
 
 if __name__ == '__main__':
