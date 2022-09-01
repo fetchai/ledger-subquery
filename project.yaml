@@ -16,16 +16,16 @@ schema:
 network:
   chainId: dorado-1
   endpoint: https://rpc-dorado.fetch.ai:443
+  chainTypes: # This is a beta feature that allows support for any Cosmos chain by importing the correct protobuf messages
+    cosmos.slashing.v1beta1:
+      file: "./proto/cosmos/slashing/v1beta1/tx.proto"
+      messages:
+        - "MsgUnjail"
   # Using a dictionary can massively improve indexing speed
   dictionary: https://api.subquery.network/sq/subquery/cosmos-fetch-ai-dictionary
 dataSources:
   - kind: cosmos/Runtime
     startBlock: 827201
-    chainTypes: # This is a beta feature that allows support for any Cosmos chain by importing the correct protobuf messages
-      cosmos.slashing.v1beta1:
-        file: "./proto/cosmos/slashing/v1beta1/tx.proto"
-        messages:
-          - "MsgUnjail"
     mapping:
       file: "./dist/index.js"
       handlers:
@@ -56,8 +56,12 @@ dataSources:
             # Filter to only messages with the vote function call
             contractCall: "swap" # The name of the contract function that was called
             values: # This is the specific smart contract that we are subscribing to
-              contract: "fetch1qxxlalvsdjd07p07y3rc5fu6ll8k4tmetpha8n"
+              contract: "fetch1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrsa26575"
         - handler: handleNativeTransfer
           kind: cosmos/MessageHandler
           filter:
             type: "/cosmos.bank.v1beta1.MsgSend"
+        - handler: handleDelegatorWithdrawRewardEvent
+          kind: cosmos/EventHandler
+          filter:
+            type: "withdraw_rewards"
