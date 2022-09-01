@@ -17,6 +17,9 @@ git submodule update --init --recursive
 
 ```shell
 yarn
+
+# install submodule dependencies
+(cd ./subql && yarn)
 ```
 
 ### 3. Generate types
@@ -29,6 +32,9 @@ yarn codegen
 
 ```shell
 yarn build
+
+# build submodule
+(cd ./subql && yarn build)
 ```
 
 ### 5. Run locally
