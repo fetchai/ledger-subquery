@@ -73,7 +73,7 @@ class TestContractSwap(BridgeContract):
         })
         
         # query bridge swaps, filter by contract address
-        filter_by_destination_equals = filtered_legacy_bridge_swap_query({
+        filter_by_contract_equals = filtered_legacy_bridge_swap_query({
             "contract": {
                 "equalTo": str(self.contract.address)
             }
@@ -89,7 +89,8 @@ class TestContractSwap(BridgeContract):
         for (name, query) in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by amount above", filter_by_amount_above),
-            ("by destination equals", filter_by_destination_equals)
+            ("by destination equals", filter_by_destination_equals),
+            ("by contract equals", filter_by_contract_equals),
         ]:
             with self.subTest(name):
                 result = self.gql_client.execute(query)
