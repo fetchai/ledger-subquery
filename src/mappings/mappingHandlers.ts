@@ -19,10 +19,9 @@ import {
   LegacyBridgeSwapMsg,
   NativeTransferMsg
 } from "./types";
-import {SignerInfo} from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
-import {parseCoins} from "@cosmjs/stargate";
+import {parseCoins} from "./utils";
 
 // messageId returns the id of the message passed or
 // that of the message which generated the event passed.
