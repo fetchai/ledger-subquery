@@ -24,6 +24,8 @@ jobs:
 
       - name: Start-up local test environment
         uses: isbang/compose-action@v1.2.0
+        with:
+          compose-file: "./ci-compose.yml"
 
       # NB: doing this here gives the test env time to come up
       - name: Install test dependencies
