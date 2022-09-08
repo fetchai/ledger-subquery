@@ -1,5 +1,5 @@
 import {
-  Block, CW20Transfer,
+  Block,
   DistDelegatorClaim,
   Event,
   ExecuteContractMessage,
@@ -8,8 +8,9 @@ import {
   LegacyBridgeSwap,
   Message,
   NativeTransfer,
+  CW20Transfer,
   Transaction,
-  TxStatus
+  TxStatus,
 } from "../types";
 import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction,} from "@subql/types-cosmos";
 import {
@@ -17,7 +18,8 @@ import {
   DistDelegatorClaimMsg,
   GovProposalVoteMsg,
   LegacyBridgeSwapMsg,
-  NativeTransferMsg, CW20TransferMsg
+  NativeTransferMsg,
+  CW20TransferMsg,
 } from "./types";
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
