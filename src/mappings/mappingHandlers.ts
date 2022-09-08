@@ -1,5 +1,5 @@
 import {
-  Block,
+  Block, CW20Transfer,
   DistDelegatorClaim,
   Event,
   ExecuteContractMessage,
@@ -17,7 +17,7 @@ import {
   DistDelegatorClaimMsg,
   GovProposalVoteMsg,
   LegacyBridgeSwapMsg,
-  NativeTransferMsg
+  NativeTransferMsg, CW20TransferMsg
 } from "./types";
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
@@ -171,6 +171,35 @@ export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteCon
   await msgEntity.save();
 }
 
+export async function handleCW20Transfer(msg: CosmosMessage<CW20TransferMsg>): Promise<void> {
+  logger.info(`[handleCW20Transfer] (tx ${msg.tx.hash}): indexing CW20Transfer ${messageId(msg)}`)
+
+  const id = messageId(msg);
+  const {
+    sender,
+    contract,
+    msg: {
+      transfer: {
+        recipient,
+        amount
+      }
+    }
+  } = msg.msg.decodedMsg;
+
+  const cw20transfer = CW20Transfer.create({
+    id,
+    toAddress: recipient,
+    fromAddress: sender,
+    contract,
+    amount,
+    messageId: id,
+    transactionId: msg.tx.hash,
+    blockId: msg.block.block.id
+  });
+
+  await cw20transfer.save();
+}
+
 export async function handleGovProposalVote(msg: CosmosMessage<GovProposalVoteMsg>): Promise<void> {
   logger.info(`[handleGovProposalVote] (tx ${msg.tx.hash}): indexing GovProposalVote ${messageId(msg)}`)
   logger.debug(`[handleGovProposalVote] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
@@ -224,14 +253,14 @@ export async function handleLegacyBridgeSwap(msg: CosmosMessage<LegacyBridgeSwap
     funds: [{amount, denom}],
     contract,
   } = msg.msg.decodedMsg;
-  
+
   // gracefully skip indexing "swap" messages that doesn't fullfill the bridge contract
   // otherwise, the node will just crashloop trying to save the message to the db with required null fields.
   if (!destination || !amount || !denom || !contract) {
     logger.warn(`[handleLegacyBridgeSwap] (tx ${msg.tx.hash}): cannot index message (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
-    return 
+    return
   }
-  
+
   const legacySwap = LegacyBridgeSwap.create({
     id,
     destination,
