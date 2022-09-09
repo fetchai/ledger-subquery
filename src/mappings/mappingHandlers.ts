@@ -1,9 +1,9 @@
 import {
   Account,
+  NativeBalance,
   Block,
   DistDelegatorClaim,
   Event,
-  EventAttribute,
   ExecuteContractMessage,
   GovProposalVote,
   GovProposalVoteOption,
@@ -292,48 +292,30 @@ export async function handleNativeBalanceDecrement(event: CosmosEvent): Promise<
   logger.debug(`[handleNativeBalanceDecrement] (event.event): ${JSON.stringify(event.event, null, 2)}`)
   logger.debug(`[handleNativeBalanceDecrement] (event.log): ${JSON.stringify(event.log, null, 2)}`)
 
-  // NB: convert [{key: "value"}, {key2: "value2"} ...]
-  //           to {key: "value", key2: "value2" ...}
-  const attrs: {
-    spender: string
-    amount: string
-  } = event.event.attributes.reduce(
-    (acc, next) => Object.assign(acc, next),
-    {spender: "", amount: ""}
-  )
+  // sample event.event.attributes:
+  // [
+  //   {"key":"spender","value":"fetch1jv65s3grqf6v6jl3dp4t6c9t9rk99cd85zdctg"},
+  //   {"key":"amount","value":"75462013217046121atestfet"},
+  //   {"key":"spender","value":"fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn"},
+  //   {"key":"amount","value":"100atestfet"}
+  // ]
+  let spendEvents = [];
+  event.event.attributes.map((e, i) => {
+    if (e.key !== "spender") {
+      return
+    }
+    const spender = e.value;
+    const amountStr = event.event.attributes[i+1].value;
 
-  // NB: amountString: "5000000atestfet"
-  const {spender, amount: amountString} = attrs;
-  const [_, amount, denom] = amountString.match(/(\d+)(\w+)/);
-
-  if (typeof(spender) === "undefined" || typeof(amount) === "undefined") {
-    const gotKeys = Object.keys(attrs).join(", ")
-    logger.warn(`[handleNativeBalanceDecrement]: expected ["spender", "amount"] key, got "${gotKeys}" - SKIPPING!`);
-    return
+    const coin = parseCoins(amountStr)[0];
+    const amount = BigInt(0) - BigInt(coin.amount); // save a negative amount for a "spend" event
+    spendEvents.push({spender: spender, amount: amount, denom: coin.denom})
+  });
+  
+  for (const i in spendEvents) {
+    const spendEvent = spendEvents[i];
+    await saveNativeBalanceEvent(`${messageId(event)}-spend-${i}`, spendEvent.spender, spendEvent.amount, spendEvent.denom, event);
   }
-
-  let accountEntity = await Account.get(spender)
-  if (typeof(accountEntity) === "undefined") {
-    accountEntity = Account.create({id: spender})
-  }
-
-  const id = `${spender}-${denom}`
-  let nativeBalanceEntity = await NativeBalance.get(id);
-  if (typeof(nativeBalanceEntity) === "undefined") {
-    nativeBalanceEntity = NativeBalance.create({
-      id,
-      accountId: spender,
-      balanceOffset: BigInt(0) - BigInt(amount),
-      genesisBalance: BigInt(-1),
-      denom,
-    });
-
-    await nativeBalanceEntity.save();
-  } else {
-    nativeBalanceEntity.balanceOffset -= BigInt(amount);
-  }
-  await accountEntity.save();
-  await nativeBalanceEntity.save()
 }
 
 export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<void> {
@@ -341,46 +323,46 @@ export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<
   logger.debug(`[handleNativeBalanceIncrement] (event.event): ${JSON.stringify(event.event, null, 2)}`)
   logger.debug(`[handleNativeBalanceIncrement] (event.log): ${JSON.stringify(event.log, null, 2)}`)
 
-  // NB: convert [{key: "value"}, {key2: "value2"} ...]
-  //           to {key: "value", key2: "value2" ...}
-  const attrs: {
-    receiver: string
-    amount: string
-  } = event.event.attributes.reduce(
-    (acc, next) => Object.assign(acc, next),
-    {receiver: "", amount: ""}
-  )
+  // sample event.event.attributes:
+  // [
+  //   {"key":"receiver","value":"fetch1jv65s3grqf6v6jl3dp4t6c9t9rk99cd85zdctg"},
+  //   {"key":"amount","value":"75462013217046121atestfet"},
+  //   {"key":"receiver","value":"fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn"},
+  //   {"key":"amount","value":"100atestfet"}
+  // ]
+  let receiveEvents = [];
+  event.event.attributes.map((e, i) => {
+    if (e.key !== "receiver") {
+      return
+    }
+    const receiver = e.value;
+    const amountStr = event.event.attributes[i+1].value;
 
-  // NB: amountString: "5000000atestfet"
-  const {receiver, amount: amountString} = attrs;
-  const [_, amount, denom] = amountString.match(/(\d+)(\w+)/);
-
-  if (typeof(receiver) === "undefined" || typeof(amount) === "undefined") {
-    const gotKeys = Object.keys(attrs).join(", ")
-    logger.warn(`[handleNativeBalanceIncrement]: expected ["receiver", "amount"] key, got "${gotKeys}" - SKIPPING!`);
-    return
+    const coin = parseCoins(amountStr)[0];
+    const amount = BigInt(coin.amount);
+    receiveEvents.push({receiver: receiver, amount: amount, denom: coin.denom})
+  });
+  
+  for (const i in receiveEvents) {
+    const receiveEvent = receiveEvents[i];
+    await saveNativeBalanceEvent(`${messageId(event)}-receive-${i}`, receiveEvent.receiver, receiveEvent.amount, receiveEvent.denom, event);
   }
+}
 
-  let accountEntity = await Account.get(receiver)
+async function saveNativeBalanceEvent(id: string, address: string, amount: BigInt, denom: string, event: CosmosEvent) {
+  let accountEntity = await Account.get(address)
   if (typeof(accountEntity) === "undefined") {
-    accountEntity = Account.create({id: receiver})
+    accountEntity = Account.create({id: address});
+    await accountEntity.save();
   }
 
-  const id = `${receiver}-${denom}`
-  let nativeBalanceEntity = await NativeBalance.get(id);
-  if (typeof(nativeBalanceEntity) === "undefined") {
-    nativeBalanceEntity = NativeBalance.create({
-      id,
-      accountId: receiver,
-      balanceOffset: BigInt(amount),
-      genesisBalance: BigInt(-1),
-      denom,
-    });
+  const nativeBalanceEntity = NativeBalance.create({
+    id,
+    accountId: address,
+    balanceOffset: amount.valueOf(),
+    denom: denom,
+    eventId: `${messageId(event)}-${event.idx}`,
+  });
 
-    await nativeBalanceEntity.save();
-  } else {
-    nativeBalanceEntity.balanceOffset += BigInt(amount);
-  }
-  await accountEntity.save();
   await nativeBalanceEntity.save()
 }

@@ -133,6 +133,11 @@ class DistDelegatorClaimFields(NamedFields):
 
 class NativeBalanceFields(NamedFields):
     id = 0
-    address = 1
-    amount = 1
+    balance_offset = 1
     denom = 2
+    account_id = 3
+    event_id = 4
+
+    @classmethod
+    def select_query(cls, table="native_balances"):
+        return super().select_query(table)

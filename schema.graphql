@@ -130,8 +130,8 @@ type Account @entity {
 
 type NativeBalance @entity {
   id: ID!
-  genesisBalance: BigInt!
   balanceOffset: BigInt!
   denom: String!
   account: Account!
+  event: Event!
 }

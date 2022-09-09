@@ -1,31 +1,22 @@
 import time
+import unittest
 
 import base
 from helpers.field_enums import NativeBalanceFields
-from helpers.regexes import native_addr_id_regex, native_addr_regex
 
 
 class TestNativeBalances(base.Base):
-    amount = 5000000
-    denom = "atestfet"
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.clean_db({"native_balances"})
 
-        cls.db_cursor.execute("TRUNCATE table account_balances")
-        cls.db.commit()
-
-        results = cls.db_cursor.execute("SELECT id FROM account_balances").fetchall()
-        if len(results) != 0:
-            raise Exception(f"truncation of table \"accounts\" failed, {len(results)} records remain")
-
-        tx = cls.ledger_client.send_tokens(cls.delegator_wallet.address(), cls.amount, cls.denom, cls.validator_wallet)
+        tx = cls.ledger_client.send_tokens(cls.delegator_wallet.address(), 10000, "atestfet", cls.validator_wallet)
         tx.wait_to_complete()
         if not tx.response.is_successful():
             raise Exception(f"first set-up tx failed")
 
-        tx = cls.ledger_client.send_tokens(cls.delegator_wallet.address(), cls.amount, cls.denom, cls.validator_wallet)
+        tx = cls.ledger_client.send_tokens(cls.validator_wallet.address(), 3000, "atestfet", cls.delegator_wallet)
         tx.wait_to_complete()
         if not tx.response.is_successful():
             raise Exception(f"second set-up tx failed")
@@ -34,10 +25,26 @@ class TestNativeBalances(base.Base):
         time.sleep(5)
 
     def test_account(self):
-        balances = self.db_cursor.execute(NativeBalanceFields.select_query()).fetchall()
-        self.assertGreater(len(balances), 0)
+        events = self.db_cursor.execute(NativeBalanceFields.select_query()).fetchall()
+        self.assertGreater(len(events), 0)
 
-        for balance in balances:
-            self.assertRegex(balance[NativeBalanceFields.id.value], native_addr_id_regex)
-            self.assertRegex(balance[NativeBalanceFields.address.value], native_addr_regex)
-            self.assertEqual(int(balance[NativeBalanceFields.amount]), self.amount)
+        total = {
+            self.validator_wallet.address(): 0,
+            self.delegator_wallet.address(): 0,
+        }
+
+        for event in events:
+            self.assertTrue(
+                (event[NativeBalanceFields.account_id.value] == self.validator_wallet.address() or
+                event[NativeBalanceFields.account_id.value] == self.delegator_wallet.address())
+            )
+            self.assertNotEqual(int(event[NativeBalanceFields.balance_offset.value]), 0)
+            self.assertEqual(event[NativeBalanceFields.denom.value], "atestfet")
+            
+            total[event[NativeBalanceFields.account_id.value]] += event[NativeBalanceFields.balance_offset.value]
+
+        self.assertEqual(total[self.validator_wallet.address()], -7000)
+        self.assertEqual(total[self.delegator_wallet.address()], 7000)
+        
+if __name__ == '__main__':
+    unittest.main()
