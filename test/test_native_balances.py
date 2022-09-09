@@ -11,15 +11,13 @@ class TestNativeBalances(base.Base):
         super().setUpClass()
         cls.clean_db({"native_balances"})
 
-        tx = cls.ledger_client.send_tokens(cls.delegator_wallet.address(), 10000, "atestfet", cls.validator_wallet)
+        tx = cls.ledger_client.send_tokens(cls.delegator_wallet.address(), 10*10**18, "atestfet", cls.validator_wallet)
         tx.wait_to_complete()
-        if not tx.response.is_successful():
-            raise Exception(f"first set-up tx failed")
-
-        tx = cls.ledger_client.send_tokens(cls.validator_wallet.address(), 3000, "atestfet", cls.delegator_wallet)
+        cls.assertTrue(tx.response.is_successful(), "first set-up tx failed")
+        
+        tx = cls.ledger_client.send_tokens(cls.validator_wallet.address(), 3*10**18, "atestfet", cls.delegator_wallet)
         tx.wait_to_complete()
-        if not tx.response.is_successful():
-            raise Exception(f"second set-up tx failed")
+        cls.assertTrue(tx.response.is_successful(), "second set-up tx failed")
 
         # Wait for subql node to sync
         time.sleep(5)
@@ -43,8 +41,8 @@ class TestNativeBalances(base.Base):
             
             total[event[NativeBalanceFields.account_id.value]] += event[NativeBalanceFields.balance_offset.value]
 
-        self.assertEqual(total[self.validator_wallet.address()], -7000)
-        self.assertEqual(total[self.delegator_wallet.address()], 7000)
+        self.assertEqual(total[self.validator_wallet.address()], -7*10**18)
+        self.assertEqual(total[self.delegator_wallet.address()], 7*10**18)
         
 if __name__ == '__main__':
     unittest.main()

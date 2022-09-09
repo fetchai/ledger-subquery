@@ -300,20 +300,19 @@ export async function handleNativeBalanceDecrement(event: CosmosEvent): Promise<
   //   {"key":"amount","value":"100atestfet"}
   // ]
   let spendEvents = [];
-  event.event.attributes.map((e, i) => {
+  for (const [i, e] of Object.entries(event.event.attributes)) {
     if (e.key !== "spender") {
-      return
+      continue
     }
     const spender = e.value;
-    const amountStr = event.event.attributes[i+1].value;
+    const amountStr = event.event.attributes[parseInt(i)+1].value;
 
     const coin = parseCoins(amountStr)[0];
     const amount = BigInt(0) - BigInt(coin.amount); // save a negative amount for a "spend" event
     spendEvents.push({spender: spender, amount: amount, denom: coin.denom})
-  });
+  };
   
-  for (const i in spendEvents) {
-    const spendEvent = spendEvents[i];
+  for (const [i, spendEvent] of Object.entries(spendEvents)) {
     await saveNativeBalanceEvent(`${messageId(event)}-spend-${i}`, spendEvent.spender, spendEvent.amount, spendEvent.denom, event);
   }
 }
@@ -331,20 +330,19 @@ export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<
   //   {"key":"amount","value":"100atestfet"}
   // ]
   let receiveEvents = [];
-  event.event.attributes.map((e, i) => {
+  for (const [i, e] of Object.entries(event.event.attributes)) {
     if (e.key !== "receiver") {
-      return
+      continue
     }
     const receiver = e.value;
-    const amountStr = event.event.attributes[i+1].value;
+    const amountStr = event.event.attributes[parseInt(i)+1].value;
 
     const coin = parseCoins(amountStr)[0];
     const amount = BigInt(coin.amount);
     receiveEvents.push({receiver: receiver, amount: amount, denom: coin.denom})
-  });
+  };
   
-  for (const i in receiveEvents) {
-    const receiveEvent = receiveEvents[i];
+  for (const [i, receiveEvent] of Object.entries(receiveEvents)) {
     await saveNativeBalanceEvent(`${messageId(event)}-receive-${i}`, receiveEvent.receiver, receiveEvent.amount, receiveEvent.denom, event);
   }
 }
