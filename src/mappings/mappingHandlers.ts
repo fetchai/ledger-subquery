@@ -173,10 +173,11 @@ export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteCon
   await msgEntity.save();
 }
 
-export async function handleCW20Transfer(msg: CosmosMessage<CW20TransferMsg>): Promise<void> {
-  logger.info(`[handleCW20Transfer] (tx ${msg.tx.hash}): indexing CW20Transfer ${messageId(msg)}`)
 
-  const id = messageId(msg);
+export async function handleCW20Transfer(event: CosmosEvent): Promise<void> {
+  logger.info(`[handleCW20Transfer] (tx ${event.tx.hash}): indexing CW20Transfer ${messageId(event.msg)}`)
+
+  const id = messageId(event.msg);
   const {
     sender,
     contract,
@@ -186,7 +187,12 @@ export async function handleCW20Transfer(msg: CosmosMessage<CW20TransferMsg>): P
         amount
       }
     }
-  } = msg.msg.decodedMsg;
+  } = event.msg.msg.decodedMsg;
+
+  if (!sender || !amount || !recipient || !contract) {
+    logger.warn(`[handleCW20Transfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
 
   const cw20transfer = CW20Transfer.create({
     id,
@@ -195,8 +201,8 @@ export async function handleCW20Transfer(msg: CosmosMessage<CW20TransferMsg>): P
     contract,
     amount,
     messageId: id,
-    transactionId: msg.tx.hash,
-    blockId: msg.block.block.id
+    transactionId: event.tx.hash,
+    blockId: event.block.block.id
   });
 
   await cw20transfer.save();
