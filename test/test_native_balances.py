@@ -1,9 +1,8 @@
 import time
 import unittest
-
+from gql import gql
 import base
 from helpers.field_enums import NativeBalanceFields
-
 
 class TestNativeBalances(base.Base):
     @classmethod
@@ -22,7 +21,7 @@ class TestNativeBalances(base.Base):
         # Wait for subql node to sync
         time.sleep(5)
 
-    def test_account(self):
+    def test_account_balance_tracking_db(self):
         events = self.db_cursor.execute(NativeBalanceFields.select_query()).fetchall()
         self.assertGreater(len(events), 0)
 
@@ -43,6 +42,35 @@ class TestNativeBalances(base.Base):
 
         self.assertEqual(total[self.validator_wallet.address()], -7*10**18)
         self.assertEqual(total[self.delegator_wallet.address()], 7*10**18)
+    
+    def test_account_balance_tracking_query(self):
+        query = gql("""
+            query {
+                nativeBalances{
+                    groupedAggregates(groupBy: [ACCOUNT_ID, DENOM]){
+                        sum{ 
+                            balanceOffset
+                        }
+                        keys
+                    }
+                }
+            }
+        """)
+       
+        result = self.gql_client.execute(query)
+        validator_balance = 0
+        delegator_balance = 0
+        for balance in result["nativeBalances"]["groupedAggregates"]:
+            self.assertTrue("atestfet" in balance["keys"])
+            if self.validator_address in balance["keys"]:
+                validator_balance += int(balance["sum"]["balanceOffset"])
+            elif self.delegator_address in balance["keys"]:
+                delegator_balance += int(balance["sum"]["balanceOffset"])
+            else:
+                self.fail("couldn't find validator or delegator address in keys")
         
+        self.assertEqual(-7*10**18, validator_balance)
+        self.assertEqual(7*10**18, delegator_balance)
+
 if __name__ == '__main__':
     unittest.main()
