@@ -22,7 +22,7 @@ class TestCW20Transfer(base.Base):
         cls.ledger_client.wait_for_query_tx(resp.tx_hash)
         time.sleep(5)
 
-    def test(self):
+    def test_execute_transfer(self):
         transfer = self.db_cursor.execute(CW20TransferFields.select_query()).fetchone()
         self.assertIsNotNone(transfer, "\nDBError: table is empty - maybe indexer did not find an entry?")
         self.assertEqual(transfer[CW20TransferFields.to_address.value], self.delegator_address, "\nDBError: transfer recipient address does not match")
