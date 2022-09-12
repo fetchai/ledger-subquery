@@ -1,6 +1,6 @@
 import {
   Account,
-  NativeBalance,
+  NativeBalanceChange,
   Block,
   DistDelegatorClaim,
   Event,
@@ -354,13 +354,15 @@ async function saveNativeBalanceEvent(id: string, address: string, amount: BigIn
     await accountEntity.save();
   }
 
-  const nativeBalanceEntity = NativeBalance.create({
+  const nativeBalanceChangeEntity = NativeBalanceChange.create({
     id,
     accountId: address,
     balanceOffset: amount.valueOf(),
     denom: denom,
     eventId: `${messageId(event)}-${event.idx}`,
+    blockId: event.block.block.id,
+    transactionId: event.tx.hash,
   });
 
-  await nativeBalanceEntity.save()
+  await nativeBalanceChangeEntity.save()
 }

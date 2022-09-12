@@ -125,13 +125,15 @@ type NativeTransfer @entity {
 type Account @entity {
   # id is the address
   id: ID!
-  nativeBalances: [NativeBalance]! @derivedFrom(field: "account")
+  nativeBalanceChanges: [NativeBalanceChange]! @derivedFrom(field: "account")
 }
 
-type NativeBalance @entity {
+type NativeBalanceChange @entity {
   id: ID!
   balanceOffset: BigInt!
-  denom: String!
+  denom: String! @index
   account: Account!
   event: Event!
+  transaction: Transaction!
+  block: Block!
 }

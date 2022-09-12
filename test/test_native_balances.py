@@ -2,13 +2,13 @@ import time
 import unittest
 from gql import gql
 import base
-from helpers.field_enums import NativeBalanceFields
+from helpers.field_enums import NativeBalanceChangeFields
 
 class TestNativeBalances(base.Base):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.clean_db({"native_balances"})
+        cls.clean_db({"native_balance_changes"})
 
         tx = cls.ledger_client.send_tokens(cls.delegator_wallet.address(), 10*10**18, "atestfet", cls.validator_wallet)
         tx.wait_to_complete()
@@ -22,7 +22,7 @@ class TestNativeBalances(base.Base):
         time.sleep(5)
 
     def test_account_balance_tracking_db(self):
-        events = self.db_cursor.execute(NativeBalanceFields.select_query()).fetchall()
+        events = self.db_cursor.execute(NativeBalanceChangeFields.select_query()).fetchall()
         self.assertGreater(len(events), 0)
 
         total = {
@@ -32,13 +32,13 @@ class TestNativeBalances(base.Base):
 
         for event in events:
             self.assertTrue(
-                (event[NativeBalanceFields.account_id.value] == self.validator_wallet.address() or
-                event[NativeBalanceFields.account_id.value] == self.delegator_wallet.address())
+                (event[NativeBalanceChangeFields.account_id.value] == self.validator_wallet.address() or
+                event[NativeBalanceChangeFields.account_id.value] == self.delegator_wallet.address())
             )
-            self.assertNotEqual(int(event[NativeBalanceFields.balance_offset.value]), 0)
-            self.assertEqual(event[NativeBalanceFields.denom.value], "atestfet")
+            self.assertNotEqual(int(event[NativeBalanceChangeFields.balance_offset.value]), 0)
+            self.assertEqual(event[NativeBalanceChangeFields.denom.value], "atestfet")
             
-            total[event[NativeBalanceFields.account_id.value]] += event[NativeBalanceFields.balance_offset.value]
+            total[event[NativeBalanceChangeFields.account_id.value]] += event[NativeBalanceChangeFields.balance_offset.value]
 
         self.assertEqual(total[self.validator_wallet.address()], -7*10**18)
         self.assertEqual(total[self.delegator_wallet.address()], 7*10**18)
@@ -46,7 +46,7 @@ class TestNativeBalances(base.Base):
     def test_account_balance_tracking_query(self):
         query = gql("""
             query {
-                nativeBalances{
+                nativeBalanceChanges{
                     groupedAggregates(groupBy: [ACCOUNT_ID, DENOM]){
                         sum{ 
                             balanceOffset
@@ -60,7 +60,7 @@ class TestNativeBalances(base.Base):
         result = self.gql_client.execute(query)
         validator_balance = 0
         delegator_balance = 0
-        for balance in result["nativeBalances"]["groupedAggregates"]:
+        for balance in result["nativeBalanceChanges"]["groupedAggregates"]:
             self.assertTrue("atestfet" in balance["keys"])
             if self.validator_address in balance["keys"]:
                 validator_balance += int(balance["sum"]["balanceOffset"])

@@ -131,13 +131,15 @@ class DistDelegatorClaimFields(NamedFields):
     def select_query(cls, table="dist_delegator_claims"):
         return super().select_query(table)
 
-class NativeBalanceFields(NamedFields):
+class NativeBalanceChangeFields(NamedFields):
     id = 0
     balance_offset = 1
     denom = 2
     account_id = 3
     event_id = 4
-
+    transaction_id = 5
+    block_id = 6
+    
     @classmethod
-    def select_query(cls, table="native_balances"):
+    def select_query(cls, table="native_balance_changes"):
         return super().select_query(table)
