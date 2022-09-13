@@ -67,4 +67,6 @@ dataSources:
           kind: cosmos/EventHandler
           filter:
             type: "execute"
-            contractCall: "transfer"
+            messageFilter:
+              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+              contractCall: "transfer"

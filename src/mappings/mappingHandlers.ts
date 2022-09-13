@@ -19,7 +19,6 @@ import {
   GovProposalVoteMsg,
   LegacyBridgeSwapMsg,
   NativeTransferMsg,
-  CW20TransferMsg,
 } from "./types";
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";

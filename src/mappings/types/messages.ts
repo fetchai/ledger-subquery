@@ -31,14 +31,3 @@ export interface LegacyBridgeSwapMsg extends ExecuteContractMsg{
     },
   },
 }
-
-export interface CW20TransferMsg extends ExecuteContractMsg{
-  sender: string
-  contract: string
-  msg: {
-    transfer: {
-      recipient: string
-      amount: bigint
-    }
-  }
-}
