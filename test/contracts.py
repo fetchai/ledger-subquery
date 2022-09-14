@@ -31,37 +31,9 @@ DefaultBridgeContractConfig = BridgeContractConfig(
     next_swap_id=0
 )
 
-
-@dataclass_json
-@dataclass
-class CW20BalanceObject:
-    amount: int
-    address: str
-
-
-@dataclass_json
-@dataclass
-class CW20ContractConfig:
-    name: str
-    symbol: str
-    decimals: int
-    initial_balances: list[dict[str, str]]
-
-
-DefaultCW20ContractConfig = CW20ContractConfig(
-    name="test coin",
-    symbol="TEST",
-    decimals=6,
-    initial_balances=[{
-            "amount": "3000000",
-            "address": "fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn"  # validator address
-    }]
-)
-
-
 class CW20Contract(LedgerContract):
 
-    def __init__(self, client: LedgerClient, admin: Wallet, cfg: CW20ContractConfig):
+    def __init__(self, client: LedgerClient, admin: Wallet):
         url = "https://github.com/CosmWasm/cw-plus/releases/download/v0.14.0/cw20_base.wasm"
         if not os.path.exists(".contract"):
             os.mkdir(".contract")
@@ -70,14 +42,19 @@ class CW20Contract(LedgerContract):
             temp.close()
         except:
             contract_request = requests.get(url)
-            file = open(".contract/cw20.wasm", "wb")
-            file.write(contract_request.content)
-            file.close()
+            with open(".contract/cw20.wasm", "wb") as file:
+                file.write(contract_request.content)
 
         super().__init__(".contract/cw20.wasm", client)
 
-        self.deploy(
-            cfg.to_dict(),
+        self.deploy({
+            "name": "test coin",
+            "symbol": "TEST",
+            "decimals": 6,
+            "initial_balances": [{
+                "amount": "3000000000000000000000000",
+                "address": str(admin.address())
+            }]},
             admin,
             store_gas_limit=3000000
         )
@@ -94,9 +71,8 @@ class BridgeContract(LedgerContract):
             temp.close()
         except:
             contract_request = requests.get(url)
-            file = open(".contract/bridge.wasm", "wb")
-            file.write(contract_request.content)
-            file.close()
+            with open(".contract/bridge.wasm", "wb") as file:
+                file.write(contract_request.content)
 
         # LedgerContract will attempt to discover any existing contract having the same bytecode hash
         # see https://github.com/fetchai/cosmpy/blob/master/cosmpy/aerial/contract/__init__.py#L74

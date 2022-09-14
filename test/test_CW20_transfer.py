@@ -1,13 +1,11 @@
-import base, time, datetime as dt
-from contracts import CW20Contract, DefaultCW20ContractConfig
+import unittest, base, time, datetime as dt
+from contracts import CW20Contract
 from helpers.field_enums import CW20TransferFields
 from helpers.graphql import test_filtered_query
 
 
 class TestCW20Transfer(base.Base):
     amount = 5000
-    contract = None
-
     _contract: CW20Contract
 
     @classmethod
@@ -15,7 +13,7 @@ class TestCW20Transfer(base.Base):
         super().setUpClass()
         cls.clean_db({"c_w20_transfers"})
 
-        cls._contract = CW20Contract(cls.ledger_client, cls.validator_wallet, DefaultCW20ContractConfig)
+        cls._contract = CW20Contract(cls.ledger_client, cls.validator_wallet)
         resp = cls._contract.execute(
             {"transfer": {"recipient": cls.delegator_address, "amount": str(cls.amount)}},
             cls.validator_wallet)
@@ -110,3 +108,7 @@ class TestCW20Transfer(base.Base):
                 self.assertEqual(transfer[0]["fromAddress"], self.validator_address, "\nGQLError: transfer sender address does not match")
                 self.assertEqual(int(transfer[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
                 self.assertEqual(transfer[0]["contract"], self._contract.address, "\nGQLError: contract address does not match")
+
+
+if __name__ == '__main__':
+    unittest.main()
