@@ -70,3 +70,11 @@ dataSources:
             messageFilter:
               type: "/cosmwasm.wasm.v1.MsgExecuteContract"
               contractCall: "transfer"
+        - handler: handleNativeBalanceDecrement
+          kind: cosmos/EventHandler
+          filter:
+            type: "coin_spent"
+        - handler: handleNativeBalanceIncrement
+          kind: cosmos/EventHandler
+          filter:
+            type: "coin_received"
