@@ -188,6 +188,11 @@ export async function handleCW20Transfer(event: CosmosEvent): Promise<void> {
     }
   } = event.msg.msg.decodedMsg;
 
+  if (typeof(sender)==="undefined" || typeof(contract)==="undefined" || typeof(recipient)==="undefined" || typeof(amount)==="undefined") {
+    logger.warn(`[handleCW20Transfer] (${event.tx.hash}): (!SKIPPED!) message is malformed (event.msg.msg.decodedMsg): ${JSON.stringify(event.msg.msg.decodedMsg, null, 2)}`)
+    return
+  }
+
   if (!sender || !amount || !recipient || !contract) {
     logger.warn(`[handleCW20Transfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
     return
