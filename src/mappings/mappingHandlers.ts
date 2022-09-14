@@ -179,31 +179,27 @@ export async function handleCW20Transfer(event: CosmosEvent): Promise<void> {
   logger.info(`[handleCW20Transfer] (tx ${event.tx.hash}): indexing CW20Transfer ${messageId(event.msg)}`)
 
   const id = messageId(event.msg);
-  const {
-    sender,
-    contract,
-    msg: {
-      transfer: {
-        recipient,
-        amount
-      }
-    }
-  } = event.msg.msg.decodedMsg;
-
-  if (typeof(sender)==="undefined" || typeof(contract)==="undefined" || typeof(recipient)==="undefined" || typeof(amount)==="undefined") {
+  const msg = event.msg.msg.decodedMsg;
+  let fromAddress, contract, toAddress, amount;
+  try {
+    fromAddress = msg.sender;
+    contract = msg.contract;
+    toAddress = msg.msg.transfer.recipient;
+    amount = msg.msg.transfer.amount;
+  } catch {
     logger.warn(`[handleCW20Transfer] (${event.tx.hash}): (!SKIPPED!) message is malformed (event.msg.msg.decodedMsg): ${JSON.stringify(event.msg.msg.decodedMsg, null, 2)}`)
     return
   }
 
-  if (!sender || !amount || !recipient || !contract) {
+  if (!fromAddress || !amount || !toAddress || !contract) {
     logger.warn(`[handleCW20Transfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
     return
   }
 
   const cw20transfer = CW20Transfer.create({
     id,
-    toAddress: recipient,
-    fromAddress: sender,
+    toAddress,
+    fromAddress,
     contract,
     amount,
     messageId: id,
