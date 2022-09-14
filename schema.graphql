@@ -132,7 +132,7 @@ type CW20Transfer @entity {
   transaction: Transaction!
   block: Block!
 }
-
+  
 type Account @entity {
   # id is the address
   id: ID!
