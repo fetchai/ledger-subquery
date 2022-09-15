@@ -15,7 +15,7 @@ For a list of tracked entities, see the [schema.graphql file](https://github.com
 
 The graphql API relies heavily on [postgraphile (as a library)](https://www.graphile.org/postgraphile/usage-library/).
 Postgraphile plugins also play a critical role; in particular, the [connection-filter](https://github.com/graphile-contrib/postgraphile-plugin-connection-filter) and [pg-aggregates](https://github.com/graphile/pg-aggregates) plugins.
-For more information, please reference their documentation:
+For more information, please refer to their documentation:
 
 - [connection-filter plugin](https://github.com/graphile-contrib/postgraphile-plugin-connection-filter)
     - [operators](https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/master/docs/operators.md#json-jsonb)
