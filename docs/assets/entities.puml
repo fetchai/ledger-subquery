@@ -36,7 +36,6 @@ entity Message {
   ..relations..
   transaction
   block
-
 }
 
 Transaction::messages ..|{ Message
