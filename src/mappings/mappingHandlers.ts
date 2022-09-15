@@ -176,17 +176,15 @@ export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteCon
 
 
 export async function handleCW20Transfer(event: CosmosEvent): Promise<void> {
-  logger.info(`[handleCW20Transfer] (tx ${event.tx.hash}): indexing CW20Transfer ${messageId(event.msg)}`)
-
   const id = messageId(event.msg);
+  logger.info(`[handleCW20Transfer] (tx ${event.tx.hash}): indexing CW20Transfer ${id}`);
+
   const msg = event.msg.msg.decodedMsg;
-  let fromAddress, contract, toAddress, amount;
-  try {
-    fromAddress = msg.sender;
-    contract = msg.contract;
-    toAddress = msg.msg.transfer.recipient;
-    amount = msg.msg.transfer.amount;
-  } catch {
+  const contract = msg.contract, fromAddress = msg.sender;
+  const toAddress = msg.msg?.transfer?.recipient;
+  const amount = msg.msg?.transfer?.amount;
+
+  if (typeof(amount)==="undefined" || typeof(toAddress)==="undefined" || typeof(fromAddress)==="undefined" || typeof(contract)==="undefined") {
     logger.warn(`[handleCW20Transfer] (${event.tx.hash}): (!SKIPPED!) message is malformed (event.msg.msg.decodedMsg): ${JSON.stringify(event.msg.msg.decodedMsg, null, 2)}`)
     return
   }
