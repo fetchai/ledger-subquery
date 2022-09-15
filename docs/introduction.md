@@ -1,6 +1,6 @@
 # Introduction
 
-The ledger-subquery is a [SubQuery](https://www.subquery.network/)-baesd indexer for the Fetch ledger.
+The ledger-subquery is a [SubQuery](https://www.subquery.network/)-based indexer for the Fetch ledger.
 This indexer provides a [Graphql](https://www.subquery.network/) API for querying tracked entities.
 For a list of tracked entities, see the [schema.graphql file](https://github.com/fetchai/ledger-subquery/blob/main/schema.graphql).
 
