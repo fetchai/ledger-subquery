@@ -270,8 +270,8 @@ export async function handleCW20BalanceTransfer(event: CosmosEvent): Promise<voi
     return
   }
 
-  await saveCW20BalanceEvent(id, toAddress, BigInt(amount), contract, event);
-  await saveCW20BalanceEvent(id, fromAddress, BigInt(0)-BigInt(amount), contract, event);
+  await saveCW20BalanceEvent(`${id}-credit`, toAddress, BigInt(amount), contract, event);
+  await saveCW20BalanceEvent(`${id}-debit`, fromAddress, BigInt(0)-BigInt(amount), contract, event);
 }
 
 export async function handleGovProposalVote(msg: CosmosMessage<GovProposalVoteMsg>): Promise<void> {
@@ -472,12 +472,15 @@ async function saveNativeBalanceEvent(id: string, address: string, amount: BigIn
 
 async function saveCW20BalanceEvent(id: string, address: string, amount: BigInt, contract: string, event: CosmosEvent) {
   await checkBalancesAccount(address);
+  const msgId = messageId(event.msg);
   const CW20BalanceChangeEntity = CW20BalanceChange.create({
     id,
     balanceOffset: amount.valueOf(),
     contract,
     accountId: address,
     eventId: `${messageId(event)}-${event.idx}`,
+    executeContractMessageId: msgId,
+    messageId: msgId,
     blockId: event.block.block.id,
     transactionId: event.tx.hash,
   });

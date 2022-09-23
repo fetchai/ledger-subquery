@@ -103,6 +103,10 @@ class CW20BalanceChangeFields(NamedFields):
     def select_query(cls, table="c_w20_balance_changes"):
         return super().select_query(table)
 
+    @classmethod
+    def by_execute_contract_method(cls, method):
+        return f"SELECT c_w20_balance_changes.id, balance_offset, c_w20_balance_changes.contract, account_id FROM c_w20_balance_changes, execute_contract_messages WHERE execute_contract_messages.id = execute_contract_message_id and method = '{method}'"
+
 
 class LegacyBridgeSwapFields(NamedFields):
     id = 0

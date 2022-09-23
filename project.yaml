@@ -63,7 +63,7 @@ dataSources:
           kind: cosmos/EventHandler
           filter:
             type: "withdraw_rewards"
-#       # TODO: perhaps merge this handler config and that of CW20BalanceTransfer
+            # TODO: perhaps merge this handler config and that of CW20BalanceTransfer
         - handler: handleCW20Transfer
           kind: cosmos/EventHandler
           filter:

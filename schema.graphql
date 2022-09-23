@@ -155,7 +155,9 @@ type CW20BalanceChange @entity {
   balanceOffset: BigInt!
   contract: String! @index
   account: Account!
+  executeContractMessage: ExecuteContractMessage!
   event: Event!
+  message: Message!
   transaction: Transaction!
   block: Block!
 }
