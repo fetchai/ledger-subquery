@@ -122,7 +122,7 @@ type NativeTransfer @entity {
   block: Block!
 }
 
-type CW20Transfer @entity {
+type Cw20Transfer @entity {
   id: ID!
   toAddress: String! @index
   fromAddress: String! @index
@@ -137,7 +137,7 @@ type Account @entity {
   # id is the address
   id: ID!
   nativeBalanceChanges: [NativeBalanceChange]! @derivedFrom(field: "account")
-  CW20BalanceChanges: [CW20BalanceChange]! @derivedFrom(field: "account")
+  cw20BalanceChanges: [Cw20BalanceChange]! @derivedFrom(field: "account")
 }
 
 type NativeBalanceChange @entity {
@@ -150,7 +150,7 @@ type NativeBalanceChange @entity {
   block: Block!
 }
 
-type CW20BalanceChange @entity {
+type Cw20BalanceChange @entity {
   id: ID!
   balanceOffset: BigInt!
   contract: String! @index

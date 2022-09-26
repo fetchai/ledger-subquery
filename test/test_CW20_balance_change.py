@@ -12,7 +12,7 @@ class TestCW20BalanceChange(base.Base):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.clean_db({"c_w20_transfers"})
+        cls.clean_db({"cw20_transfers"})
         cls._contract = CW20Contract(cls.ledger_client, cls.validator_wallet)
         cls.methods = {
             "burn": {
@@ -49,7 +49,7 @@ class TestCW20BalanceChange(base.Base):
 
         time.sleep(5)
 
-    def test_execute_transfer(self):
+    def test_execute_balance_change(self):
         for method in list(self.methods.keys()):
             transfer = self.db_cursor.execute(CW20BalanceChangeFields.by_execute_contract_method(str(method))).fetchall()
             entry = self.methods[method]
@@ -61,7 +61,7 @@ class TestCW20BalanceChange(base.Base):
                 self.assertEqual(query[CW20BalanceChangeFields.contract.value], entry["contract"], "\nDBError: contract address does not match")
                 self.assertIn(query[CW20BalanceChangeFields.account_id.value], entry["account_id"], "\nDBError: account id amount does not match")
 
-    def test_retrieve_transfer(self):
+    def test_retrieve_balance_change(self):
         latest_block_timestamp = self.get_latest_block_timestamp()
         # create a second timestamp for five minutes before
         min_timestamp = (latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
@@ -81,7 +81,7 @@ class TestCW20BalanceChange(base.Base):
             """
 
         def filtered_cw20_balance_change_query(_filter):
-            return test_filtered_query("cW20BalanceChanges", _filter, cw20_balance_change_nodes)
+            return test_filtered_query("cw20BalanceChanges", _filter, cw20_balance_change_nodes)
 
         # query CW20 transfers, query related block and filter by timestamp, returning all within last five minutes
         for method in list(self.methods.keys()):
@@ -158,11 +158,11 @@ class TestCW20BalanceChange(base.Base):
                 with self.subTest(name):
                     result = self.gql_client.execute(query)
                     """
-                    ["cW20BalanceChanges"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
+                    ["cw20BalanceChanges"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
                     This provides {"accountId":Account address/id, "balanceOffset: balance change amount, "contract":contract address}
                     which can be destructured for the values of interest.
                     """
-                    transfer = result["cW20BalanceChanges"]["nodes"]
+                    transfer = result["cw20BalanceChanges"]["nodes"]
                     entry = self.methods[method]
                     for result in transfer: # assuming that some queries return a list of values, iterate - such as with the method "transfer"
                         self.assertNotEqual(result, [], "\nGQLError: No results returned from query")

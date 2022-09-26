@@ -11,7 +11,7 @@ class TestCW20Transfer(base.Base):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.clean_db({"c_w20_transfers"})
+        cls.clean_db({"cw20_transfers"})
 
         cls._contract = CW20Contract(cls.ledger_client, cls.validator_wallet)
         resp = cls._contract.execute(
@@ -48,7 +48,7 @@ class TestCW20Transfer(base.Base):
             """
 
         def filtered_cw20_transfer_query(_filter):
-            return test_filtered_query("cW20Transfers", _filter, cw20_transfer_nodes)
+            return test_filtered_query("cw20Transfers", _filter, cw20_transfer_nodes)
 
         # query CW20 transfers, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_cw20_transfer_query({
@@ -98,11 +98,11 @@ class TestCW20Transfer(base.Base):
             with self.subTest(name):
                 result = self.gql_client.execute(query)
                 """
-                ["cW20Transfers"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
+                ["cw20Transfers"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
                 This provides {"from_address":sender address, "to_address: destination address, "amount":amount, "contract":contract address}
                 which can be destructured for the values of interest.
                 """
-                transfer = result["cW20Transfers"]["nodes"]
+                transfer = result["cw20Transfers"]["nodes"]
                 self.assertNotEqual(transfer, [], "\nGQLError: No results returned from query")
                 self.assertEqual(transfer[0]["toAddress"], self.delegator_address, "\nGQLError: transfer recipient address does not match")
                 self.assertEqual(transfer[0]["fromAddress"], self.validator_address, "\nGQLError: transfer sender address does not match")

@@ -7,8 +7,14 @@ class NamedFields(Enum):
         return [f'"{field.name}"' for field in cls]
 
     @classmethod
-    def select_query(cls, table):
-        return f"SELECT {', '.join(cls.select_column_names())} FROM {table}"
+    def select_query(cls, table, prefix=False):
+        columns = cls.select_column_names()
+        """ More complex queries might require disambiguation, eg. where two 'id' attributes are being referenced
+            - 'relevant_table.id' this prefix would solve it"""
+        if prefix:
+            for column in range(len(columns)):
+                columns[column] = f"{table}.{columns[column]}"
+        return f"SELECT {', '.join(columns)} FROM {table}"
 
 
 class BlockFields(NamedFields):
@@ -18,8 +24,8 @@ class BlockFields(NamedFields):
     timestamp = 3
 
     @classmethod
-    def select_query(cls, table="blocks"):
-        return super().select_query(table)
+    def select_query(cls, table="blocks", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class TxFields(NamedFields):
@@ -35,8 +41,8 @@ class TxFields(NamedFields):
     signer_address = 9
 
     @classmethod
-    def select_query(cls, table="transactions"):
-        return super().select_query(table)
+    def select_query(cls, table="transactions", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class MsgFields(NamedFields):
@@ -47,8 +53,8 @@ class MsgFields(NamedFields):
     json = 4
 
     @classmethod
-    def select_query(cls, table="messages"):
-        return super().select_query(table)
+    def select_query(cls, table="messages", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class EventFields(NamedFields):
@@ -59,8 +65,8 @@ class EventFields(NamedFields):
     attributes = 4
 
     @classmethod
-    def select_query(cls, table="events"):
-        return super().select_query(table)
+    def select_query(cls, table="events", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class NativeTransferFields(NamedFields):
@@ -71,8 +77,8 @@ class NativeTransferFields(NamedFields):
     from_address = 4
 
     @classmethod
-    def select_query(cls, table="native_transfers"):
-        return super().select_query(table)
+    def select_query(cls, table="native_transfers", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class CW20TransferFields(NamedFields):
@@ -86,8 +92,8 @@ class CW20TransferFields(NamedFields):
     contract = 7
 
     @classmethod
-    def select_query(cls, table="c_w20_transfers"):
-        return super().select_query(table)
+    def select_query(cls, table="cw20_transfers", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class CW20BalanceChangeFields(NamedFields):
@@ -100,12 +106,13 @@ class CW20BalanceChangeFields(NamedFields):
     block_id = 6
 
     @classmethod
-    def select_query(cls, table="c_w20_balance_changes"):
-        return super().select_query(table)
+    def select_query(cls, table="cw20_balance_changes", prefix=False):
+        return super().select_query(table, prefix)
 
     @classmethod
     def by_execute_contract_method(cls, method):
-        return f"SELECT c_w20_balance_changes.id, balance_offset, c_w20_balance_changes.contract, account_id FROM c_w20_balance_changes, execute_contract_messages WHERE execute_contract_messages.id = execute_contract_message_id and method = '{method}'"
+        return f"{cls.select_query(prefix=True)}, execute_contract_messages " \
+               f"WHERE execute_contract_messages.id = execute_contract_message_id and method = '{method}' "
 
 
 class LegacyBridgeSwapFields(NamedFields):
@@ -119,8 +126,8 @@ class LegacyBridgeSwapFields(NamedFields):
     contract = 7
 
     @classmethod
-    def select_query(cls, table="legacy_bridge_swaps"):
-        return super().select_query(table)
+    def select_query(cls, table="legacy_bridge_swaps", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class GovProposalVoteFields(NamedFields):
@@ -133,8 +140,8 @@ class GovProposalVoteFields(NamedFields):
     option = 6
 
     @classmethod
-    def select_query(cls, table="gov_proposal_votes"):
-        return super().select_query(table)
+    def select_query(cls, table="gov_proposal_votes", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class ExecuteContractMessageFields(NamedFields):
@@ -146,8 +153,8 @@ class ExecuteContractMessageFields(NamedFields):
     funds = 5
 
     @classmethod
-    def select_query(cls, table="execute_contract_messages"):
-        return super().select_query(table)
+    def select_query(cls, table="execute_contract_messages", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class DistDelegatorClaimFields(NamedFields):
@@ -161,8 +168,8 @@ class DistDelegatorClaimFields(NamedFields):
     denom = 7
 
     @classmethod
-    def select_query(cls, table="dist_delegator_claims"):
-        return super().select_query(table)
+    def select_query(cls, table="dist_delegator_claims", prefix=False):
+        return super().select_query(table, prefix)
 
 
 class NativeBalanceChangeFields(NamedFields):
@@ -175,5 +182,5 @@ class NativeBalanceChangeFields(NamedFields):
     block_id = 6
     
     @classmethod
-    def select_query(cls, table="native_balance_changes"):
-        return super().select_query(table)
+    def select_query(cls, table="native_balance_changes", prefix=False):
+        return super().select_query(table, prefix)
