@@ -4,6 +4,15 @@ The ledger-subquery is a [SubQuery](https://www.subquery.network/)-based indexer
 This indexer provides a [Graphql](https://www.subquery.network/) API for querying tracked entities.
 For a list of tracked entities, see the [schema.graphql file](https://github.com/fetchai/ledger-subquery/blob/main/schema.graphql).
 
+To learn more about how to [run](https://academy.subquery.network/run_publish/run.html) or [change this SubQuery Project](https://academy.subquery.network/quickstart/quickstart_chains/cosmos.html) to get your own custom GraphQL API for your app, [visit the SubQuery Academy for documentation](https://academy.subquery.network/). 
+
+## Endpoints
+
+| Network | API / Playground URL |
+| --- | --- |
+| Fetchhub (mainnet) | <a href="https://subquery.fetch.ai" target="_blank">https://subquery.fetch.ai</a> |
+| Dorado (testnet) | <a href="https://subquery-dorado.fetch.ai" target="_blank">https://subquery-dorado.fetch.ai</a> |
+
 ## Architecture
 
 ### Component Diagram
@@ -18,8 +27,8 @@ Postgraphile plugins also play a critical role; in particular, the [connection-f
 For more information, please refer to their documentation:
 
 - [connection-filter plugin](https://github.com/graphile-contrib/postgraphile-plugin-connection-filter)
-    - [operators](https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/master/docs/operators.md#json-jsonb)
-    - [query examples](https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/master/docs/examples.md)
+  - [operators](https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/master/docs/operators.md#json-jsonb)
+  - [query examples](https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/master/docs/examples.md)
 - [pg-aggregates plugin](https://github.com/graphile/pg-aggregates)
 
 Additional examples of queries and use cases can be found in the [end-to-end test suite](https://github.com/fetchai/ledger-subquery/blob/main/test).
@@ -46,4 +55,3 @@ _(see: [schema.graphql](https://github.com/ledger-subquery/blob/main/schema.grap
 ![entity relationship diagram legend](./assets/entities_legend.svg)
 
 ![entity relationship diagram](./assets/entities.svg)
-
