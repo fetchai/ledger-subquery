@@ -80,7 +80,7 @@ class NativeTransferFields(NamedFields):
         return super().select_query(table, prefix)
 
 
-class CW20TransferFields(NamedFields):
+class Cw20TransferFields(NamedFields):
     id = 0
     message_id = 1
     transaction_id = 2
@@ -95,7 +95,7 @@ class CW20TransferFields(NamedFields):
         return super().select_query(table, prefix)
 
 
-class CW20BalanceChangeFields(NamedFields):
+class Cw20BalanceChangeFields(NamedFields):
     id = 0
     balance_offset = 1
     contract = 2

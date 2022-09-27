@@ -1,19 +1,19 @@
 import unittest, base, time, datetime as dt
-from contracts import CW20Contract
-from helpers.field_enums import CW20BalanceChangeFields
+from contracts import Cw20Contract
+from helpers.field_enums import Cw20BalanceChangeFields
 from helpers.graphql import test_filtered_query
 
 
-class TestCW20BalanceChange(base.Base):
+class TestCw20BalanceChange(base.Base):
     amount = 5000
-    _contract: CW20Contract
+    _contract: Cw20Contract
     methods = None
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.clean_db({"cw20_transfers"})
-        cls._contract = CW20Contract(cls.ledger_client, cls.validator_wallet)
+        cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
         cls.methods = {
             "burn": {
                 "balance_offset": [-cls.amount],
@@ -51,15 +51,15 @@ class TestCW20BalanceChange(base.Base):
 
     def test_execute_balance_change(self):
         for method in list(self.methods.keys()):
-            transfer = self.db_cursor.execute(CW20BalanceChangeFields.by_execute_contract_method(str(method))).fetchall()
+            transfer = self.db_cursor.execute(Cw20BalanceChangeFields.by_execute_contract_method(str(method))).fetchall()
             entry = self.methods[method]
             """Due to differences in structure of each tabled test case, self.assertIn checks if the entry is in 
                the short list of possible values given in the methods dict"""
             for query in transfer:
                 self.assertIsNotNone(transfer, "\nDBError: table is empty - maybe indexer did not find an entry?")
-                self.assertIn(query[CW20BalanceChangeFields.balance_offset.value], entry["balance_offset"], "\nDBError: balance offset does not match")
-                self.assertEqual(query[CW20BalanceChangeFields.contract.value], entry["contract"], "\nDBError: contract address does not match")
-                self.assertIn(query[CW20BalanceChangeFields.account_id.value], entry["account_id"], "\nDBError: account id amount does not match")
+                self.assertIn(query[Cw20BalanceChangeFields.balance_offset.value], entry["balance_offset"], "\nDBError: balance offset does not match")
+                self.assertEqual(query[Cw20BalanceChangeFields.contract.value], entry["contract"], "\nDBError: contract address does not match")
+                self.assertIn(query[Cw20BalanceChangeFields.account_id.value], entry["account_id"], "\nDBError: account id amount does not match")
 
     def test_retrieve_balance_change(self):
         latest_block_timestamp = self.get_latest_block_timestamp()
@@ -83,7 +83,7 @@ class TestCW20BalanceChange(base.Base):
         def filtered_cw20_balance_change_query(_filter):
             return test_filtered_query("cw20BalanceChanges", _filter, cw20_balance_change_nodes)
 
-        # query CW20 transfers, query related block and filter by timestamp, returning all within last five minutes
+        # query Cw20 transfers, query related block and filter by timestamp, returning all within last five minutes
         for method in list(self.methods.keys()):
             filter_by_block_timestamp_range = filtered_cw20_balance_change_query({
                 "block": {
@@ -101,7 +101,7 @@ class TestCW20BalanceChange(base.Base):
                 }
             })
 
-            # query CW20 balance changes, filter by contract address
+            # query Cw20 balance changes, filter by contract address
             filter_by_contract_address = filtered_cw20_balance_change_query({
                 "contract": {
                     "equalTo": str(self._contract.address)
@@ -117,7 +117,7 @@ class TestCW20BalanceChange(base.Base):
                 }
             })
 
-            # query CW20 balance changes, filter by accountID
+            # query Cw20 balance changes, filter by accountID
             filter_by_account_id = filtered_cw20_balance_change_query({
                 "accountId": {
                     "equalTo": str(self.validator_address)
@@ -133,7 +133,7 @@ class TestCW20BalanceChange(base.Base):
                 }
             })
 
-            # query CW20 balance changes, filter by balanceOffset
+            # query Cw20 balance changes, filter by balanceOffset
             filter_by_balance_offset = filtered_cw20_balance_change_query({
                 "balanceOffset": {
                     "greaterThan": "1"

@@ -31,7 +31,7 @@ DefaultBridgeContractConfig = BridgeContractConfig(
     next_swap_id=0
 )
 
-class CW20Contract(LedgerContract):
+class Cw20Contract(LedgerContract):
 
     def __init__(self, client: LedgerClient, admin: Wallet):
         url = "https://github.com/CosmWasm/cw-plus/releases/download/v0.14.0/cw20_base.wasm"

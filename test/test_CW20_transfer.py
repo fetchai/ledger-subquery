@@ -1,19 +1,19 @@
 import unittest, base, time, datetime as dt
-from contracts import CW20Contract
-from helpers.field_enums import CW20TransferFields
+from contracts import Cw20Contract
+from helpers.field_enums import Cw20TransferFields
 from helpers.graphql import test_filtered_query
 
 
-class TestCW20Transfer(base.Base):
+class TestCw20Transfer(base.Base):
     amount = 5000
-    _contract: CW20Contract
+    _contract: Cw20Contract
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.clean_db({"cw20_transfers"})
 
-        cls._contract = CW20Contract(cls.ledger_client, cls.validator_wallet)
+        cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
         resp = cls._contract.execute(
             {"transfer": {"recipient": cls.delegator_address, "amount": str(cls.amount)}},
             cls.validator_wallet)
@@ -21,12 +21,12 @@ class TestCW20Transfer(base.Base):
         time.sleep(5)
 
     def test_execute_transfer(self):
-        transfer = self.db_cursor.execute(CW20TransferFields.select_query()).fetchone()
+        transfer = self.db_cursor.execute(Cw20TransferFields.select_query()).fetchone()
         self.assertIsNotNone(transfer, "\nDBError: table is empty - maybe indexer did not find an entry?")
-        self.assertEqual(transfer[CW20TransferFields.to_address.value], self.delegator_address, "\nDBError: transfer recipient address does not match")
-        self.assertEqual(transfer[CW20TransferFields.contract.value], self._contract.address, "\nDBError: contract address does not match")
-        self.assertEqual(transfer[CW20TransferFields.amount.value], self.amount, "\nDBError: fund amount does not match")
-        self.assertEqual(transfer[CW20TransferFields.from_address.value], self.validator_address, "\nDBError: transfer sender address does not match")
+        self.assertEqual(transfer[Cw20TransferFields.to_address.value], self.delegator_address, "\nDBError: transfer recipient address does not match")
+        self.assertEqual(transfer[Cw20TransferFields.contract.value], self._contract.address, "\nDBError: contract address does not match")
+        self.assertEqual(transfer[Cw20TransferFields.amount.value], self.amount, "\nDBError: fund amount does not match")
+        self.assertEqual(transfer[Cw20TransferFields.from_address.value], self.validator_address, "\nDBError: transfer sender address does not match")
 
     def test_retrieve_transfer(self):
         latest_block_timestamp = self.get_latest_block_timestamp()
@@ -50,7 +50,7 @@ class TestCW20Transfer(base.Base):
         def filtered_cw20_transfer_query(_filter):
             return test_filtered_query("cw20Transfers", _filter, cw20_transfer_nodes)
 
-        # query CW20 transfers, query related block and filter by timestamp, returning all within last five minutes
+        # query Cw20 transfers, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_cw20_transfer_query({
             "block": {
                 "timestamp": {
@@ -60,28 +60,28 @@ class TestCW20Transfer(base.Base):
             }
         })
 
-        # query CW20 transfers, filter by destination address
+        # query Cw20 transfers, filter by destination address
         filter_by_to_address_equals = filtered_cw20_transfer_query({
             "toAddress": {
                 "equalTo": str(self.delegator_address)
             }
         })
 
-        # query CW20 transfers, filter by destination address
+        # query Cw20 transfers, filter by destination address
         filter_by_from_address_equals = filtered_cw20_transfer_query({
             "fromAddress": {
                 "equalTo": str(self.validator_address)
             }
         })
 
-        # query CW20 transfers, filter by contract address
+        # query Cw20 transfers, filter by contract address
         filter_by_contract_equals = filtered_cw20_transfer_query({
             "contract": {
                 "equalTo": str(self._contract.address)
             }
         })
 
-        # query CW20 transfers, filter by amount
+        # query Cw20 transfers, filter by amount
         filter_by_amount_above = filtered_cw20_transfer_query({
             "amount": {
                 "greaterThan": "1"

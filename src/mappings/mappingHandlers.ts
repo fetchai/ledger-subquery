@@ -175,9 +175,9 @@ export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteCon
   await msgEntity.save();
 }
 
-export async function handleCW20Transfer(event: CosmosEvent): Promise<void> { // TODO: consolidate CW20 functions and helpers
+export async function handleCw20Transfer(event: CosmosEvent): Promise<void> { // TODO: consolidate Cw20 functions and helpers
   const id = messageId(event.msg);
-  logger.info(`[handleCW20Transfer] (tx ${event.tx.hash}): indexing CW20Transfer ${id}`);
+  logger.info(`[handleCw20Transfer] (tx ${event.tx.hash}): indexing Cw20Transfer ${id}`);
 
   const msg = event.msg.msg.decodedMsg;
   const contract = msg.contract, fromAddress = msg.sender;
@@ -185,16 +185,16 @@ export async function handleCW20Transfer(event: CosmosEvent): Promise<void> { //
   const amount = msg.msg?.transfer?.amount;
 
   if (typeof(amount)==="undefined" || typeof(toAddress)==="undefined" || typeof(fromAddress)==="undefined" || typeof(contract)==="undefined") {
-    logger.warn(`[handleCW20Transfer] (${event.tx.hash}): (!SKIPPED!) message is malformed (event.msg.msg.decodedMsg): ${JSON.stringify(msg, null, 2)}`)
+    logger.warn(`[handleCw20Transfer] (${event.tx.hash}): (!SKIPPED!) message is malformed (event.msg.msg.decodedMsg): ${JSON.stringify(msg, null, 2)}`)
     return
   }
 
   if (!fromAddress || !amount || !toAddress || !contract) {
-    logger.warn(`[handleCW20Transfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    logger.warn(`[handleCw20Transfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
     return
   }
 
-  const cw20transfer = Cw20Transfer.create({
+  const Cw20transfer = Cw20Transfer.create({
     id,
     toAddress,
     fromAddress,
@@ -205,28 +205,28 @@ export async function handleCW20Transfer(event: CosmosEvent): Promise<void> { //
     blockId: event.block.block.id
   });
 
-  await cw20transfer.save();
+  await Cw20transfer.save();
 }
 
-export async function handleCW20BalanceBurn(event: CosmosEvent): Promise<void> {
+export async function handleCw20BalanceBurn(event: CosmosEvent): Promise<void> {
   const id = messageId(event.msg);
-  logger.info(`[handleCW20BalanceBurn] (tx ${event.tx.hash}): indexing CW20BalanceBurn ${id}`);
+  logger.info(`[handleCw20BalanceBurn] (tx ${event.tx.hash}): indexing Cw20BalanceBurn ${id}`);
 
   const msg = event.msg.msg.decodedMsg;
   const fromAddress = msg.sender, contract = msg.contract;
   const amount = msg.msg?.burn?.amount;
 
   if (!fromAddress || !amount || !contract) {
-    logger.warn(`[handleCW20BalanceBurn] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    logger.warn(`[handleCw20BalanceBurn] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
     return
   }
 
-  await saveCW20BalanceEvent(`${id}-burn`, fromAddress, BigInt(0)-BigInt(amount), contract, event);
+  await saveCw20BalanceEvent(`${id}-burn`, fromAddress, BigInt(0)-BigInt(amount), contract, event);
 }
 
-export async function handleCW20BalanceMint(event: CosmosEvent): Promise<void> {
+export async function handleCw20BalanceMint(event: CosmosEvent): Promise<void> {
   const id = messageId(event.msg);
-  logger.info(`[handleCW20BalanceMint] (tx ${event.tx.hash}): indexing CW20BalanceMint ${id}`);
+  logger.info(`[handleCw20BalanceMint] (tx ${event.tx.hash}): indexing Cw20BalanceMint ${id}`);
 
   const msg = event.msg.msg.decodedMsg;
   const contract = msg.contract;
@@ -234,16 +234,16 @@ export async function handleCW20BalanceMint(event: CosmosEvent): Promise<void> {
   const toAddress = msg.msg?.mint?.recipient;
 
   if (!toAddress || !amount || !contract) {
-    logger.warn(`[handleCW20BalanceMint] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    logger.warn(`[handleCw20BalanceMint] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
     return
   }
 
-  await saveCW20BalanceEvent(`${id}-mint`, toAddress, BigInt(amount), contract, event);
+  await saveCw20BalanceEvent(`${id}-mint`, toAddress, BigInt(amount), contract, event);
 }
 
-export async function handleCW20BalanceTransfer(event: CosmosEvent): Promise<void> {
+export async function handleCw20BalanceTransfer(event: CosmosEvent): Promise<void> {
   const id = messageId(event.msg);
-  logger.info(`[handleCW20BalanceTransfer] (tx ${event.tx.hash}): indexing CW20BalanceTransfer ${id}`);
+  logger.info(`[handleCw20BalanceTransfer] (tx ${event.tx.hash}): indexing Cw20BalanceTransfer ${id}`);
 
   const msg = event.msg.msg.decodedMsg;
   const contract = msg.contract, fromAddress = msg.sender;
@@ -251,12 +251,12 @@ export async function handleCW20BalanceTransfer(event: CosmosEvent): Promise<voi
   const amount = msg.msg?.transfer?.amount;
 
   if (!fromAddress || !toAddress || !amount || !contract) {
-    logger.warn(`[handleCW20BalanceTransfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    logger.warn(`[handleCw20BalanceTransfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
     return
   }
 
-  await saveCW20BalanceEvent(`${id}-credit`, toAddress, BigInt(amount), contract, event);
-  await saveCW20BalanceEvent(`${id}-debit`, fromAddress, BigInt(0)-BigInt(amount), contract, event);
+  await saveCw20BalanceEvent(`${id}-credit`, toAddress, BigInt(amount), contract, event);
+  await saveCw20BalanceEvent(`${id}-debit`, fromAddress, BigInt(0)-BigInt(amount), contract, event);
 }
 
 export async function handleGovProposalVote(msg: CosmosMessage<GovProposalVoteMsg>): Promise<void> {
@@ -455,10 +455,10 @@ async function saveNativeBalanceEvent(id: string, address: string, amount: BigIn
   await nativeBalanceChangeEntity.save()
 }
 
-async function saveCW20BalanceEvent(id: string, address: string, amount: BigInt, contract: string, event: CosmosEvent) {
+async function saveCw20BalanceEvent(id: string, address: string, amount: BigInt, contract: string, event: CosmosEvent) {
   await checkBalancesAccount(address);
   const msgId = messageId(event.msg);
-  const CW20BalanceChangeEntity = Cw20BalanceChange.create({
+  const Cw20BalanceChangeEntity = Cw20BalanceChange.create({
     id,
     balanceOffset: amount.valueOf(),
     contract,
@@ -469,5 +469,5 @@ async function saveCW20BalanceEvent(id: string, address: string, amount: BigInt,
     blockId: event.block.block.id,
     transactionId: event.tx.hash,
   });
-  await CW20BalanceChangeEntity.save()
+  await Cw20BalanceChangeEntity.save()
 }
