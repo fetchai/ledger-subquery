@@ -12,8 +12,7 @@ class NamedFields(Enum):
         """ More complex queries might require disambiguation, eg. where two 'id' attributes are being referenced
             - 'relevant_table.id' this prefix would solve it"""
         if prefix:
-            for column in range(len(columns)):
-                columns[column] = f"{table}.{columns[column]}"
+            columns = [f"{table}.{column}" for column in columns]
         return f"SELECT {', '.join(columns)} FROM {table}"
 
 
