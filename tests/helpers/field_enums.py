@@ -1,5 +1,12 @@
+import sys
 from enum import Enum
+from pathlib import Path
 from typing import List
+
+repo_root_path = Path(__file__).parent.parent.parent.absolute()
+sys.path.insert(0, str(repo_root_path))
+
+from src.genesis.observers.accounts import AccountsManager
 
 
 class NamedFields(Enum):
@@ -188,3 +195,13 @@ class NativeBalanceChangeFields(NamedFields):
     @classmethod
     def select_query(cls, table="native_balance_changes", prefix=False):
         return super().select_query(table, prefix)
+
+
+class Accounts(NamedFields):
+    id = 0
+    chain_id = 1
+
+    @classmethod
+    def select_query(cls, table=AccountsManager._table):
+        return super().select_query(table)
+
