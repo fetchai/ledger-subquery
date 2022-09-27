@@ -1,19 +1,24 @@
 from enum import Enum
+from typing import List
 
 
 class NamedFields(Enum):
     @classmethod
-    def select_column_names(cls):
+    def select_column_names(cls) -> List[str]:
         return [f'"{field.name}"' for field in cls]
 
     @classmethod
-    def select_query(cls, table, prefix=False):
+    def select_query(cls, table: str, prefix=False) -> str:
         columns = cls.select_column_names()
         """ More complex queries might require disambiguation, eg. where two 'id' attributes are being referenced
             - 'relevant_table.id' this prefix would solve it"""
         if prefix:
             columns = [f"{table}.{column}" for column in columns]
         return f"SELECT {', '.join(columns)} FROM {table}"
+
+    @classmethod
+    def select_where(cls, where_clause: str, table: str) -> str:
+        return f"{cls.select_query(table)} WHERE {where_clause}"
 
 
 class BlockFields(NamedFields):
@@ -179,7 +184,7 @@ class NativeBalanceChangeFields(NamedFields):
     event_id = 4
     transaction_id = 5
     block_id = 6
-    
+
     @classmethod
     def select_query(cls, table="native_balance_changes", prefix=False):
         return super().select_query(table, prefix)
