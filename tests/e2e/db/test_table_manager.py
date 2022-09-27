@@ -2,12 +2,10 @@ import sys
 import unittest
 from pathlib import Path
 
-from psycopg import Connection
-
 src_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.append(str(src_path))
 
-from tests.e2e.entities.base import TestWithDBConn
+from tests.helpers.clients import TestWithDBConn
 
 from src.genesis.db.table_manager import TableManager, table_exists
 from src.genesis.db.types import DBTypes

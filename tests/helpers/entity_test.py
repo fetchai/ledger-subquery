@@ -13,10 +13,10 @@ from cosmpy.protos.cosmos.gov.v1beta1 import query_pb2_grpc
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
-from tests.helpers.clients import TestWithDBConn, TestWithGQLClient
+from tests.helpers.clients import TestWithDBConn, TestWithGQLClient, FETCHD_HOST, FETCHD_GRPC_PORT
 
 
-class Base(TestWithDBConn, TestWithGQLClient):
+class EntityTest(TestWithDBConn, TestWithGQLClient):
     delegator_wallet = None
     delegator_address = None
 
@@ -28,6 +28,9 @@ class Base(TestWithDBConn, TestWithGQLClient):
 
     @classmethod
     def setUpClass(cls):
+        TestWithDBConn.setUpClass()
+        TestWithGQLClient.setUpClass()
+
         validator_mnemonic = "nut grocery slice visit barrel peanut tumble patch slim logic install evidence fiction shield rich brown around arrest fresh position animal butter forget cost"
         cls.validator_wallet = get_wallet(validator_mnemonic)
         cls.validator_address = str(cls.validator_wallet.address())

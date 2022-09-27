@@ -1,3 +1,4 @@
+import dateutil.parser as dp
 import sys
 import unittest
 from pathlib import Path
@@ -8,10 +9,10 @@ from gql import Client
 from gql.transport.aiohttp import AIOHTTPTransport
 from psycopg import Connection, Cursor
 
+from .gql_queries import latest_block_timestamp
+
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.append(repo_root_path)
-
-from .gql_queries import latest_block_timestamp
 
 from src.genesis.db import table_exists
 

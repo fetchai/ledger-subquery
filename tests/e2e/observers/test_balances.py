@@ -9,7 +9,7 @@ from reactivex.scheduler import ThreadPoolScheduler
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
-from tests.e2e.entities.base import TestWithDBConn
+from tests.helpers.clients import TestWithDBConn
 from tests.helpers.genesis_data import test_genesis_data, test_bank_state_balances
 from tests.helpers.field_enums import NativeBalances, Accounts
 
@@ -112,6 +112,7 @@ class TestBalanceManager(TestWithDBConn):
                 self.assertEqual(expected_coin, actual_coin)
 
         # TODO: check for extra stuff in actual_balances (?)
+
 
 if __name__ == "__main__":
     unittest.main()
