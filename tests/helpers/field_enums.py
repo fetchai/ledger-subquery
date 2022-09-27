@@ -6,6 +6,7 @@ from typing import List
 repo_root_path = Path(__file__).parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
+from src.genesis.observers.balances import NativeBalancesManager
 from src.genesis.observers.accounts import AccountsManager
 
 
@@ -205,3 +206,17 @@ class Accounts(NamedFields):
     def select_query(cls, table=AccountsManager._table):
         return super().select_query(table)
 
+
+class NativeBalances(NamedFields):
+    id = 0
+    account_id = 1
+    amount = 2
+    denom = 3
+
+    @classmethod
+    def select_query(cls, table=NativeBalancesManager._table):
+        return super().select_query(table)
+
+    @classmethod
+    def select_where(cls, where_clause: str, table: str = NativeBalancesManager._table):
+        return super().select_where(where_clause, table)
