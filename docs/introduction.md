@@ -33,7 +33,7 @@ This UI is useful for rapid experimentation and iteration of queries as well as 
 ![subquery architecture component diagram](./assets/architecture.svg)
 
 ## Querying
-The graphql API relies heavily on [postgraphile (as a library)](https://www.graphile.org/postgraphile/usage-library/) to g.
+The graphql API relies heavily on [postgraphile (as a library)](https://www.graphile.org/postgraphile/usage-library/) to resolve graphql requests.
 
 Postgraphile plugins also play a critical role; in particular, the [connection-filter](https://github.com/graphile-contrib/postgraphile-plugin-connection-filter) and [pg-aggregates](https://github.com/graphile/pg-aggregates) plugins.
 
