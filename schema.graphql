@@ -122,10 +122,22 @@ type NativeTransfer @entity {
   block: Block!
 }
 
+type Cw20Transfer @entity {
+  id: ID!
+  toAddress: String! @index
+  fromAddress: String! @index
+  contract: String! @index
+  amount: BigInt!
+  message: Message!
+  transaction: Transaction!
+  block: Block!
+}
+
 type Account @entity {
   # id is the address
   id: ID!
   nativeBalanceChanges: [NativeBalanceChange]! @derivedFrom(field: "account")
+  cw20BalanceChanges: [Cw20BalanceChange]! @derivedFrom(field: "account")
 }
 
 type NativeBalanceChange @entity {
@@ -150,3 +162,16 @@ type IbcTransfer @entity {
   transaction: Transaction!
   block: Block!
 }
+
+type Cw20BalanceChange @entity {
+  id: ID!
+  balanceOffset: BigInt!
+  contract: String! @index
+  account: Account!
+  executeContractMessage: ExecuteContractMessage!
+  event: Event!
+  message: Message!
+  transaction: Transaction!
+  block: Block!
+}
+

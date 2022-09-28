@@ -111,7 +111,6 @@ services:
       - 19090:9090
     expose:
       - 26656
-
   hermes:
     build: ./docker/hermes
     entrypoint: ["sh", "-c", "/scripts/start_hermes.sh"]

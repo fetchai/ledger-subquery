@@ -1,6 +1,5 @@
 import {
   Account,
-  NativeBalanceChange,
   Block,
   DistDelegatorClaim,
   Event,
@@ -11,8 +10,11 @@ import {
   Message,
   NativeTransfer,
   IbcTransfer,
+  NativeBalanceChange,
+  Cw20Transfer,
+  Cw20BalanceChange,
   Transaction,
-  TxStatus
+  TxStatus,
 } from "../types";
 import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction,} from "@subql/types-cosmos";
 import {
@@ -20,7 +22,7 @@ import {
   DistDelegatorClaimMsg,
   GovProposalVoteMsg,
   LegacyBridgeSwapMsg,
-  NativeTransferMsg
+  NativeTransferMsg,
 } from "./types";
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
@@ -174,6 +176,90 @@ export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteCon
   await msgEntity.save();
 }
 
+export async function handleCw20Transfer(event: CosmosEvent): Promise<void> { // TODO: consolidate Cw20 functions and helpers
+  const id = messageId(event.msg);
+  logger.info(`[handleCw20Transfer] (tx ${event.tx.hash}): indexing Cw20Transfer ${id}`);
+
+  const msg = event.msg.msg.decodedMsg;
+  const contract = msg.contract, fromAddress = msg.sender;
+  const toAddress = msg.msg?.transfer?.recipient;
+  const amount = msg.msg?.transfer?.amount;
+
+  if (typeof(amount)==="undefined" || typeof(toAddress)==="undefined" || typeof(fromAddress)==="undefined" || typeof(contract)==="undefined") {
+    logger.warn(`[handleCw20Transfer] (${event.tx.hash}): (!SKIPPED!) message is malformed (event.msg.msg.decodedMsg): ${JSON.stringify(msg, null, 2)}`)
+    return
+  }
+
+  if (!fromAddress || !amount || !toAddress || !contract) {
+    logger.warn(`[handleCw20Transfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
+  const Cw20transfer = Cw20Transfer.create({
+    id,
+    toAddress,
+    fromAddress,
+    contract,
+    amount,
+    messageId: id,
+    transactionId: event.tx.hash,
+    blockId: event.block.block.id
+  });
+
+  await Cw20transfer.save();
+}
+
+export async function handleCw20BalanceBurn(event: CosmosEvent): Promise<void> {
+  const id = messageId(event.msg);
+  logger.info(`[handleCw20BalanceBurn] (tx ${event.tx.hash}): indexing Cw20BalanceBurn ${id}`);
+
+  const msg = event.msg.msg.decodedMsg;
+  const fromAddress = msg.sender, contract = msg.contract;
+  const amount = msg.msg?.burn?.amount;
+
+  if (!fromAddress || !amount || !contract) {
+    logger.warn(`[handleCw20BalanceBurn] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
+  await saveCw20BalanceEvent(`${id}-burn`, fromAddress, BigInt(0)-BigInt(amount), contract, event);
+}
+
+export async function handleCw20BalanceMint(event: CosmosEvent): Promise<void> {
+  const id = messageId(event.msg);
+  logger.info(`[handleCw20BalanceMint] (tx ${event.tx.hash}): indexing Cw20BalanceMint ${id}`);
+
+  const msg = event.msg.msg.decodedMsg;
+  const contract = msg.contract;
+  const amount = msg.msg?.mint?.amount;
+  const toAddress = msg.msg?.mint?.recipient;
+
+  if (!toAddress || !amount || !contract) {
+    logger.warn(`[handleCw20BalanceMint] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
+  await saveCw20BalanceEvent(`${id}-mint`, toAddress, BigInt(amount), contract, event);
+}
+
+export async function handleCw20BalanceTransfer(event: CosmosEvent): Promise<void> {
+  const id = messageId(event.msg);
+  logger.info(`[handleCw20BalanceTransfer] (tx ${event.tx.hash}): indexing Cw20BalanceTransfer ${id}`);
+
+  const msg = event.msg.msg.decodedMsg;
+  const contract = msg.contract, fromAddress = msg.sender;
+  const toAddress = msg.msg?.transfer?.recipient;
+  const amount = msg.msg?.transfer?.amount;
+
+  if (!fromAddress || !toAddress || !amount || !contract) {
+    logger.warn(`[handleCw20BalanceTransfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
+  await saveCw20BalanceEvent(`${id}-credit`, toAddress, BigInt(amount), contract, event);
+  await saveCw20BalanceEvent(`${id}-debit`, fromAddress, BigInt(0)-BigInt(amount), contract, event);
+}
+
 export async function handleGovProposalVote(msg: CosmosMessage<GovProposalVoteMsg>): Promise<void> {
   logger.info(`[handleGovProposalVote] (tx ${msg.tx.hash}): indexing GovProposalVote ${messageId(msg)}`)
   logger.debug(`[handleGovProposalVote] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
@@ -227,14 +313,14 @@ export async function handleLegacyBridgeSwap(msg: CosmosMessage<LegacyBridgeSwap
     funds: [{amount, denom}],
     contract,
   } = msg.msg.decodedMsg;
-  
+
   // gracefully skip indexing "swap" messages that doesn't fullfill the bridge contract
   // otherwise, the node will just crashloop trying to save the message to the db with required null fields.
   if (!destination || !amount || !denom || !contract) {
     logger.warn(`[handleLegacyBridgeSwap] (tx ${msg.tx.hash}): cannot index message (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
-    return 
+    return
   }
-  
+
   const legacySwap = LegacyBridgeSwap.create({
     id,
     destination,
@@ -348,23 +434,25 @@ export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<
   }
 }
 
-async function saveNativeBalanceEvent(id: string, address: string, amount: BigInt, denom: string, event: CosmosEvent) {
-  let accountEntity = await Account.get(address)
+async function checkBalancesAccount(address: string) {
+  let accountEntity = await Account.get(address);
   if (typeof(accountEntity) === "undefined") {
     accountEntity = Account.create({id: address});
     await accountEntity.save();
   }
+}
 
+async function saveNativeBalanceEvent(id: string, address: string, amount: BigInt, denom: string, event: CosmosEvent) {
+  await checkBalancesAccount(address);
   const nativeBalanceChangeEntity = NativeBalanceChange.create({
     id,
-    accountId: address,
     balanceOffset: amount.valueOf(),
-    denom: denom,
+    denom,
+    accountId: address,
     eventId: `${messageId(event)}-${event.idx}`,
     blockId: event.block.block.id,
     transactionId: event.tx.hash,
   });
-
   await nativeBalanceChangeEntity.save()
 }
 
@@ -402,3 +490,21 @@ export async function handleIBCTransfer(event: CosmosEvent): Promise<void> {
 
   await transferEntity.save();
 }
+
+async function saveCw20BalanceEvent(id: string, address: string, amount: BigInt, contract: string, event: CosmosEvent) {
+  await checkBalancesAccount(address);
+  const msgId = messageId(event.msg);
+  const Cw20BalanceChangeEntity = Cw20BalanceChange.create({
+    id,
+    balanceOffset: amount.valueOf(),
+    contract,
+    accountId: address,
+    eventId: `${messageId(event)}-${event.idx}`,
+    executeContractMessageId: msgId,
+    messageId: msgId,
+    blockId: event.block.block.id,
+    transactionId: event.tx.hash,
+  });
+  await Cw20BalanceChangeEntity.save()
+}
+
