@@ -158,6 +158,7 @@ type IbcTransfer @entity {
   denom: String! @index
   sourceChannel: String! @index
   sourcePort: String! @index
+  event: Event!
   message: Message!
   transaction: Transaction!
   block: Block!

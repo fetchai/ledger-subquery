@@ -483,6 +483,7 @@ export async function handleIBCTransfer(event: CosmosEvent): Promise<void> {
     denom: tokenDenom,
     sourcePort,
     sourceChannel,
+    eventId: `${messageId(event)}-${event.idx}`,
     messageId: id,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id
