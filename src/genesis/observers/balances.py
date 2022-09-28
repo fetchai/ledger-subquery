@@ -1,4 +1,5 @@
-from typing import Tuple, Optional, List
+from datetime import timedelta
+from typing import Tuple, Optional, List, Union
 
 from psycopg import Connection
 from reactivex import Observer, Observable
@@ -71,15 +72,16 @@ class NativeBalancesManager(TableManager):
                         copy.write_row((f"{v}" for v in (id_, balance.address, coin.amount, coin.denom)))
         self._db_conn.commit()
 
-    def observe(self, observable: Observable, scheduler: Optional[Scheduler] = None, delay=False) -> None:
+    def observe(self, observable: Observable, scheduler: Optional[Scheduler] = None,
+                buffer_size: int = 500, delay: Optional[Union[timedelta, float]] = None) -> None:
         pre_operators = []
         post_operators = [
             map_(self._observer.map_balance),
-            buffer_with_count(500),
+            buffer_with_count(buffer_size),
         ]
         # TODO: unworkaround delay operator usage; avoiding account lookup / wait
-        if delay is True:
-            post_operators.insert(0, delay_(3))
+        if delay is not None:
+            post_operators.insert(0, delay_(delay))
         if scheduler is not None:
             pre_operators.append(observe_on(scheduler=scheduler))
 

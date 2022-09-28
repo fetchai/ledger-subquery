@@ -89,12 +89,12 @@ class AccountsManager(TableManager):
                     copy.write_row(values)
         self._db_conn.commit()
 
-    def observe(self, observable: Observable, scheduler: Optional[Scheduler] = None) -> None:
+    def observe(self, observable: Observable, scheduler: Optional[Scheduler] = None, buffer_size: int = 500) -> None:
         # TODO: figure out how to use replay
         pre_operators = []
         post_operators = [
             map_(self._observer.map_account),
-            buffer_with_count(500),
+            buffer_with_count(buffer_size),
         ]
         if scheduler is not None:
             pre_operators.append(observe_on(scheduler=scheduler))
