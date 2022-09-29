@@ -61,6 +61,8 @@ class TestGenesisSingleton(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.server_thread = Thread(target=serve_test_data, args=(cls,))
         cls.server_thread.start()
+        # NB: CI seems to have an issue occasionally
+        sleep(1)
 
     @classmethod
     def tearDownClass(cls) -> None:
