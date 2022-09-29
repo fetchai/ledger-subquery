@@ -179,10 +179,10 @@ class NativeBalanceChangeFields(NamedFields):
     event_id = 4
     transaction_id = 5
     block_id = 6
-    
+
     @classmethod
-    def select_query(cls, table="native_balance_changes"):
-        return super().select_query(table)
+    def select_query(cls, table="native_balance_changes", prefix=False):
+        return super().select_query(table, prefix)
 
 class IBCTransferFields(NamedFields):
     id = 0
@@ -192,13 +192,11 @@ class IBCTransferFields(NamedFields):
     denom = 4
     source_channel = 5
     source_port = 6
-    message_id = 7
-    transaction_id = 8
-    block_id = 9
+    event_id = 7
+    message_id = 8
+    transaction_id = 9
+    block_id = 10
 
     @classmethod
-    def select_query(cls, table="ibc_transfers"):
-        return super().select_query(table)
-        
-    def select_query(cls, table="native_balance_changes", prefix=False):
+    def select_query(cls, table="ibc_transfers", prefix=False):
         return super().select_query(table, prefix)
