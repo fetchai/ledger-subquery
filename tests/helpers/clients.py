@@ -26,6 +26,8 @@ DB_USER = "subquery"
 DB_PASS = "subquery"
 FETCHD_HOST = "localhost"
 FETCHD_GRPC_PORT = "9090"
+WASMD_HOST = "localhost"
+WASMD_GRPC_PORT = "19090"
 GRAPHQL_API_URL = "http://localhost:3000"
 
 

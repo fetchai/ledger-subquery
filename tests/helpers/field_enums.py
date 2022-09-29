@@ -220,3 +220,20 @@ class NativeBalances(NamedFields):
     @classmethod
     def select_where(cls, where_clause: str, table: str = NativeBalancesManager._table):
         return super().select_where(where_clause, table)
+
+class IBCTransferFields(NamedFields):
+    id = 0
+    to_address = 1
+    from_address = 2
+    amount = 3
+    denom = 4
+    source_channel = 5
+    source_port = 6
+    event_id = 7
+    message_id = 8
+    transaction_id = 9
+    block_id = 10
+
+    @classmethod
+    def select_query(cls, table="ibc_transfers", prefix=False):
+        return super().select_query(table, prefix)
