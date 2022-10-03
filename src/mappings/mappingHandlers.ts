@@ -404,6 +404,46 @@ export async function handleNativeBalanceDecrement(event: CosmosEvent): Promise<
   }
 }
 
+export async function handleContractStore(event: CosmosEvent): Promise<void> {
+}
+
+// Example Store Code message
+// {   STORE
+//   "sender":"fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn",
+//   "wasmByteCode":"bytecode...",
+// }
+
+// Example Instantiate message
+// {
+//   "sender": "fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn",
+//   "admin": "",
+//   "codeId": {
+//     "low": 1,
+//     "high": 0,
+//     "unsigned": true
+//   },
+//   "label": "a7464ef4fc71f2-20220930145608",
+//   "msg": {
+//     "name": "test coin",
+//     "symbol": "TEST",
+//     "decimals": 6,
+//     "initial_balances": [
+//       {
+//         "amount": "3000000000000000000000000",
+//         "address": "fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn"
+//       }
+//     ],
+//     "mint": {
+//       "minter": "fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn"
+//     }
+//   },
+//   "funds": []
+// }
+
+
+export async function handleContractInstantiate(event: CosmosEvent): Promise<void> {
+}
+
 export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<void> {
   logger.info(`[handleNativeBalanceIncrement] (tx ${event.tx.hash}): indexing event ${event.idx + 1} / ${event.tx.tx.events.length}`)
   logger.debug(`[handleNativeBalanceIncrement] (event.event): ${JSON.stringify(event.event, null, 2)}`)
@@ -508,4 +548,3 @@ async function saveCw20BalanceEvent(id: string, address: string, amount: BigInt,
   });
   await Cw20BalanceChangeEntity.save()
 }
-
