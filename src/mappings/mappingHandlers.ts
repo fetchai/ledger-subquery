@@ -386,6 +386,7 @@ export async function handleNativeBalanceDecrement(event: CosmosEvent): Promise<
   //   {"key":"spender","value":"fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn"},
   //   {"key":"amount","value":"100atestfet"}
   // ]
+
   let spendEvents = [];
   for (const [i, e] of Object.entries(event.event.attributes)) {
     if (e.key !== "spender") {
@@ -397,11 +398,15 @@ export async function handleNativeBalanceDecrement(event: CosmosEvent): Promise<
     const coin = parseCoins(amountStr)[0];
     const amount = BigInt(0) - BigInt(coin.amount); // save a negative amount for a "spend" event
     spendEvents.push({spender: spender, amount: amount, denom: coin.denom})
-  };
+  }
 
   for (const [i, spendEvent] of Object.entries(spendEvents)) {
     await saveNativeBalanceEvent(`${messageId(event)}-spend-${i}`, spendEvent.spender, spendEvent.amount, spendEvent.denom, event);
   }
+
+  const tx = event.tx.decodedTx;
+  const fee = tx.authInfo.fee;
+  await saveNativeBalanceEvent(`${messageId(event)}-fee`, fee.payer, BigInt(0) - BigInt(fee.amount[0].amount), fee.amount[0].denom, event);
 }
 
 export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<void> {
@@ -416,6 +421,7 @@ export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<
   //   {"key":"receiver","value":"fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn"},
   //   {"key":"amount","value":"100atestfet"}
   // ]
+
   let receiveEvents = [];
   for (const [i, e] of Object.entries(event.event.attributes)) {
     if (e.key !== "receiver") {
@@ -427,11 +433,15 @@ export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<
     const coin = parseCoins(amountStr)[0];
     const amount = BigInt(coin.amount);
     receiveEvents.push({receiver: receiver, amount: amount, denom: coin.denom})
-  };
+  }
 
   for (const [i, receiveEvent] of Object.entries(receiveEvents)) {
     await saveNativeBalanceEvent(`${messageId(event)}-receive-${i}`, receiveEvent.receiver, receiveEvent.amount, receiveEvent.denom, event);
   }
+
+  const tx = event.tx.decodedTx;
+  const fee = tx.authInfo.fee;
+  await saveNativeBalanceEvent(`${messageId(event)}-fee`, fee.payer, BigInt(0) - BigInt(fee.amount[0].amount), fee.amount[0].denom, event);
 }
 
 async function checkBalancesAccount(address: string, chainId: string) {
