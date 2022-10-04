@@ -21,7 +21,6 @@ import {
   ExecuteContractMsg,
   DistDelegatorClaimMsg,
   GovProposalVoteMsg,
-  LegacyBridgeSwapMsg,
   NativeTransferMsg,
 } from "./types";
 import {toBech32} from "@cosmjs/encoding";
@@ -97,10 +96,22 @@ export async function handleTransaction(tx: CosmosTransaction): Promise<void> {
   await txEntity.save();
 }
 
-export async function handleNativeTransfer(msg: CosmosMessage<NativeTransferMsg>): Promise<void> {
+export async function handleNativeTransfer(event: CosmosEvent): Promise<void> {
+  const msg = event.msg
   logger.info(`[handleNativeTransfer] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`)
+  logger.fatal(`${JSON.stringify(msg.tx.tx.log)}`)
   logger.debug(`[handleNativeTransfer] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
-  const {toAddress, fromAddress, amount: amounts} = msg.msg.decodedMsg;
+  // const {toAddress, fromAddress, amount: amounts} = msg.msg.decodedMsg;
+
+  const fromAddress = msg.msg?.decodedMsg?.fromAddress;
+  const toAddress = msg.msg?.decodedMsg?.toAddress
+  const amounts = msg.msg?.decodedMsg?.amount;
+
+  if (!fromAddress || !amounts || !toAddress) {
+    logger.warn(`[handleNativeTransfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
   // workaround: assuming one denomination per transfer message
   const denom = amounts[0].denom;
   const id = messageId(msg);
@@ -279,12 +290,20 @@ export async function handleGovProposalVote(msg: CosmosMessage<GovProposalVoteMs
   await vote.save();
 }
 
-export async function handleDistDelegatorClaim(msg: CosmosMessage<DistDelegatorClaimMsg>): Promise<void> {
+export async function handleDistDelegatorClaim(event: CosmosEvent): Promise<void> {
+  const msg = event.msg;
   logger.info(`[handleDistDelegatorClaim] (tx ${msg.tx.hash}): indexing DistDelegatorClaim ${messageId(msg)}`)
   logger.debug(`[handleDistDelegatorClaim] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
 
   const id = messageId(msg);
-  const {delegatorAddress, validatorAddress} = msg.msg.decodedMsg;
+  const delegatorAddress = msg.msg?.decodedMsg?.delegatorAddress;
+  const validatorAddress = msg.msg?.decodedMsg?.validatorAddress;
+
+  if (!delegatorAddress || !validatorAddress) {
+    logger.warn(`[handleDistDelegatorClaim] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
   const claim = DistDelegatorClaim.create({
     id,
     delegatorAddress,
@@ -303,10 +322,11 @@ export async function handleDistDelegatorClaim(msg: CosmosMessage<DistDelegatorC
   await claim.save();
 }
 
-export async function handleLegacyBridgeSwap(msg: CosmosMessage<LegacyBridgeSwapMsg>): Promise<void> {
+export async function handleLegacyBridgeSwap(event: CosmosEvent): Promise<void> {
+  const msg = event.msg
   const id = messageId(msg);
   logger.info(`[handleLegacyBridgeSwap] (tx ${msg.tx.hash}): indexing LegacyBridgeSwap ${id}`)
-  logger.debug(`[handleLegacyBridgeSwap] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+  logger.debug(`[handleLegacyBridgeSwap] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
 
   const contract = msg.msg.decodedMsg.contract;
   const swapMsg = msg.msg.decodedMsg.msg;
@@ -319,7 +339,7 @@ export async function handleLegacyBridgeSwap(msg: CosmosMessage<LegacyBridgeSwap
   // gracefully skip indexing "swap" messages that doesn't fullfill the bridge contract
   // otherwise, the node will just crashloop trying to save the message to the db with required null fields.
   if (!destination || !amount || !denom || !contract) {
-    logger.warn(`[handleLegacyBridgeSwap] (tx ${msg.tx.hash}): cannot index message (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+    logger.warn(`[handleLegacyBridgeSwap] (tx ${msg.tx.hash}): cannot index message (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
     return
   }
 
