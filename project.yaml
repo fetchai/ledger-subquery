@@ -38,16 +38,18 @@ dataSources:
         - handler: handleEvent
           kind: cosmos/EventHandler
         - handler: handleGovProposalVote
-          kind: cosmos/MessageHandler
+          kind: cosmos/EventHandler
           filter:
-            type: "/cosmos.gov.v1beta1.MsgVote"
+            type: "proposal_vote"
+            messageFilter:
+              type: "/cosmos.gov.v1beta1.MsgVote"
         - handler: handleDistDelegatorClaim
           kind: cosmos/EventHandler
           filter:
-            type: "claim_reward"
+            type: "withdraw_rewards"
             messageFilter:
               type: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
-        - handler: handleExecuteContractMessage
+        - handler: handleExecuteContractEvent
           kind: cosmos/EventHandler
           filter:
             type: "execute"

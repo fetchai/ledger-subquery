@@ -17,12 +17,6 @@ import {
   TxStatus,
 } from "../types";
 import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction,} from "@subql/types-cosmos";
-import {
-  ExecuteContractMsg,
-  DistDelegatorClaimMsg,
-  GovProposalVoteMsg,
-  NativeTransferMsg,
-} from "./types";
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
 import {parseCoins} from "./utils";
@@ -99,9 +93,7 @@ export async function handleTransaction(tx: CosmosTransaction): Promise<void> {
 export async function handleNativeTransfer(event: CosmosEvent): Promise<void> {
   const msg = event.msg
   logger.info(`[handleNativeTransfer] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`)
-  logger.fatal(`${JSON.stringify(msg.tx.tx.log)}`)
   logger.debug(`[handleNativeTransfer] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
-  // const {toAddress, fromAddress, amount: amounts} = msg.msg.decodedMsg;
 
   const fromAddress = msg.msg?.decodedMsg?.fromAddress;
   const toAddress = msg.msg?.decodedMsg?.toAddress
@@ -147,7 +139,6 @@ export async function handleEvent(event: CosmosEvent): Promise<void> {
   logger.info(`[handleEvent] (tx ${event.tx.hash}): indexing event ${event.idx + 1} / ${event.tx.tx.events.length}`)
   logger.debug(`[handleEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`)
   logger.debug(`[handleEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`)
-
   // NB: sanitize attribute values (may contain non-text characters)
   const attributes = event.event.attributes.map((attribute) => {
     const {key, value} = attribute;
@@ -166,12 +157,19 @@ export async function handleEvent(event: CosmosEvent): Promise<void> {
   await eventEntity.save();
 }
 
-export async function handleExecuteContractMessage(msg: CosmosMessage<ExecuteContractMsg>): Promise<void> {
+export async function handleExecuteContractEvent(event: CosmosEvent): Promise<void> {
+  const msg = event.msg
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`)
-  logger.debug(`[handleExecuteContractMessage] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+  logger.debug(`[handleExecuteContractMessage] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
   const id = messageId(msg);
-  const {funds, contract, msg: _msg} = msg.msg.decodedMsg;
-  const method = Object.keys(_msg)[0];
+  const funds = msg?.msg?.decodedMsg?.funds, contract = msg?.msg?.decodedMsg?.contract
+  const method = Object.keys(msg?.msg?.decodedMsg?.msg)[0];
+
+  if (!funds || !contract || !method) {
+    logger.warn(`[handleExecuteContractEvent] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
   const msgEntity = ExecuteContractMessage.create({
     id,
     method,
@@ -191,15 +189,11 @@ export async function handleCw20Transfer(event: CosmosEvent): Promise<void> { //
   const id = messageId(event.msg);
   logger.info(`[handleCw20Transfer] (tx ${event.tx.hash}): indexing Cw20Transfer ${id}`);
 
-  const msg = event.msg.msg.decodedMsg;
-  const contract = msg.contract, fromAddress = msg.sender;
-  const toAddress = msg.msg?.transfer?.recipient;
-  const amount = msg.msg?.transfer?.amount;
+  const msg = event.msg?.msg?.decodedMsg;
+  const contract = msg?.contract, fromAddress = msg?.sender;
+  const toAddress = msg?.msg?.transfer?.recipient;
+  const amount = msg?.msg?.transfer?.amount;
 
-  if (typeof(amount)==="undefined" || typeof(toAddress)==="undefined" || typeof(fromAddress)==="undefined" || typeof(contract)==="undefined") {
-    logger.warn(`[handleCw20Transfer] (${event.tx.hash}): (!SKIPPED!) message is malformed (event.msg.msg.decodedMsg): ${JSON.stringify(msg, null, 2)}`)
-    return
-  }
 
   if (!fromAddress || !amount || !toAddress || !contract) {
     logger.warn(`[handleCw20Transfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
@@ -240,10 +234,10 @@ export async function handleCw20BalanceMint(event: CosmosEvent): Promise<void> {
   const id = messageId(event.msg);
   logger.info(`[handleCw20BalanceMint] (tx ${event.tx.hash}): indexing Cw20BalanceMint ${id}`);
 
-  const msg = event.msg.msg.decodedMsg;
-  const contract = msg.contract;
-  const amount = msg.msg?.mint?.amount;
-  const toAddress = msg.msg?.mint?.recipient;
+  const msg = event.msg?.msg?.decodedMsg;
+  const contract = msg?.contract;
+  const amount = msg?.msg?.mint?.amount;
+  const toAddress = msg?.msg?.mint?.recipient;
 
   if (!toAddress || !amount || !contract) {
     logger.warn(`[handleCw20BalanceMint] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
@@ -258,9 +252,9 @@ export async function handleCw20BalanceTransfer(event: CosmosEvent): Promise<voi
   logger.info(`[handleCw20BalanceTransfer] (tx ${event.tx.hash}): indexing Cw20BalanceTransfer ${id}`);
 
   const msg = event.msg.msg.decodedMsg;
-  const contract = msg.contract, fromAddress = msg.sender;
-  const toAddress = msg.msg?.transfer?.recipient;
-  const amount = msg.msg?.transfer?.amount;
+  const contract = msg?.contract, fromAddress = msg?.sender;
+  const toAddress = msg?.msg?.transfer?.recipient;
+  const amount = msg?.msg?.transfer?.amount;
 
   if (!fromAddress || !toAddress || !amount || !contract) {
     logger.warn(`[handleCw20BalanceTransfer] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
@@ -271,12 +265,20 @@ export async function handleCw20BalanceTransfer(event: CosmosEvent): Promise<voi
   await saveCw20BalanceEvent(`${id}-debit`, fromAddress, BigInt(0)-BigInt(amount), contract, event);
 }
 
-export async function handleGovProposalVote(msg: CosmosMessage<GovProposalVoteMsg>): Promise<void> {
+export async function handleGovProposalVote(event: CosmosEvent): Promise<void> {
+  const msg = event.msg;
   logger.info(`[handleGovProposalVote] (tx ${msg.tx.hash}): indexing GovProposalVote ${messageId(msg)}`)
   logger.debug(`[handleGovProposalVote] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
 
   const id = messageId(msg);
-  const {proposalId, voter, option} = msg.msg.decodedMsg;
+  const option = msg?.msg?.decodedMsg?.option;
+  const proposalId = msg?.msg?.decodedMsg?.proposalId, voter = msg?.msg?.decodedMsg?.voter;
+
+  if (!option || !proposalId || !voter) {
+    logger.warn(`[handleGovProposalVote] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
   const vote = GovProposalVote.create({
     id,
     proposalId: proposalId,
@@ -294,10 +296,9 @@ export async function handleDistDelegatorClaim(event: CosmosEvent): Promise<void
   const msg = event.msg;
   logger.info(`[handleDistDelegatorClaim] (tx ${msg.tx.hash}): indexing DistDelegatorClaim ${messageId(msg)}`)
   logger.debug(`[handleDistDelegatorClaim] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
-
   const id = messageId(msg);
-  const delegatorAddress = msg.msg?.decodedMsg?.delegatorAddress;
-  const validatorAddress = msg.msg?.decodedMsg?.validatorAddress;
+  const delegatorAddress = msg?.msg?.decodedMsg?.delegatorAddress;
+  const validatorAddress = msg?.msg?.decodedMsg?.validatorAddress;
 
   if (!delegatorAddress || !validatorAddress) {
     logger.warn(`[handleDistDelegatorClaim] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
@@ -328,11 +329,11 @@ export async function handleLegacyBridgeSwap(event: CosmosEvent): Promise<void> 
   logger.info(`[handleLegacyBridgeSwap] (tx ${msg.tx.hash}): indexing LegacyBridgeSwap ${id}`)
   logger.debug(`[handleLegacyBridgeSwap] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
 
-  const contract = msg.msg.decodedMsg.contract;
-  const swapMsg = msg.msg.decodedMsg.msg;
+  const contract = msg?.msg?.decodedMsg?.contract;
+  const swapMsg = msg?.msg?.decodedMsg?.msg;
   const destination = swapMsg?.swap?.destination;
 
-  const funds = msg.msg.decodedMsg.funds || [];
+  const funds = msg?.msg?.decodedMsg?.funds || [];
   const amount = funds[0]?.amount;
   const denom = funds[0]?.denom;
 
@@ -359,6 +360,7 @@ export async function handleLegacyBridgeSwap(event: CosmosEvent): Promise<void> 
 }
 
 export async function handleDelegatorWithdrawRewardEvent(event: CosmosEvent): Promise<void> {
+  const msg = event.msg;
   logger.debug(`[handleDelegateWithdrawRewardEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`)
   logger.debug(`[handleDelegateWithdrawRewardEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`)
 
@@ -367,10 +369,9 @@ export async function handleDelegatorWithdrawRewardEvent(event: CosmosEvent): Pr
     return acc;
   }, {});
 
-  if (typeof(attrs.amount) === "undefined" || typeof(attrs.validator) === "undefined") {
-    // Skip this call as unprocessable and allow indexer to continue.
-    logger.warn(`[handleDelegateWithdrawRewardEvent] (!SKIPPED!) malformed attributes: ${JSON.stringify(attrs)}`);
-    return;
+  if (!attrs.amount || !attrs.validator) {
+    logger.warn(`[handleDelegatorWithdrawRewardEvent] (tx ${msg.tx.hash}): cannot index message (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+    return
   }
 
   const claims = await DistDelegatorClaim.getByTransactionId(event.tx.hash);
