@@ -88,7 +88,7 @@ export async function handleTransaction(tx: CosmosTransaction): Promise<void> {
     gasWanted: BigInt(Math.trunc(tx.tx.gasWanted)),
     memo: tx.decodedTx.body.memo,
     timeoutHeight: BigInt(tx.decodedTx.body.timeoutHeight.toString()),
-    fees: JSON.stringify(tx.decodedTx.authInfo.fee.amount),
+    fees: tx.decodedTx.authInfo.fee.amount,
     log: tx.tx.log,
     status,
     signerAddress,
@@ -403,10 +403,7 @@ export async function handleNativeBalanceDecrement(event: CosmosEvent): Promise<
   for (const [i, spendEvent] of Object.entries(spendEvents)) {
     await saveNativeBalanceEvent(`${messageId(event)}-spend-${i}`, spendEvent.spender, spendEvent.amount, spendEvent.denom, event);
   }
-
-  const tx = event.tx.decodedTx;
-  const fee = tx.authInfo.fee;
-  await saveNativeBalanceEvent(`${messageId(event)}-fee`, fee.payer, BigInt(0) - BigInt(fee.amount[0].amount), fee.amount[0].denom, event);
+  await saveNativeFeesEvent(event);
 }
 
 export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<void> {
@@ -438,10 +435,7 @@ export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<
   for (const [i, receiveEvent] of Object.entries(receiveEvents)) {
     await saveNativeBalanceEvent(`${messageId(event)}-receive-${i}`, receiveEvent.receiver, receiveEvent.amount, receiveEvent.denom, event);
   }
-
-  const tx = event.tx.decodedTx;
-  const fee = tx.authInfo.fee;
-  await saveNativeBalanceEvent(`${messageId(event)}-fee`, fee.payer, BigInt(0) - BigInt(fee.amount[0].amount), fee.amount[0].denom, event);
+  await saveNativeFeesEvent(event);
 }
 
 async function checkBalancesAccount(address: string, chainId: string) {
@@ -464,6 +458,16 @@ async function saveNativeBalanceEvent(id: string, address: string, amount: BigIn
     transactionId: event.tx.hash,
   });
   await nativeBalanceChangeEntity.save()
+}
+
+async function saveNativeFeesEvent(event: CosmosEvent) {
+  let balanceChangeEvent = await NativeBalanceChange.get(`${event.tx.hash}-fee`)
+  if (typeof(balanceChangeEvent) === "undefined") {
+    const transaction = await Transaction.get(event.tx.hash);
+    const fees = transaction.fees[0], signer = transaction.signerAddress;
+    const amount = fees.amount, denom = fees.denom;
+    await saveNativeBalanceEvent(`${event.tx.hash}-fee`, signer, BigInt(0) - BigInt(amount), denom, event);
+  }
 }
 
 export async function handleIBCTransfer(event: CosmosEvent): Promise<void> {
