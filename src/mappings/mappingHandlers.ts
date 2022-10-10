@@ -20,6 +20,13 @@ import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction,} from "@subq
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
 import {parseCoins} from "./utils";
+import {
+  DistDelegatorClaimMsg,
+  ExecuteContractMsg,
+  GovProposalVoteMsg,
+  LegacyBridgeSwapMsg,
+  NativeTransferMsg
+} from "./types";
 
 // messageId returns the id of the message passed or
 // that of the message which generated the event passed.
@@ -91,7 +98,7 @@ export async function handleTransaction(tx: CosmosTransaction): Promise<void> {
 }
 
 export async function handleNativeTransfer(event: CosmosEvent): Promise<void> {
-  const msg = event.msg
+  const msg: CosmosMessage<NativeTransferMsg> = event.msg
   logger.info(`[handleNativeTransfer] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`)
   logger.debug(`[handleNativeTransfer] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
 
@@ -158,7 +165,7 @@ export async function handleEvent(event: CosmosEvent): Promise<void> {
 }
 
 export async function handleExecuteContractEvent(event: CosmosEvent): Promise<void> {
-  const msg = event.msg
+  const msg: CosmosMessage<ExecuteContractMsg> = event.msg
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`)
   logger.debug(`[handleExecuteContractMessage] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
   const id = messageId(msg);
@@ -266,7 +273,7 @@ export async function handleCw20BalanceTransfer(event: CosmosEvent): Promise<voi
 }
 
 export async function handleGovProposalVote(event: CosmosEvent): Promise<void> {
-  const msg = event.msg;
+  const msg: CosmosMessage<GovProposalVoteMsg> = event.msg;
   logger.info(`[handleGovProposalVote] (tx ${msg.tx.hash}): indexing GovProposalVote ${messageId(msg)}`)
   logger.debug(`[handleGovProposalVote] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
 
@@ -293,7 +300,7 @@ export async function handleGovProposalVote(event: CosmosEvent): Promise<void> {
 }
 
 export async function handleDistDelegatorClaim(event: CosmosEvent): Promise<void> {
-  const msg = event.msg;
+  const msg: CosmosMessage<DistDelegatorClaimMsg> = event.msg;
   logger.info(`[handleDistDelegatorClaim] (tx ${msg.tx.hash}): indexing DistDelegatorClaim ${messageId(msg)}`)
   logger.debug(`[handleDistDelegatorClaim] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
   const id = messageId(msg);
@@ -324,7 +331,7 @@ export async function handleDistDelegatorClaim(event: CosmosEvent): Promise<void
 }
 
 export async function handleLegacyBridgeSwap(event: CosmosEvent): Promise<void> {
-  const msg = event.msg
+  const msg: CosmosMessage<LegacyBridgeSwapMsg> = event.msg
   const id = messageId(msg);
   logger.info(`[handleLegacyBridgeSwap] (tx ${msg.tx.hash}): indexing LegacyBridgeSwap ${id}`)
   logger.debug(`[handleLegacyBridgeSwap] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
