@@ -78,8 +78,8 @@ class TestNativeBalances(EntityTest):
             else:
                 self.fail("couldn't find validator or delegator address in keys")
 
-        self.assertLessEqual(-7*10**18, validator_balance)
-        self.assertLessEqual(7*10**18, delegator_balance)
+        self.assertLessEqual(validator_balance, -7*10**18)
+        self.assertLessEqual(delegator_balance, -7*10**18)
 
 
 if __name__ == '__main__':
