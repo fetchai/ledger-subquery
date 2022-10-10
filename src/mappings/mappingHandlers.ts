@@ -1,25 +1,34 @@
 import {
   Account,
   Block,
+  Contract,
+  Cw20BalanceChange,
+  Cw20Transfer,
   DistDelegatorClaim,
   Event,
   ExecuteContractMessage,
   GovProposalVote,
   GovProposalVoteOption,
+  IbcTransfer,
+  InstantiateContractMessage,
+  Interface,
   LegacyBridgeSwap,
   Message,
-  NativeTransfer,
-  IbcTransfer,
   NativeBalanceChange,
-  Cw20Transfer,
-  Cw20BalanceChange,
+  NativeTransfer,
+  StoreContractMessage,
   Transaction,
   TxStatus,
 } from "../types";
-import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction,} from "@subql/types-cosmos";
 import {
-  ExecuteContractMsg,
+  CosmosBlock,
+  CosmosEvent,
+  CosmosMessage,
+  CosmosTransaction,
+} from "@subql/types-cosmos";
+import {
   DistDelegatorClaimMsg,
+  ExecuteContractMsg,
   GovProposalVoteMsg,
   LegacyBridgeSwapMsg,
   NativeTransferMsg,
@@ -27,6 +36,60 @@ import {
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
 import {parseCoins} from "./utils";
+
+class UncertainStructure {
+  static getInterface() {
+    return Interface.Uncertain;
+  }
+}
+
+class CW20Structure {
+    private name: string = "";
+    private symbol: string = "";
+    private decimals: number = 0;
+    private initial_balances: [{amount: bigint, address: string}] = [{amount:BigInt(0), address:""}];
+    private mint: {minter: string} = {minter:""};
+
+    static listProperties() {
+       let a = new CW20Structure();
+       return Object.getOwnPropertyNames(a);
+   }
+
+   public static getPropertyType(prop: string) {
+      let a = new CW20Structure();
+      return typeof(a[prop]);
+   }
+
+   static getInterface() {
+      return Interface.CW20;
+   }
+}
+
+class LegacyBridgeSwapStructure {
+    private cap: bigint = BigInt(0);
+    private reverse_aggregated_allowance: bigint = BigInt(0);
+    private reverse_aggregated_allowance_approver_cap: bigint = BigInt(0);
+    private lower_swap_limit: bigint = BigInt(0);
+    private upper_swap_limit: bigint = BigInt(0);
+    private swap_fee: bigint = BigInt(0);
+    private paused_since_block: bigint = BigInt(0);
+    private denom: string = "";
+    private next_swap_id: string = "";
+
+    static listProperties(){
+       let a = new LegacyBridgeSwapStructure();
+       return Object.getOwnPropertyNames(a);
+   }
+
+   public getPropertyType(prop: string) {
+      let a = new LegacyBridgeSwapStructure();
+      return typeof(a[prop]);
+   }
+
+   static getInterface() {
+      return Interface.LegacyBridgeSwap;
+   }
+}
 
 // messageId returns the id of the message passed or
 // that of the message which generated the event passed.
@@ -397,51 +460,87 @@ export async function handleNativeBalanceDecrement(event: CosmosEvent): Promise<
     const coin = parseCoins(amountStr)[0];
     const amount = BigInt(0) - BigInt(coin.amount); // save a negative amount for a "spend" event
     spendEvents.push({spender: spender, amount: amount, denom: coin.denom})
-  };
+  }
 
   for (const [i, spendEvent] of Object.entries(spendEvents)) {
     await saveNativeBalanceEvent(`${messageId(event)}-spend-${i}`, spendEvent.spender, spendEvent.amount, spendEvent.denom, event);
   }
 }
 
-export async function handleContractStore(event: CosmosEvent): Promise<void> {
+export async function handleContractStoreEvent(event: CosmosEvent): Promise<void> {
+  logger.info(`[handleContractStoreEvent] (tx ${event.msg.tx.hash}): indexing event ${messageId(event.msg)}`)
+  logger.debug(`[handleContractStoreEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`)
+  logger.debug(`[handleContractStoreEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`)
+
+  const id = messageId(event.msg);
+  let codeId;
+  const sender = event.msg?.msg?.decodedMsg?.sender;
+  const permission = event.msg?.msg?.decodedMsg?.permission;
+
+  for (const [_, e] of Object.entries(event.event.attributes)) {
+    if (e.key === "code_id") {
+      codeId = e.value;
+    }
+  }
+
+  if (!sender || !codeId) {
+    logger.warn(`[handleContractStoreEvent] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
+
+  const storeMsg = StoreContractMessage.create({
+    id,
+    sender,
+    permission,
+    codeId,
+    messageId: id,
+    transactionId: event.msg.tx.hash,
+    blockId: event.msg.block.block.id,
+  })
+  await storeMsg.save();
 }
 
-// Example Store Code message
-// {   STORE
-//   "sender":"fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn",
-//   "wasmByteCode":"bytecode...",
-// }
+export async function handleContractInstantiateEvent(event: CosmosEvent): Promise<void> {
+  logger.info(`[handleContractInstantiateEvent] (tx ${event.msg.tx.hash}): indexing event ${messageId(event.msg)}`)
+  logger.debug(`[handleContractInstantiateEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`)
+  logger.debug(`[handleContractInstantiateEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`)
 
-// Example Instantiate message
-// {
-//   "sender": "fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn",
-//   "admin": "",
-//   "codeId": {
-//     "low": 1,
-//     "high": 0,
-//     "unsigned": true
-//   },
-//   "label": "a7464ef4fc71f2-20220930145608",
-//   "msg": {
-//     "name": "test coin",
-//     "symbol": "TEST",
-//     "decimals": 6,
-//     "initial_balances": [
-//       {
-//         "amount": "3000000000000000000000000",
-//         "address": "fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn"
-//       }
-//     ],
-//     "mint": {
-//       "minter": "fetch1wurz7uwmvchhc8x0yztc7220hxs9jxdjdsrqmn"
-//     }
-//   },
-//   "funds": []
-// }
+  const id = messageId(event.msg);
+  const msg_decoded = event.msg?.msg?.decodedMsg;
+  let codeId, contract_address;
+  const sender = msg_decoded?.sender, admin = msg_decoded?.admin;
+  const label = msg_decoded?.label, payload = msg_decoded?.msg, funds = msg_decoded?.funds;
+
+  for (const [_, e] of Object.entries(event.event.attributes)) {
+    if (e.key === "code_id") {
+      codeId = e.value;
+    }
+    if (e.key === "_contract_address") {
+      contract_address = e.value;
+    }
+  }
 
 
-export async function handleContractInstantiate(event: CosmosEvent): Promise<void> {
+  if (!sender || !codeId || !label || !payload || !codeId || !contract_address) {
+    logger.warn(`[handleContractInstantiateEvent] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
+    return
+  }
+
+  const instantiateMsg = InstantiateContractMessage.create({
+    id,
+    sender,
+    admin,
+    codeId,
+    label,
+    payload,
+    funds,
+    messageId: id,
+    transactionId: event.msg.tx.hash,
+    blockId: event.msg.block.block.id,
+  })
+  await instantiateMsg.save();
+  await saveContractEvent(instantiateMsg, contract_address, event);
 }
 
 export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<void> {
@@ -467,7 +566,7 @@ export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<
     const coin = parseCoins(amountStr)[0];
     const amount = BigInt(coin.amount);
     receiveEvents.push({receiver: receiver, amount: amount, denom: coin.denom})
-  };
+  }
 
   for (const [i, receiveEvent] of Object.entries(receiveEvents)) {
     await saveNativeBalanceEvent(`${messageId(event)}-receive-${i}`, receiveEvent.receiver, receiveEvent.amount, receiveEvent.denom, event);
@@ -480,6 +579,59 @@ async function checkBalancesAccount(address: string, chainId: string) {
     accountEntity = Account.create({id: address, chainId});
     await accountEntity.save();
   }
+}
+
+async function saveContractEvent(instantiateMsg: InstantiateContractMessage, contract_address: string, event: CosmosEvent) {
+  let contract = (await Contract.getByCodeId(instantiateMsg.codeId))[0];
+  const storeCodeMsg = (await StoreContractMessage.getByCodeId(instantiateMsg.codeId))[0];
+
+  if (contract) { // check if contract exists already
+    return
+  }
+
+  if (!storeCodeMsg.id || !contract_address || !instantiateMsg.id || !instantiateMsg.codeId) {
+    logger.warn(`[saveContractEvent] (tx ${event.tx.hash}): failed to save contract (storeCodeMsg, instantiateMsg.id): ${storeCodeMsg.id}, ${instantiateMsg.id}`)
+    return
+  }
+
+  contract = Contract.create({
+      id: `${storeCodeMsg.id}-${instantiateMsg.id}`,
+      address: contract_address,
+      interfaces: [await getJaccardResult(instantiateMsg.payload)],
+      codeId: instantiateMsg.codeId,
+      storeMessageId: storeCodeMsg.id,
+      instantiateMessageId: instantiateMsg.id
+  });
+  await contract.save();
+}
+
+async function getJaccardResult(payload: string): Promise<Interface> {
+  let prediction: any = UncertainStructure, prediction_coefficient = 0;
+  let diff = 0, match = 0, coefficient = 0;
+  const structs = [CW20Structure, LegacyBridgeSwapStructure];
+  structs.forEach( (struct) => {
+    Object.keys(payload).forEach( (payload_key) => {
+      struct.listProperties().forEach((structure_key) => {
+        if (payload_key===structure_key) {
+          match++;
+          if (payload[payload_key] && typeof(payload[payload_key])===struct.getPropertyType(structure_key)) {
+            match+=2;
+          }
+        } else {
+          diff++;
+        }
+      })
+    })
+    // If a set of properties is greatly different from ideal set, size of union is larger and num of matches is smaller
+    let union = (struct.listProperties().length + diff);  // num of total properties to match + num of those that didn't match
+    coefficient = match / union;                          // num of properties that matched divided by union is Jaccard Coefficient
+    if (coefficient > prediction_coefficient) {
+      prediction_coefficient = coefficient;
+      prediction = struct;
+    }
+    coefficient = 0;
+  })
+  return prediction.getInterface();
 }
 
 async function saveNativeBalanceEvent(id: string, address: string, amount: BigInt, denom: string, event: CosmosEvent) {
