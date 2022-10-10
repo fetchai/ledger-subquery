@@ -37,13 +37,13 @@ import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
 import {parseCoins} from "./utils";
 
-class UncertainStructure {
-  static getInterface() {
+class Structure {
+   static getInterface() {
     return Interface.Uncertain;
-  }
+   }
 }
 
-class CW20Structure {
+class CW20Structure extends Structure {
     private name: string = "";
     private symbol: string = "";
     private decimals: number = 0;
@@ -55,7 +55,7 @@ class CW20Structure {
        return Object.getOwnPropertyNames(a);
    }
 
-   public static getPropertyType(prop: string) {
+   static getPropertyType(prop: string) {
       let a = new CW20Structure();
       return typeof(a[prop]);
    }
@@ -65,7 +65,7 @@ class CW20Structure {
    }
 }
 
-class LegacyBridgeSwapStructure {
+class LegacyBridgeSwapStructure extends Structure {
     private cap: bigint = BigInt(0);
     private reverse_aggregated_allowance: bigint = BigInt(0);
     private reverse_aggregated_allowance_approver_cap: bigint = BigInt(0);
@@ -81,7 +81,7 @@ class LegacyBridgeSwapStructure {
        return Object.getOwnPropertyNames(a);
    }
 
-   public getPropertyType(prop: string) {
+   static getPropertyType(prop: string) {
       let a = new LegacyBridgeSwapStructure();
       return typeof(a[prop]);
    }
@@ -606,7 +606,7 @@ async function saveContractEvent(instantiateMsg: InstantiateContractMessage, con
 }
 
 async function getJaccardResult(payload: string): Promise<Interface> {
-  let prediction: any = UncertainStructure, prediction_coefficient = 0;
+  let prediction: any = Structure, prediction_coefficient = 0;
   let diff = 0, match = 0, coefficient = 0;
   const structs = [CW20Structure, LegacyBridgeSwapStructure];
   structs.forEach( (struct) => {
