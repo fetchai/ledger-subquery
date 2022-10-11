@@ -475,15 +475,11 @@ export async function handleContractStoreEvent(event: CosmosEvent): Promise<void
   logger.debug(`[handleContractStoreEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`)
 
   const id = messageId(event.msg);
-  let codeId;
   const sender = event.msg?.msg?.decodedMsg?.sender;
   const permission = event.msg?.msg?.decodedMsg?.permission;
 
-  for (const [_, e] of Object.entries(event.event.attributes)) {
-    if (e.key === "code_id") {
-      codeId = e.value;
-    }
-  }
+  const code_attr = event.event.attributes.find((e) => e.key === "code_id");
+  const codeId = Number(code_attr?.value);
 
   if (!sender || !codeId) {
     logger.warn(`[handleContractStoreEvent] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
@@ -510,19 +506,13 @@ export async function handleContractInstantiateEvent(event: CosmosEvent): Promis
 
   const id = messageId(event.msg);
   const msg_decoded = event.msg?.msg?.decodedMsg;
-  let codeId, contract_address;
   const sender = msg_decoded?.sender, admin = msg_decoded?.admin;
   const label = msg_decoded?.label, payload = msg_decoded?.msg, funds = msg_decoded?.funds;
 
-  for (const [_, e] of Object.entries(event.event.attributes)) {
-    if (e.key === "code_id") {
-      codeId = e.value;
-    }
-    if (e.key === "_contract_address") {
-      contract_address = e.value;
-    }
-  }
-
+  const code_attr = event.event.attributes.find((e) => e.key === "code_id");
+  const address_attr = event.event.attributes.find((e) => e.key === "_contract_address");
+  const codeId = Number(code_attr?.value);
+  const contract_address = address_attr?.value;
 
   if (!sender || !codeId || !label || !payload || !codeId || !contract_address) {
     logger.warn(`[handleContractInstantiateEvent] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
@@ -608,22 +598,20 @@ async function saveContractEvent(instantiateMsg: InstantiateContractMessage, con
 }
 
 async function getJaccardResult(payload: string): Promise<Interface> {
-  let prediction: any = Structure, prediction_coefficient = 0; // prediction coefficient can be set as a minimum threshold for the certainty of an output
-  let diff = 0, match = 0, coefficient = 0;
+  let prediction = Structure, prediction_coefficient = 0.5;   // prediction coefficient can be set as a minimum threshold for the certainty of an output
+  let diff = 0, match = 0, coefficient = 0;                   // where coefficient of 1 is a perfect property key match, 2 is a perfect match of property and type
   const structs = [CW20Structure, LegacyBridgeSwapStructure];
   structs.forEach( (struct) => {
     Object.keys(payload).forEach( (payload_key) => {
-      struct.listProperties().forEach((structure_key) => {
-        if (payload_key===structure_key) {
+        if (struct.listProperties().some((prop) => prop === payload_key)) { // If payload property exists as a property within current structure
           match++;
-          if (payload[payload_key] && typeof(payload[payload_key])===struct.getPropertyType(structure_key)) { // award bonus point for same value datatype
+          if (payload[payload_key] && typeof(payload[payload_key])===struct.getPropertyType(payload_key)) { // award bonus point for same value datatype
             match++;
           }
         } else {
           diff++;
         }
       })
-    })
     // If a set of properties is greatly different from ideal set, size of union is larger and num of matches is smaller
     let union = (struct.listProperties().length + diff);  // num of total properties to match + num of those that didn't match
     coefficient = match / union;                          // num of properties that matched divided by union is Jaccard Coefficient
@@ -631,7 +619,7 @@ async function getJaccardResult(payload: string): Promise<Interface> {
       prediction_coefficient = coefficient;
       prediction = struct;
     }
-    coefficient = 0;
+    coefficient = match = diff = 0;
   })
   return prediction.getInterface(); // return best matched Interface to contract
 }
