@@ -287,7 +287,7 @@ export async function handleCw20BalanceTransfer(event: CosmosEvent): Promise<voi
 export async function handleGovProposalVote(event: CosmosEvent): Promise<void> {
   const msg: CosmosMessage<GovProposalVoteMsg> = event.msg;
   logger.info(`[handleGovProposalVote] (tx ${msg.tx.hash}): indexing GovProposalVote ${messageId(msg)}`)
-  logger.debug(`[handleGovProposalVote] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+  logger.debug(`[handleGovProposalVote] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
 
   const id = messageId(msg);
   const option = msg?.msg?.decodedMsg?.option;
