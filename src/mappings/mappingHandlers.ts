@@ -608,7 +608,7 @@ async function saveContractEvent(instantiateMsg: InstantiateContractMessage, con
 }
 
 async function getJaccardResult(payload: string): Promise<Interface> {
-  let prediction: any = Structure, prediction_coefficient = 0;
+  let prediction: any = Structure, prediction_coefficient = 0; // prediction coefficient can be set as a minimum threshold for the certainty of an output
   let diff = 0, match = 0, coefficient = 0;
   const structs = [CW20Structure, LegacyBridgeSwapStructure];
   structs.forEach( (struct) => {
@@ -616,8 +616,8 @@ async function getJaccardResult(payload: string): Promise<Interface> {
       struct.listProperties().forEach((structure_key) => {
         if (payload_key===structure_key) {
           match++;
-          if (payload[payload_key] && typeof(payload[payload_key])===struct.getPropertyType(structure_key)) {
-            match+=2;
+          if (payload[payload_key] && typeof(payload[payload_key])===struct.getPropertyType(structure_key)) { // award bonus point for same value datatype
+            match++;
           }
         } else {
           diff++;
@@ -627,13 +627,13 @@ async function getJaccardResult(payload: string): Promise<Interface> {
     // If a set of properties is greatly different from ideal set, size of union is larger and num of matches is smaller
     let union = (struct.listProperties().length + diff);  // num of total properties to match + num of those that didn't match
     coefficient = match / union;                          // num of properties that matched divided by union is Jaccard Coefficient
-    if (coefficient > prediction_coefficient) {
+    if (coefficient > prediction_coefficient) { // if current comparison gives the highest matching score (above minimum threshold), set as current best fit
       prediction_coefficient = coefficient;
       prediction = struct;
     }
     coefficient = 0;
   })
-  return prediction.getInterface();
+  return prediction.getInterface(); // return best matched Interface to contract
 }
 
 async function saveNativeBalanceEvent(id: string, address: string, amount: BigInt, denom: string, event: CosmosEvent) {
