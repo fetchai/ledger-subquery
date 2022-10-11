@@ -16,7 +16,12 @@ import {
   Transaction,
   TxStatus,
 } from "../types";
-import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction,} from "@subql/types-cosmos";
+import {
+  CosmosBlock,
+  CosmosEvent,
+  CosmosMessage,
+  CosmosTransaction,
+} from "@subql/types-cosmos";
 import {toBech32} from "@cosmjs/encoding";
 import {createHash} from "crypto";
 import {parseCoins} from "./utils";
@@ -131,6 +136,7 @@ export async function handleNativeTransfer(event: CosmosEvent): Promise<void> {
 export async function handleMessage(msg: CosmosMessage): Promise<void> {
   logger.info(`[handleMessage] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`)
   logger.debug(`[handleMessage] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+
   const msgEntity = Message.create({
     id: messageId(msg),
     typeUrl: msg.msg.typeUrl,
@@ -146,6 +152,7 @@ export async function handleEvent(event: CosmosEvent): Promise<void> {
   logger.info(`[handleEvent] (tx ${event.tx.hash}): indexing event ${event.idx + 1} / ${event.tx.tx.events.length}`)
   logger.debug(`[handleEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`)
   logger.debug(`[handleEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`)
+
   // NB: sanitize attribute values (may contain non-text characters)
   const attributes = event.event.attributes.map((attribute) => {
     const {key, value} = attribute;
@@ -168,6 +175,7 @@ export async function handleExecuteContractEvent(event: CosmosEvent): Promise<vo
   const msg: CosmosMessage<ExecuteContractMsg> = event.msg
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`)
   logger.debug(`[handleExecuteContractMessage] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+
   const id = messageId(msg);
   const funds = msg?.msg?.decodedMsg?.funds, contract = msg?.msg?.decodedMsg?.contract
   const method = Object.keys(msg?.msg?.decodedMsg?.msg)[0];
@@ -195,6 +203,7 @@ export async function handleExecuteContractEvent(event: CosmosEvent): Promise<vo
 export async function handleCw20Transfer(event: CosmosEvent): Promise<void> { // TODO: consolidate Cw20 functions and helpers
   const id = messageId(event.msg);
   logger.info(`[handleCw20Transfer] (tx ${event.tx.hash}): indexing Cw20Transfer ${id}`);
+  logger.debug(`[handleCw20Transfer] (event.msg.msg): ${JSON.stringify(event.msg.msg, null, 2)}`)
 
   const msg = event.msg?.msg?.decodedMsg;
   const contract = msg?.contract, fromAddress = msg?.sender;
@@ -224,6 +233,7 @@ export async function handleCw20Transfer(event: CosmosEvent): Promise<void> { //
 export async function handleCw20BalanceBurn(event: CosmosEvent): Promise<void> {
   const id = messageId(event.msg);
   logger.info(`[handleCw20BalanceBurn] (tx ${event.tx.hash}): indexing Cw20BalanceBurn ${id}`);
+  logger.debug(`[handleCw20BalanceBurn] (event.msg.msg): ${JSON.stringify(event.msg.msg, null, 2)}`)
 
   const msg = event.msg.msg.decodedMsg;
   const fromAddress = msg.sender, contract = msg.contract;
@@ -240,6 +250,7 @@ export async function handleCw20BalanceBurn(event: CosmosEvent): Promise<void> {
 export async function handleCw20BalanceMint(event: CosmosEvent): Promise<void> {
   const id = messageId(event.msg);
   logger.info(`[handleCw20BalanceMint] (tx ${event.tx.hash}): indexing Cw20BalanceMint ${id}`);
+  logger.debug(`[handleCw20BalanceMint] (event.msg.msg): ${JSON.stringify(event.msg.msg, null, 2)}`)
 
   const msg = event.msg?.msg?.decodedMsg;
   const contract = msg?.contract;
@@ -257,6 +268,7 @@ export async function handleCw20BalanceMint(event: CosmosEvent): Promise<void> {
 export async function handleCw20BalanceTransfer(event: CosmosEvent): Promise<void> {
   const id = messageId(event.msg);
   logger.info(`[handleCw20BalanceTransfer] (tx ${event.tx.hash}): indexing Cw20BalanceTransfer ${id}`);
+  logger.debug(`[handleCw20BalanceTransfer] (event.msg.msg): ${JSON.stringify(event.msg.msg, null, 2)}`)
 
   const msg = event.msg.msg.decodedMsg;
   const contract = msg?.contract, fromAddress = msg?.sender;
@@ -302,7 +314,8 @@ export async function handleGovProposalVote(event: CosmosEvent): Promise<void> {
 export async function handleDistDelegatorClaim(event: CosmosEvent): Promise<void> {
   const msg: CosmosMessage<DistDelegatorClaimMsg> = event.msg;
   logger.info(`[handleDistDelegatorClaim] (tx ${msg.tx.hash}): indexing DistDelegatorClaim ${messageId(msg)}`)
-  logger.debug(`[handleDistDelegatorClaim] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+  logger.debug(`[handleDistDelegatorClaim] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+
   const id = messageId(msg);
   const delegatorAddress = msg?.msg?.decodedMsg?.delegatorAddress;
   const validatorAddress = msg?.msg?.decodedMsg?.validatorAddress;
@@ -367,7 +380,6 @@ export async function handleLegacyBridgeSwap(event: CosmosEvent): Promise<void> 
 }
 
 export async function handleDelegatorWithdrawRewardEvent(event: CosmosEvent): Promise<void> {
-  const msg = event.msg;
   logger.debug(`[handleDelegateWithdrawRewardEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`)
   logger.debug(`[handleDelegateWithdrawRewardEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`)
 
@@ -377,7 +389,7 @@ export async function handleDelegatorWithdrawRewardEvent(event: CosmosEvent): Pr
   }, {});
 
   if (!attrs.amount || !attrs.validator) {
-    logger.warn(`[handleDelegatorWithdrawRewardEvent] (tx ${msg.tx.hash}): cannot index message (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`)
+    logger.warn(`[handleDelegatorWithdrawRewardEvent] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`)
     return
   }
 
