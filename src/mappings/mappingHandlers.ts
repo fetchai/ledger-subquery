@@ -33,12 +33,6 @@ import {
   NativeTransferMsg
 } from "./types";
 
-// messageId returns the id of the message passed or
-// that of the message which generated the event passed.
-function messageId(msg: CosmosMessage | CosmosEvent): string {
-  return `${msg.tx.hash}-${msg.idx}`;
-}
-
 export async function handleNativeTransfer(event: CosmosEvent): Promise<void> {
   const msg: CosmosMessage<NativeTransferMsg> = event.msg
   logger.info(`[handleNativeTransfer] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`)
@@ -372,14 +366,6 @@ export async function handleNativeBalanceIncrement(event: CosmosEvent): Promise<
 
   for (const [i, receiveEvent] of Object.entries(receiveEvents)) {
     await saveNativeBalanceEvent(`${messageId(event)}-receive-${i}`, receiveEvent.receiver, receiveEvent.amount, receiveEvent.denom, event);
-  }
-}
-
-async function checkBalancesAccount(address: string, chainId: string) {
-  let accountEntity = await Account.get(address);
-  if (typeof(accountEntity) === "undefined") {
-    accountEntity = Account.create({id: address, chainId});
-    await accountEntity.save();
   }
 }
 
