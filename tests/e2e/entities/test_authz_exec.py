@@ -46,14 +46,14 @@ class TestAuthzExec(EntityTest):
         """
         # Send some tokens to delegator for staking & fees
         tx = cls.ledger_client.send_tokens(cls.delegator_address,
-                                           cls.test_amount,
+                                           cls.test_amount * 2,
                                            cls.test_denom,
                                            cls.validator_wallet)
         tx.wait_to_complete()
 
         # Send some tokens to grantee for fees
         tx = cls.ledger_client.send_tokens(cls.grantee_address,
-                                           cls.test_amount * 2,
+                                           cls.test_amount,
                                            cls.test_denom,
                                            cls.validator_wallet)
         tx.wait_to_complete()
