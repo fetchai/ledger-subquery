@@ -33,6 +33,38 @@ DefaultBridgeContractConfig = BridgeContractConfig(
     next_swap_id=0
 )
 
+
+class DeployTestContract(LedgerContract):
+
+    def __init__(self, client: LedgerClient, admin: Wallet):
+        url = "https://github.com/CosmWasm/cw-plus/releases/download/v0.15.0/cw20_base.wasm"
+        if not os.path.exists(".contract"):
+            os.mkdir(".contract")
+        try:
+            temp = open(".contract/test_contract.wasm", "rb")
+            temp.close()
+        except:
+            contract_request = requests.get(url)
+            with open(".contract/test_contract.wasm", "wb") as file:
+                file.write(contract_request.content)
+
+        super().__init__(".contract/test_contract.wasm", client)
+
+        self.deploy({
+            "name": "test coin",
+            "symbol": "TEST",
+            "decimals": 6,
+            "initial_balances": [{
+                "amount": "3000000000000000000000000",
+                "address": str(admin.address())
+            }],
+            "mint": {"minter": str(admin.address())}
+        },
+            admin,
+            store_gas_limit=3000000
+        )
+
+
 class Cw20Contract(LedgerContract):
 
     def __init__(self, client: LedgerClient, admin: Wallet):

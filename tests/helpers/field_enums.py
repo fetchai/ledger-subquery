@@ -93,6 +93,50 @@ class NativeTransferFields(NamedFields):
         return super().select_query(table, prefix)
 
 
+class StoreMessageFields(NamedFields):
+    id = 0
+    sender = 1
+    permission = 2
+    codeId = 3
+    message = 4
+    transaction = 5
+    block = 6
+
+    @classmethod
+    def select_query(cls, table="store_contract_messages", prefix=False):
+        return super().select_query(table, prefix)
+
+
+class InstantiateMessageFields(NamedFields):
+    id = 0
+    sender = 1
+    admin = 2
+    codeId = 3
+    label = 4
+    payload = 5
+    funds = 6
+    message = 7
+    transaction = 8
+    block = 9
+
+    @classmethod
+    def select_query(cls, table="instantiate_contract_messages", prefix=False):
+        return super().select_query(table, prefix)
+
+
+class ContractFields(NamedFields):
+    id = 0
+    address = 1
+    codeId = 2
+    interfaces = 3
+    storeMessage = 4
+    instantiateMessage = 5
+
+    @classmethod
+    def select_query(cls, table="contracts", prefix=False):
+        return super().select_query(table, prefix)
+
+
 class Cw20TransferFields(NamedFields):
     id = 0
     message_id = 1
