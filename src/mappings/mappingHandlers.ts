@@ -574,23 +574,16 @@ async function checkBalancesAccount(address: string, chainId: string) {
 }
 
 async function saveContractEvent(instantiateMsg: InstantiateContractMessage, contract_address: string, event: CosmosEvent) {
-  let contract = (await Contract.getByCodeId(instantiateMsg.codeId))[0];
   const storeCodeMsg = (await StoreContractMessage.getByCodeId(instantiateMsg.codeId))[0];
 
-  if (contract) { // check if contract exists already
+  if (!storeCodeMsg || !contract_address || !instantiateMsg) {
+    logger.warn(`[saveContractEvent] (tx ${event.tx.hash}): failed to save contract (storeCodeMsg, instantiateMsg): ${storeCodeMsg}, ${instantiateMsg}`)
     return
   }
 
-  if (!storeCodeMsg.id || !contract_address || !instantiateMsg.id || !instantiateMsg.codeId) {
-    logger.warn(`[saveContractEvent] (tx ${event.tx.hash}): failed to save contract (storeCodeMsg, instantiateMsg.id): ${storeCodeMsg.id}, ${instantiateMsg.id}`)
-    return
-  }
-
-  contract = Contract.create({
-      id: `${storeCodeMsg.id}-${instantiateMsg.id}`,
-      address: contract_address,
+  const contract = Contract.create({
+      id: contract_address,
       interfaces: [await getJaccardResult(instantiateMsg.payload)],
-      codeId: instantiateMsg.codeId,
       storeMessageId: storeCodeMsg.id,
       instantiateMessageId: instantiateMsg.id
   });

@@ -97,10 +97,10 @@ class StoreMessageFields(NamedFields):
     id = 0
     sender = 1
     permission = 2
-    codeId = 3
-    message = 4
-    transaction = 5
-    block = 6
+    code_id = 3
+    message_id = 4
+    transaction_id = 5
+    block_id = 6
 
     @classmethod
     def select_query(cls, table="store_contract_messages", prefix=False):
@@ -111,13 +111,13 @@ class InstantiateMessageFields(NamedFields):
     id = 0
     sender = 1
     admin = 2
-    codeId = 3
+    code_id = 3
     label = 4
     payload = 5
     funds = 6
-    message = 7
-    transaction = 8
-    block = 9
+    message_id = 7
+    transaction_id = 8
+    block_id = 9
 
     @classmethod
     def select_query(cls, table="instantiate_contract_messages", prefix=False):
@@ -126,11 +126,9 @@ class InstantiateMessageFields(NamedFields):
 
 class ContractFields(NamedFields):
     id = 0
-    address = 1
-    codeId = 2
-    interfaces = 3
-    storeMessage = 4
-    instantiateMessage = 5
+    interfaces = 1
+    store_message_id = 2
+    instantiate_message_id = 3
 
     @classmethod
     def select_query(cls, table="contracts", prefix=False):

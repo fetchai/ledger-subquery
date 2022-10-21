@@ -214,6 +214,7 @@ type StoreContractMessage @entity {
   id: ID!
   sender: String!
   permission: AccessType
+  contracts: [Contract] @derivedFrom(field: "storeMessage")
   codeId: Int! @index
   message: Message!
   transaction: Transaction!
@@ -235,8 +236,6 @@ type InstantiateContractMessage @entity {
 
 type Contract @entity {
   id: ID!
-  address: String! @index
-  codeId: Int! @index
   interfaces: [Interface]
   storeMessage: StoreContractMessage!
   instantiateMessage: InstantiateContractMessage!
