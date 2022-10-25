@@ -74,8 +74,8 @@ export async function handleContractInstantiateEvent(event: CosmosEvent): Promis
 
   const id = messageId(event.msg);
   const msg_decoded = event.msg?.msg?.decodedMsg;
-  const sender = msg_decoded?.sender, admin = msg_decoded?.admin;
-  const label = msg_decoded?.label, payload: string = msg_decoded?.msg, funds = msg_decoded?.funds;
+  const sender = msg_decoded?.sender, admin = msg_decoded?.admin, label = msg_decoded?.label;
+  const payload = JSON.stringify(msg_decoded?.msg, null), funds = msg_decoded?.funds;
 
   const code_attr = event.event.attributes.find((e) => e.key === "code_id");
   const address_attr = event.event.attributes.find((e) => e.key === "_contract_address");
