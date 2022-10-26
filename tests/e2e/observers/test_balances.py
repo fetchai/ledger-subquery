@@ -15,7 +15,8 @@ from tests.helpers.field_enums import NativeBalances, Accounts
 
 from src.genesis.state import Balance, Coin
 from src.genesis.genesis import Genesis
-from src.genesis.observers import NativeBalancesObserver, NativeBalancesManager, native_balances_keys_path
+from src.genesis.observers import NativeBalancesObserver, NativeBalancesManager, AccountsManager, \
+    native_balances_keys_path
 
 
 class TestNativeBalanceObserver(TestWithDBConn):
@@ -47,6 +48,9 @@ class TestBalanceManager(TestWithDBConn):
         cls.truncate_tables("native_balances", cascade=True)
         cls.truncate_tables("accounts", cascade=True)
 
+        # To ensure accounts tables
+        # accounts_manager = AccountsManager(cls.db_conn)
+
         with cls.db_conn.cursor() as db:
             # TODO: reference test data rather than more magic string literals
             db.execute("INSERT INTO accounts (id, chain_id) VALUES ('addr123', 'test')")
@@ -67,7 +71,8 @@ class TestBalanceManager(TestWithDBConn):
         test_manager = NativeBalancesManager(self.db_conn, on_completed=on_completed)
         test_manager.observe(Genesis(**test_genesis_data).source, scheduler=scheduler)
 
-        lock.acquire()
+        # Lock returns false if times-out
+        assert (lock.acquire(True, 5))
 
     def collect_actual_balances(self):
         actual_balances = []
