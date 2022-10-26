@@ -1,5 +1,5 @@
 import {CosmosEvent} from "@subql/types-cosmos";
-import {NativeBalanceChange} from "../../types";
+import {NativeBalanceChange, Transaction} from "../../types";
 import {checkBalancesAccount, messageId} from "../utils";
 import {parseCoins} from "../../cosmjs/utils";
 
