@@ -48,9 +48,6 @@ class TestBalanceManager(TestWithDBConn):
         cls.truncate_tables("native_balances", cascade=True)
         cls.truncate_tables("accounts", cascade=True)
 
-        # To ensure accounts tables
-        # accounts_manager = AccountsManager(cls.db_conn)
-
         with cls.db_conn.cursor() as db:
             # TODO: reference test data rather than more magic string literals
             db.execute("INSERT INTO accounts (id, chain_id) VALUES ('addr123', 'test')")
