@@ -16,17 +16,26 @@ class NamedFields(Enum):
         return [f'"{field.name}"' for field in cls]
 
     @classmethod
-    def select_query(cls, table: str, prefix=False) -> str:
+    def select_query(cls, tables: List[str] = None, prefix=False) -> str:
+        if tables is None:
+            tables = [cls.table]
+
         columns = cls.select_column_names()
         """ More complex queries might require disambiguation, eg. where two 'id' attributes are being referenced
             - 'relevant_table.id' this prefix would solve it"""
         if prefix:
-            columns = [f"{table}.{column}" for column in columns]
-        return f"SELECT {', '.join(columns)} FROM {table}"
+            columns = [f"{cls.table}.{column}" for column in columns]
+
+        if len(tables) == 1:
+            tables_str = tables[0]
+        else:
+            tables_str = ", ".join(tables)
+
+        return f"SELECT {', '.join(columns)} FROM {tables_str}"
 
     @classmethod
-    def select_where(cls, where_clause: str, table: str) -> str:
-        return f"{cls.select_query(table)} WHERE {where_clause}"
+    def select_where(cls, where_clause: str, tables: List[str] = None, prefix=False) -> str:
+        return f"{cls.select_query(tables=tables, prefix=True)} WHERE {where_clause}"
 
 
 class BlockFields(NamedFields):
@@ -36,8 +45,9 @@ class BlockFields(NamedFields):
     timestamp = 3
 
     @classmethod
-    def select_query(cls, table="blocks", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "blocks"
 
 
 class TxFields(NamedFields):
@@ -53,8 +63,9 @@ class TxFields(NamedFields):
     signer_address = 9
 
     @classmethod
-    def select_query(cls, table="transactions", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "transactions"
 
 
 class MsgFields(NamedFields):
@@ -65,8 +76,9 @@ class MsgFields(NamedFields):
     json = 4
 
     @classmethod
-    def select_query(cls, table="messages", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "messages"
 
 
 class EventFields(NamedFields):
@@ -77,8 +89,9 @@ class EventFields(NamedFields):
     attributes = 4
 
     @classmethod
-    def select_query(cls, table="events", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "events"
 
 
 class NativeTransferFields(NamedFields):
@@ -89,8 +102,9 @@ class NativeTransferFields(NamedFields):
     from_address = 4
 
     @classmethod
-    def select_query(cls, table="native_transfers", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "native_transfers"
 
 
 class StoreMessageFields(NamedFields):
@@ -103,8 +117,9 @@ class StoreMessageFields(NamedFields):
     block_id = 6
 
     @classmethod
-    def select_query(cls, table="store_contract_messages", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "store_contract_messages"
 
 
 class InstantiateMessageFields(NamedFields):
@@ -120,8 +135,9 @@ class InstantiateMessageFields(NamedFields):
     block_id = 9
 
     @classmethod
-    def select_query(cls, table="instantiate_contract_messages", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "instantiate_contract_messages"
 
 
 class ContractFields(NamedFields):
@@ -131,8 +147,9 @@ class ContractFields(NamedFields):
     instantiate_message_id = 3
 
     @classmethod
-    def select_query(cls, table="contracts", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "contracts"
 
 
 class Cw20TransferFields(NamedFields):
@@ -146,8 +163,9 @@ class Cw20TransferFields(NamedFields):
     contract = 7
 
     @classmethod
-    def select_query(cls, table="cw20_transfers", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "cw20_transfers"
 
 
 class Cw20BalanceChangeFields(NamedFields):
@@ -160,13 +178,15 @@ class Cw20BalanceChangeFields(NamedFields):
     block_id = 6
 
     @classmethod
-    def select_query(cls, table="cw20_balance_changes", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "cw20_balance_changes"
 
     @classmethod
     def by_execute_contract_method(cls, method):
-        return f"{cls.select_query(prefix=True)}, execute_contract_messages " \
-               f"WHERE execute_contract_messages.id = execute_contract_message_id and method = '{method}' "
+        where = f" execute_contract_messages.id = execute_contract_message_id and method = '{method}'"
+        tables = (cls.table, "execute_contract_messages")
+        return cls.select_where(where_clause=where, tables=tables, prefix=True)
 
 
 class LegacyBridgeSwapFields(NamedFields):
@@ -180,8 +200,9 @@ class LegacyBridgeSwapFields(NamedFields):
     contract = 7
 
     @classmethod
-    def select_query(cls, table="legacy_bridge_swaps", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "legacy_bridge_swaps"
 
 
 class GovProposalVoteFields(NamedFields):
@@ -194,8 +215,9 @@ class GovProposalVoteFields(NamedFields):
     option = 6
 
     @classmethod
-    def select_query(cls, table="gov_proposal_votes", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "gov_proposal_votes"
 
 
 class ExecuteContractMessageFields(NamedFields):
@@ -207,8 +229,9 @@ class ExecuteContractMessageFields(NamedFields):
     funds = 5
 
     @classmethod
-    def select_query(cls, table="execute_contract_messages", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "execute_contract_messages"
 
 
 class DistDelegatorClaimFields(NamedFields):
@@ -222,8 +245,9 @@ class DistDelegatorClaimFields(NamedFields):
     denom = 7
 
     @classmethod
-    def select_query(cls, table="dist_delegator_claims", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "dist_delegator_claims"
 
 
 class NativeBalanceChangeFields(NamedFields):
@@ -236,8 +260,9 @@ class NativeBalanceChangeFields(NamedFields):
     block_id = 6
 
     @classmethod
-    def select_query(cls, table="native_balance_changes", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "native_balance_changes"
 
 
 class Accounts(NamedFields):
@@ -245,8 +270,9 @@ class Accounts(NamedFields):
     chain_id = 1
 
     @classmethod
-    def select_query(cls, table=AccountsManager._table):
-        return super().select_query(table)
+    @property
+    def table(self):
+        return "accounts"
 
 
 class NativeBalances(NamedFields):
@@ -256,12 +282,9 @@ class NativeBalances(NamedFields):
     denom = 3
 
     @classmethod
-    def select_query(cls, table=NativeBalancesManager._table):
-        return super().select_query(table)
-
-    @classmethod
-    def select_where(cls, where_clause: str, table: str = NativeBalancesManager._table):
-        return super().select_where(where_clause, table)
+    @property
+    def table(self):
+        return NativeBalancesManager._table
 
 
 class IBCTransferFields(NamedFields):
@@ -278,8 +301,9 @@ class IBCTransferFields(NamedFields):
     block_id = 10
 
     @classmethod
-    def select_query(cls, table="ibc_transfers", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "ibc_transfers"
 
 
 class AuthzExecFields(NamedFields):
@@ -290,8 +314,9 @@ class AuthzExecFields(NamedFields):
     block_id = 4
 
     @classmethod
-    def select_query(cls, table="authz_execs", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "authz_execs"
 
 
 class AuthzExecMessageFields(NamedFields):
@@ -299,6 +324,8 @@ class AuthzExecMessageFields(NamedFields):
     authz_exec_id = 1
     message_id = 2
 
+
     @classmethod
-    def select_query(cls, table="authz_exec_messages", prefix=False):
-        return super().select_query(table, prefix)
+    @property
+    def table(self):
+        return "authz_exec_messages"
