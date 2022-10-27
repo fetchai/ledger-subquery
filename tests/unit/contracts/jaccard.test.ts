@@ -1,5 +1,5 @@
-import {getJaccardResult} from "../../src/mappings/utils";
-import {Interface} from "../../src/types";
+import {getJaccardResult} from "../../../src/mappings/utils";
+import {Interface} from "../../../src/types";
 
 const test_payloads = {
   [Interface.CW20] :[

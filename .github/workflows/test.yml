@@ -39,7 +39,10 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Run unit tests
+      - name: Run TypeScript unit tests
+        run: yarn test
+
+      - name: Run Python unit tests
         run: pipenv run python -m unittest discover -s ./tests/unit
 
       - name: Run end-to-end tests
