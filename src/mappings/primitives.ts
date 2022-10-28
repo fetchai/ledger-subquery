@@ -78,7 +78,6 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
       }
     });
   const json = JSON.stringify(decoded_msg, null);
-  logger.fatal(`${json}`);
   const msgEntity = Message.create({
     id: messageId(msg),
     typeUrl: msg.msg.typeUrl,
