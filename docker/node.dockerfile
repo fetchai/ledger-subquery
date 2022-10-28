@@ -32,6 +32,9 @@ WORKDIR /app
 ADD ./package.json yarn.lock /app/
 RUN yarn install --frozen-lockfile --prod
 
+# NB: replace built node-cosmos run module
+COPY ./docker/node-cosmos /usr/local/lib/node_modules/@subql/node-cosmos
+
 COPY --from=builder /app/dist /app/dist
 ADD ./proto /app/proto
 ADD ./project.yaml schema.graphql /app/
