@@ -63,6 +63,17 @@ const store_service_1 = require("./store.service");
 const NULL_MERKEL_ROOT = (0, util_1.hexToU8a)('0x00');
 const logger = (0, logger_1.getLogger)('indexer');
 const { argv } = (0, yargs_1.getYargsOption)();
+const trace = require('@opentelemetry/api').trace;
+const tracer = trace.getTracer('indexer.manager');
+const traceAsyncFn = function(spanName, fn, _this, args) {
+    let result;
+    tracer.startActiveSpan(spanName, span => {
+        const done = () => span.end();
+        result = fn.apply(_this, Array.from(args));
+        result.then(done, done);
+    });
+    return result;
+}
 let IndexerManager = class IndexerManager {
     constructor(storeService, apiService, fetchService, poiService, mmrService, sequelize, project, nodeConfig, sandboxService, dsProcessorService, dynamicDsService, subqueryRepo, eventEmitter, projectService) {
         this.storeService = storeService;
@@ -80,7 +91,10 @@ let IndexerManager = class IndexerManager {
         this.eventEmitter = eventEmitter;
         this.projectService = projectService;
     }
-    async indexBlock(blockContent) {
+    async indexBlock() {
+         return traceAsyncFn('indexBlock', this._indexBlock, this, arguments);
+    }
+    async _indexBlock(blockContent, runtimeVersion) {
         const { block } = blockContent;
         const blockHeight = block.block.header.height;
         this.eventEmitter.emit(events_1.IndexerEvent.BlockProcessing, {
@@ -175,33 +189,51 @@ let IndexerManager = class IndexerManager {
         }
         return filteredDs;
     }
-    async indexBlockData(blockContent, dataSources, getVM) {
+    async indexBlockData() {
+        return traceAsyncFn('indexBlockData', this._indexBlockData, this, arguments);
+    }
+    async _indexBlockData(blockContent, dataSources, getVM) {
         await this.indexBlockContent(blockContent, dataSources, getVM);
         await this.indexTransaction(blockContent, dataSources, getVM);
         await this.indexMessage(blockContent, dataSources, getVM);
         await this.indexEvent(blockContent, dataSources, getVM);
     }
-    async indexBlockContent(block, dataSources, getVM) {
+    async indexBlockContent() {
+        return traceAsyncFn('indexBlockContent', this._indexBlockContent, this, arguments);
+    }
+    async _indexBlockContent(block, dataSources, getVM) {
         for (const ds of dataSources) {
             await this.indexData(common_cosmos_1.SubqlCosmosHandlerKind.Block, block, ds, getVM(ds));
         }
     }
-    async indexTransaction(block, dataSources, getVM) {
+    async indexTransaction() {
+        return traceAsyncFn('indexTransaction', this._indexTransaction, this, arguments);
+    }
+    async _indexTransaction(block, dataSources, getVM) {
         for (const ds of dataSources) {
             await this.indexData(common_cosmos_1.SubqlCosmosHandlerKind.Transaction, block, ds, getVM(ds));
         }
     }
-    async indexMessage(block, dataSources, getVM) {
+    async indexMessage() {
+        return traceAsyncFn('indexMessage', this._indexMessage, this, arguments);
+    }
+    async _indexMessage(block, dataSources, getVM) {
         for (const ds of dataSources) {
             await this.indexData(common_cosmos_1.SubqlCosmosHandlerKind.Message, block, ds, getVM(ds));
         }
     }
-    async indexEvent(block, dataSources, getVM) {
+    async indexEvent() {
+        return traceAsyncFn('indexEvent', this._indexEvent, this, arguments);
+    }
+    async _indexEvent(block, dataSources, getVM) {
         for (const ds of dataSources) {
             await this.indexData(common_cosmos_1.SubqlCosmosHandlerKind.Event, block, ds, getVM(ds));
         }
     }
-    async indexData(kind, 
+    async indexData() {
+        return traceAsyncFn('indexData', this._indexData, this, arguments);
+    }
+    async _indexData(kind,
     //data: CosmosRuntimeHandlerInputMap[K],
     block, ds, vm) {
         if ((0, common_cosmos_1.isRuntimeCosmosDs)(ds)) {

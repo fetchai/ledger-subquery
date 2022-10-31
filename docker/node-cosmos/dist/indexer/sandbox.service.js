@@ -28,6 +28,8 @@ const yargs_1 = require("../yargs");
 const api_service_1 = require("./api.service");
 const store_service_1 = require("./store.service");
 const { argv } = (0, yargs_1.getYargsOption)();
+const trace = require('@opentelemetry/api').trace;
+const tracer = trace.getTracer('sandbox.service');
 const DEFAULT_OPTION = {
     console: 'redirect',
     wasm: argv.unsafe,
@@ -69,6 +71,15 @@ class IndexerSandbox extends Sandbox {
         this.injectGlobals(option);
     }
     async securedExec(funcName, args) {
+        let result;
+        tracer.startActiveSpan('securedExec', span => {
+            const done = () => span.end();
+            result = this._securedExec(funcName, args);
+            result.then(done, done)
+        })
+        return result;
+    }
+    async _securedExec(funcName, args) {
         this.setGlobal('args', args);
         this.setGlobal('funcName', funcName);
         try {
