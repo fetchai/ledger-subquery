@@ -2,7 +2,7 @@
  * Migration: add authz support
  * (see: https://github.com/fetchai/ledger-subquery/issues/82)
  *
- * This migration requires modifying the plv8 function source in the SQL output plv8ify.
+ * This migration requires modifying the plv8 function source in the SQL output of plv8ify.
  * Add the following after the `var require_buffer` definition:
  * ```
  * var global = {Buffer: require_buffer()};
