@@ -12,6 +12,7 @@ psycopg = "*"
 python-dateutil = "*"
 dataclasses-json = "*"
 reactivex = "*"
+click = "*"
 
 [dev-packages]
 

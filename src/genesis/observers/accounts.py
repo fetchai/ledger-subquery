@@ -10,8 +10,13 @@ from reactivex.scheduler.scheduler import Scheduler
 from src.genesis.db import DBTypes, TableManager
 from src.genesis.state import Balance
 from .chain_id import ChainIdObserver
+from psycopg.errors import UniqueViolation
+
+from src.utils.loggers import get_logger
 
 accounts_keys_path = ".app_state.bank.balances"
+
+_logger = get_logger(__name__)
 
 
 @dataclass
@@ -82,11 +87,33 @@ class AccountsManager(TableManager):
 
     def copy_accounts(self, accounts: List[Account]) -> None:
         with self._db_conn.cursor() as db:
-            # TODO: check if account exists (?)
-            with db.copy(f'COPY {self._table} ({",".join(self.column_names)}) FROM STDIN') as copy:
-                for account in accounts:
-                    values = (f"{getattr(account, c)}" for c in self.column_names)
-                    copy.write_row(values)
+            duplicate_occured = True
+
+            while duplicate_occured:
+                try:
+                    duplicate_occured = False
+                    with db.copy(f'COPY {self._table} ({",".join(self.column_names)}) FROM STDIN') as copy:
+                        for account in accounts:
+                            values = (f"{getattr(account, c)}" for c in self.column_names)
+                            copy.write_row(values)
+                except UniqueViolation as e:
+                    duplicate_occured = True
+
+                    # Extract account name
+                    duplicate_account_id = str(e).split("(")[2].split(")")[0]
+
+                    # Find duplicate account id
+                    duplicate_account_index = None
+                    for i in range(len(accounts)):
+                        if accounts[i].id == duplicate_account_id:
+                            duplicate_account_index = i
+
+                    # Remove duplicate account from queue
+                    accounts.pop(duplicate_account_index)
+
+                    _logger.warning(f"Duplicate account occurred during COPY: {duplicate_account_id}")
+                    self._db_conn.commit()
+
         self._db_conn.commit()
 
     def observe(self, observable: Observable, scheduler: Optional[Scheduler] = None, buffer_size: int = 500) -> None:
