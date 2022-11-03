@@ -72,36 +72,18 @@ class TestAccountsManager(TestWithDBConn, TestWithGQLClient):
     def test_duplicate(self, logger_warning_mock):
         duplicate_message = "Duplicate account occurred"
 
-        current_bank_state_balances = [
-            {
-                "address": "addr123",
-                "coins": [
-                    {"amount": 123, "denom": "a-token"},
-                    {"amount": 456, "denom": "b-token"},
-                ]
-            },
-            {
-                "address": "addr789",
-                "coins": [
-                    {"amount": 111, "denom": "a-token"},
-                    {"amount": 222, "denom": "b-token"},
-                ]
-            },
-        ]
-        current_test_genesis_data = test_genesis_data.copy()
-        current_test_genesis_data["app_state"]["bank"]["balances"] = current_bank_state_balances
-
         self.completed = False
 
         def on_completed():
             self.completed = True
             
         account_manager = AccountsManager(self.db_conn, on_completed=on_completed)
-        account_manager.observe(Genesis(**current_test_genesis_data).source)
+        account_manager.observe(Genesis(**test_genesis_data).source)
         assert self.completed
 
-        assert logger_warning_mock.call_count == 1
+        assert logger_warning_mock.call_count == 2
         assert duplicate_message in logger_warning_mock.mock_calls[0].args[0]
+        assert duplicate_message in logger_warning_mock.mock_calls[1].args[0]
 
     def test_sql_retrieval(self):
         self.assertTrue(self.completed)
