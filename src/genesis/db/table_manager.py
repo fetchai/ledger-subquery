@@ -59,3 +59,4 @@ class TableManager:
             """)
             self._db_conn.commit()
             # TODO error checking / handling (?)
+

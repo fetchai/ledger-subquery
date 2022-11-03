@@ -12,6 +12,7 @@ from src.genesis.state import Balance
 from .chain_id import ChainIdObserver
 from psycopg.errors import UniqueViolation
 
+from tests.helpers.field_enums import Accounts
 from src.utils.loggers import get_logger
 
 accounts_keys_path = ".app_state.bank.balances"
@@ -64,7 +65,7 @@ class AccountsManager(TableManager):
     _observer: AccountsObserver
     _subscription: DisposableBase
     _db_conn: Connection
-    _table = "accounts"
+    _table = Accounts.table
     _columns = (
         ("id", DBTypes.text),
         ("chain_id", DBTypes.text),
@@ -85,6 +86,18 @@ class AccountsManager(TableManager):
                                           on_completed=on_completed,
                                           on_error=on_error)
 
+    def _get_name_and_index(self, e: UniqueViolation, accounts: List[Account]) -> Tuple[str, int]:
+        # Extract account name from error string
+        duplicate_account_id = str(e).split("(")[2].split(")")[0]
+
+        # Find duplicate account id
+        duplicate_account_index = None
+        for i in range(len(accounts)):
+            if accounts[i].id == duplicate_account_id:
+                duplicate_account_index = i
+
+        return duplicate_account_id, duplicate_account_index
+
     def copy_accounts(self, accounts: List[Account]) -> None:
         with self._db_conn.cursor() as db:
             duplicate_occured = True
@@ -99,14 +112,7 @@ class AccountsManager(TableManager):
                 except UniqueViolation as e:
                     duplicate_occured = True
 
-                    # Extract account name from error string
-                    duplicate_account_id = str(e).split("(")[2].split(")")[0]
-
-                    # Find duplicate account id
-                    duplicate_account_index = None
-                    for i in range(len(accounts)):
-                        if accounts[i].id == duplicate_account_id:
-                            duplicate_account_index = i
+                    duplicate_account_id, duplicate_account_index = self._get_name_and_index(e, accounts)
 
                     if duplicate_account_index is None:
                         _logger.error(f"Error during duplicate handling, account id {duplicate_account_id} not found")
