@@ -149,6 +149,18 @@ function getYargsOption() {
             describe: 'Disable storing historical state entities',
             type: 'boolean',
         },
+        tracing: {
+            demandOption: false,
+            describe: 'string',
+            type: 'boolean',
+            default: false,
+        },
+        'otel-collector': {
+            demandOption: false,
+            type: 'string',
+            describe: 'OpenTelemetry collector endpoint URL',
+            default: 'http://otel-collector:4317',
+        },
     });
 }
 exports.getYargsOption = getYargsOption;

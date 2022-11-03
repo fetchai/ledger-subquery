@@ -12,8 +12,6 @@ const DEFAULT_PORT = 3000;
 const logger = (0, logger_1.getLogger)('subql-node');
 const { argv } = (0, yargs_1.getYargsOption)();
 
-const tracer = require('./utils/tracer');
-
 async function bootstrap() {
     var _a;
     const debug = argv.debug;
@@ -37,9 +35,11 @@ async function bootstrap() {
         const indexerManager = app.get(indexer_manager_1.IndexerManager);
         await indexerManager.start();
 
-        // TODO: disable by default; enable via cli flag and/or env var
-        await tracer.start();
-        logger.info('Tracing started...');
+        if (argv.tracing) {
+            const tracer = require('./utils/tracer')(argv['otel-collector']);
+            await tracer.start();
+            logger.info('Tracing started...');
+        }
 
         await app.listen(port);
         logger.info(`Node started on port: ${port}`);

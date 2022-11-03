@@ -137,5 +137,17 @@ export declare function getYargsOption(): import("yargs").Argv<import("yargs").O
         describe: string;
         type: "boolean";
     };
+    tracing: {
+        demandOption: false;
+        describe: string;
+        type: "boolean";
+        default: boolean;
+    };
+    'otel-collector': {
+        demandOption: false;
+        type: "string";
+        describe: string;
+        default: string;
+    };
 }>>;
 export declare function argv(arg: string): unknown;
