@@ -99,7 +99,7 @@ class AccountsManager(TableManager):
                 except UniqueViolation as e:
                     duplicate_occured = True
 
-                    # Extract account name
+                    # Extract account name from error string
                     duplicate_account_id = str(e).split("(")[2].split(")")[0]
 
                     # Find duplicate account id
@@ -107,6 +107,10 @@ class AccountsManager(TableManager):
                     for i in range(len(accounts)):
                         if accounts[i].id == duplicate_account_id:
                             duplicate_account_index = i
+
+                    if duplicate_account_index is None:
+                        _logger.error(f"Error during duplicate handling, account id {duplicate_account_id} not found")
+                        break
 
                     # Remove duplicate account from queue
                     accounts.pop(duplicate_account_index)
