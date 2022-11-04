@@ -3,7 +3,7 @@ import sys
 from threading import Lock
 from typing import List, Tuple
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from gql import gql
 from reactivex.operators import map as map_
@@ -76,7 +76,7 @@ class TestAccountsManager(TestWithDBConn, TestWithGQLClient):
 
         def on_completed():
             self.completed = True
-            
+
         account_manager = AccountsManager(self.db_conn, on_completed=on_completed)
         account_manager.observe(Genesis(**test_genesis_data).source)
         assert self.completed

@@ -1,6 +1,8 @@
 import sys
+import time
 from threading import Lock
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from typing import List, Tuple
 
@@ -114,6 +116,23 @@ class TestBalanceManager(TestWithDBConn):
                 self.assertEqual(expected_coin, actual_coin)
 
         # TODO: check for extra stuff in actual_balances (?)
+
+    @patch("logging.Logger.warning")
+    def test_observe_with_duplicate_values(self, logger_warning_mock):
+        duplicate_message = "Duplicate balance occurred"
+
+        # Insert first set of balances to DB
+        test_manager = NativeBalancesManager(self.db_conn)
+        test_manager.observe(Genesis(**test_genesis_data).source)
+
+        # Try to insert same set again
+        second_test_manager = NativeBalancesManager(self.db_conn)
+        second_test_manager.observe(Genesis(**test_genesis_data).source)
+
+        n_calls = 4
+        assert logger_warning_mock.call_count == n_calls
+        for mock_call in logger_warning_mock.mock_calls:
+            assert duplicate_message in mock_call.args[0]
 
 
 if __name__ == "__main__":

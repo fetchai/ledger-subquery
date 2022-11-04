@@ -2,6 +2,7 @@ from datetime import timedelta
 from typing import Tuple, Optional, List, Union
 
 from psycopg import Connection
+from psycopg.errors import UniqueViolation
 from reactivex import Observer, Observable
 from reactivex.abc import DisposableBase
 from reactivex.operators import filter as filter_, map as map_, delay as delay_, observe_on, buffer_with_count
@@ -10,8 +11,11 @@ from reactivex.scheduler.scheduler import Scheduler
 from tests.helpers.field_enums import NativeBalances
 from src.genesis.db import DBTypes, TableManager
 from src.genesis.state import Balance
+from src.utils.loggers import get_logger
 
 native_balances_keys_path = ".app_state.bank.balances"
+
+_logger = get_logger(__name__)
 
 
 class NativeBalancesObserver(Observer):
@@ -64,13 +68,52 @@ class NativeBalancesManager(TableManager):
                                                 on_completed=on_completed,
                                                 on_error=on_error)
 
+    def _get_name_and_index(self, e: UniqueViolation, balances: List[Balance]) -> Tuple[str, Tuple[int, int]]:
+        # Extract account name and coin from error string
+        duplicate_balance = str(e).split("(")[2].split(")")[0]
+
+        # Find duplicate account id
+        duplicate_balance_index = None
+        duplicate_coin_index = None
+        for i in range(len(balances)):
+            for j in range(len(balances[i].coins)):
+                if f"{balances[i].address}-{balances[i].coins[j].denom}" in duplicate_balance:
+                    duplicate_balance_index = i
+                    duplicate_coin_index = j
+
+        return duplicate_balance, duplicate_balance_index, duplicate_coin_index
+
     def copy_balances(self, balances: List[Balance]) -> None:
         with self._db_conn.cursor() as db:
-            with db.copy(f'COPY {self._table} ({",".join(self.column_names)}) FROM STDIN') as copy:
-                for balance in balances:
-                    for coin in balance.coins:
-                        id_ = f"{balance.address}-{coin.denom}"
-                        copy.write_row((f"{v}" for v in (id_, balance.address, coin.amount, coin.denom)))
+            duplicate_occured = True
+
+            while duplicate_occured:
+                try:
+                    duplicate_occured = False
+                    with db.copy(f'COPY {self._table} ({",".join(self.column_names)}) FROM STDIN') as copy:
+                        for balance in balances:
+                            for coin in balance.coins:
+                                id_ = f"{balance.address}-{coin.denom}"
+                                copy.write_row((f"{v}" for v in (id_, balance.address, coin.amount, coin.denom)))
+
+                except UniqueViolation as e:
+                    duplicate_occured = True
+
+                    duplicate_balance, duplicate_balance_index, duplicate_coin_index = self._get_name_and_index(e,
+                                                                                                                balances)
+
+                    if duplicate_balance_index is None or duplicate_coin_index is None:
+                        _logger.error(f"Error during duplicate balance handling, account {duplicate_balance} not found")
+                        break
+
+                    # Remove duplicate balance from queue
+                    balances[duplicate_balance_index].coins.pop(duplicate_coin_index)
+                    if not balances[duplicate_balance_index].coins:
+                        balances.pop(duplicate_balance_index)
+
+                    _logger.warning(f"Duplicate balance occurred during COPY: {duplicate_balance}")
+                    self._db_conn.commit()
+
         self._db_conn.commit()
 
     def observe(self, observable: Observable, scheduler: Optional[Scheduler] = None,
