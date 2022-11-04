@@ -98,13 +98,22 @@ class NativeBalancesManager(TableManager):
 
                 except UniqueViolation as e:
                     duplicate_occured = True
+                    self._db_conn.commit()
 
-                    duplicate_balance, duplicate_balance_index, duplicate_coin_index = self._get_name_and_index(e,
-                                                                                                                balances)
+                    duplicate_balance, duplicate_balance_index, duplicate_coin_index = \
+                        self._get_name_and_index(e, balances)
 
                     if duplicate_balance_index is None or duplicate_coin_index is None:
-                        _logger.error(f"Error during duplicate balance handling, account {duplicate_balance} not found")
-                        break
+                        raise RuntimeError(
+                            f"Error during duplicate balance handling, account {duplicate_balance} not found")
+
+                    # Compare balance in genesis with balance in db
+                    amount_on_list = balances[duplicate_balance_index].coins[duplicate_coin_index].amount
+                    amount_in_db = db.execute(NativeBalances.select_where(f"id = '{duplicate_balance}'")).fetchone()[2]
+
+                    if amount_on_list != amount_in_db:
+                        raise RuntimeError(
+                            f"Balance for {duplicate_balance} in DB ({amount_in_db}) is different from genesis ({amount_on_list})")
 
                     # Remove duplicate balance from queue
                     balances[duplicate_balance_index].coins.pop(duplicate_coin_index)
@@ -112,7 +121,6 @@ class NativeBalancesManager(TableManager):
                         balances.pop(duplicate_balance_index)
 
                     _logger.warning(f"Duplicate balance occurred during COPY: {duplicate_balance}")
-                    self._db_conn.commit()
 
         self._db_conn.commit()
 

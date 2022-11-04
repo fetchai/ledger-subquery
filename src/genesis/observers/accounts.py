@@ -115,8 +115,7 @@ class AccountsManager(TableManager):
                     duplicate_account_id, duplicate_account_index = self._get_name_and_index(e, accounts)
 
                     if duplicate_account_index is None:
-                        _logger.error(f"Error during duplicate handling, account id {duplicate_account_id} not found")
-                        break
+                        raise RuntimeError(f"Error during duplicate handling, account id {duplicate_account_id} not found")
 
                     # Remove duplicate account from queue
                     accounts.pop(duplicate_account_index)
