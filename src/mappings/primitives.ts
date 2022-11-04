@@ -70,14 +70,8 @@ export async function handleTransaction(tx: CosmosTransaction): Promise<void> {
 export async function handleMessage(msg: CosmosMessage): Promise<void> {
   logger.info(`[handleMessage] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`);
   logger.debug(`[handleMessage] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
-  const decoded_msg = {};
-  Object.entries(msg.msg.decodedMsg).forEach(
-    ([key, value]) => {
-      if (key !== "wasmByteCode") {
-        decoded_msg[key] = value;
-      }
-    });
-  const json = JSON.stringify(decoded_msg, null);
+  delete msg.msg?.decodedMsg?.wasmByteCode;
+  const json = JSON.stringify(msg.msg.decodedMsg);
   const msgEntity = Message.create({
     id: messageId(msg),
     typeUrl: msg.msg.typeUrl,
