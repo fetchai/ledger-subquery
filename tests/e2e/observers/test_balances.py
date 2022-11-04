@@ -129,8 +129,8 @@ class TestBalanceManager(TestWithDBConn):
         second_test_manager = NativeBalancesManager(self.db_conn)
         second_test_manager.observe(Genesis(**test_genesis_data).source)
 
-        n_calls = 4
-        assert logger_warning_mock.call_count == n_calls
+        n_min_calls = 4
+        assert logger_warning_mock.call_count >= n_min_calls
         for mock_call in logger_warning_mock.mock_calls:
             assert duplicate_message in mock_call.args[0]
 
