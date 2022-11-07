@@ -1,11 +1,12 @@
 import sys
-import time
 from threading import Lock
 import unittest
 from unittest.mock import patch
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
+import copy
 
+import pytest
 from reactivex.scheduler import ThreadPoolScheduler
 
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
@@ -81,7 +82,6 @@ class TestBalanceManager(TestWithDBConn):
         # Undo DB changes to prevent interaction with other tests
         self.clear_db()
 
-
     def collect_actual_balances(self):
         actual_balances = []
 
@@ -145,6 +145,36 @@ class TestBalanceManager(TestWithDBConn):
 
         # Undo DB changes to prevent interaction with other tests
         self.clear_db()
+
+    def test_observe_with_duplicate_values_with_errors(self):
+        current_bank_state_balances = [
+            {
+                "address": "addr123",
+                "coins": [
+                    {"amount": 123, "denom": "a-token"},
+                    {"amount": 457, "denom": "b-token"},
+                ]
+            },
+        ]
+
+        # Create variation of test data without overwriting the original dict
+        current_test_genesis_data = copy.deepcopy(test_genesis_data)
+        current_test_genesis_data["app_state"]["bank"]["balances"] = current_bank_state_balances
+
+        # Insert first set of balances to DB
+        test_manager = NativeBalancesManager(self.db_conn)
+        test_manager.observe(Genesis(**test_genesis_data).source)
+
+        # Insert duplicate entry with different balance
+        test_manager = NativeBalancesManager(self.db_conn)
+
+        with pytest.raises(RuntimeError) as e:
+            test_manager.observe(Genesis(**current_test_genesis_data).source)
+        assert 'Balance for addr123-b-token in DB (456) is different from genesis (457)' in str(e)
+
+        # Undo DB changes to prevent interaction with other tests
+        self.clear_db()
+
 
 if __name__ == "__main__":
     unittest.main()
