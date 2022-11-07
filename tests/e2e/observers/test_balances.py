@@ -46,7 +46,12 @@ class TestNativeBalanceObserver(TestWithDBConn):
 class TestBalanceManager(TestWithDBConn):
     @classmethod
     def setUpClass(cls):
+        TestWithDBConn().setUpClass()
         super().setUpClass()
+        cls.clear_db()
+
+    @classmethod
+    def clear_db(cls):
         cls.truncate_tables("native_balances", cascade=True)
         cls.truncate_tables("accounts", cascade=True)
 
@@ -72,6 +77,10 @@ class TestBalanceManager(TestWithDBConn):
 
         # Lock returns false if times-out
         assert (lock.acquire(True, 5))
+
+        # Undo DB changes to prevent interaction with other tests
+        self.clear_db()
+
 
     def collect_actual_balances(self):
         actual_balances = []
@@ -130,10 +139,12 @@ class TestBalanceManager(TestWithDBConn):
         second_test_manager.observe(Genesis(**test_genesis_data).source)
 
         n_min_calls = 4
-        assert logger_warning_mock.call_count >= n_min_calls
+        assert logger_warning_mock.call_count == n_min_calls
         for mock_call in logger_warning_mock.mock_calls:
             assert duplicate_message in mock_call.args[0]
 
+        # Undo DB changes to prevent interaction with other tests
+        self.clear_db()
 
 if __name__ == "__main__":
     unittest.main()
