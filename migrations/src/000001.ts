@@ -11,6 +11,7 @@
 
 import Buffer from "buffer";
 import allModuleTypes from "../src/cosmjs/proto";
+import {SelectResult} from "./utils";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _ = Buffer;
@@ -18,22 +19,6 @@ const _ = Buffer;
 export interface EncodedMessage {
   typeUrl: string;
   value: Uint8Array;
-}
-
-type FieldValues = Record<string, Record<string, any>>;
-interface Row {
-  row: FieldValues
-}
-
-class SelectResult {
-  private i = -1;
-  constructor(private readonly rows: Row[]) {}
-
-  *[Symbol.iterator]() {
-    this.i++;
-    // Row looks like {"row": {"f1": <field 1 value>, ...}}
-    yield Object.entries(this.rows[this.i].row).map(e => e[1]);
-  }
 }
 
 interface AuthzMessage {
