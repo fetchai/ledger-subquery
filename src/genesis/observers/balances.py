@@ -10,6 +10,7 @@ from reactivex.scheduler.scheduler import Scheduler
 
 from tests.helpers.field_enums import NativeBalances
 from src.genesis.db import DBTypes, TableManager
+from src.genesis.helpers.field_enums import NativeBalances
 from src.genesis.state import Balance
 from src.utils.loggers import get_logger
 

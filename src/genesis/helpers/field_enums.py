@@ -321,7 +321,6 @@ class AuthzExecMessageFields(NamedFields):
     authz_exec_id = 1
     message_id = 2
 
-
     @classmethod
     @property
     def table(self):

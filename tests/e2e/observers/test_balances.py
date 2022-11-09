@@ -14,12 +14,11 @@ sys.path.insert(0, str(repo_root_path))
 
 from tests.helpers.clients import TestWithDBConn
 from tests.helpers.genesis_data import test_genesis_data, test_bank_state_balances
-from tests.helpers.field_enums import NativeBalances, Accounts
+from src.genesis.helpers.field_enums import NativeBalances
 
 from src.genesis.state import Balance, Coin
 from src.genesis.genesis import Genesis
-from src.genesis.observers import NativeBalancesObserver, NativeBalancesManager, AccountsManager, \
-    native_balances_keys_path
+from src.genesis.observers import NativeBalancesObserver, NativeBalancesManager, native_balances_keys_path
 
 
 class TestNativeBalanceObserver(TestWithDBConn):
