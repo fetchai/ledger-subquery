@@ -8,7 +8,6 @@ from reactivex.abc import DisposableBase
 from reactivex.operators import filter as filter_, map as map_, delay as delay_, observe_on, buffer_with_count
 from reactivex.scheduler.scheduler import Scheduler
 
-from tests.helpers.field_enums import NativeBalances
 from src.genesis.db import DBTypes, TableManager
 from src.genesis.helpers.field_enums import NativeBalances
 from src.genesis.state import Balance

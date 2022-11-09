@@ -12,7 +12,7 @@ from src.genesis.state import Balance
 from .chain_id import ChainIdObserver
 from psycopg.errors import UniqueViolation
 
-from tests.helpers.field_enums import Accounts
+from src.genesis.helpers.field_enums import Accounts
 from src.utils.loggers import get_logger
 
 accounts_keys_path = ".app_state.bank.balances"
