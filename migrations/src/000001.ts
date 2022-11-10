@@ -11,6 +11,7 @@
 
 import Buffer from "buffer";
 import allModuleTypes from "../src/cosmjs/proto";
+import {getSelectResults} from "./src/utils";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _ = Buffer;
@@ -57,12 +58,13 @@ export function migrationAddAuthzSupport() {
   const authzExecSelect = "SELECT (m.id, m.type_url, json, m.transaction_id, m.block_id, t.id) FROM app.messages m JOIN app.transactions t ON m.transaction_id = t.id WHERE m.type_url = '/cosmos.authz.v1beta1.MsgExec'";
 
   // @ts-ignore
-  const messagesSelectResults = new SelectResult(plv8.execute(authzExecSelect));
+  const messagesSelectResults = getSelectResults(plv8.execute(authzExecSelect));
+  if (messagesSelectResults === null) {
+    return;
+  }
 
   // @ts-ignore
   for (const [id, type_url, json, transaction_id, block_id] of messagesSelectResults) {
-    // @ts-ignore
-    plv8.elog(WARNING, "json", json);
     const {grantee, msgs}: AuthzMessage = JSON.parse(json);
 
     // @ts-ignore
