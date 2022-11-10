@@ -1,0 +1,46 @@
+name: DB Migration
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Update
+        run: sudo apt update
+      - name: Install OS dependencies
+        run: sudo apt install -y python3-dev nodejs
+
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install graphile-migrate
+        run: npm install -g graphile-migrate
+
+      - name: Install NodeJS dependencies
+        run: yarn install
+
+      - name: Codegen TypeScript
+        run: yarn codegen
+
+      - name: Build TypeScript
+        run: yarn build
+
+      - name: Start-up local test environment
+        uses: isbang/compose-action@v1.2.0
+        with:
+          compose-file: "./ci-compose.yml"
+
+      - name: Graphile-migrate reset DB
+        run: . .gm.env && graphile-migrate reset --erase
+
+      - name: Run graphile-migrate migrations
+        run: . .gm.env && graphile-migrate migrate
