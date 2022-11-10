@@ -64,8 +64,8 @@
    * afterReset: actions executed after a `graphile-migrate reset` command.
    */
   "afterReset": [
+    "initial_types.sql",
     "initial_schema.sql",
-    // "afterReset.sql",
     // { "_": "command", "command": "graphile-worker --schema-only" },
   ],
  
