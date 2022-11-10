@@ -1,5 +1,8 @@
 --! Previous: sha1:07039c1f7e5327105f926f5d9288c9e3f97b876f
 --! Hash: sha1:415d74da72c751f950e11c4af2b2aa289c84eab9
+CREATE SCHEMA IF NOT EXISTS app;
+SET SCHEMA 'app';
+CREATE EXTENSION plv8;
 
 DROP FUNCTION IF EXISTS plv8ify_migrationAddInterfaceSupport();
 CREATE OR REPLACE FUNCTION plv8ify_migrationAddInterfaceSupport() RETURNS JSONB AS $plv8ify$
@@ -183,3 +186,5 @@ var plv8ify = (() => {
 return plv8ify.migrationAddInterfaceSupport()
 
 $plv8ify$ LANGUAGE plv8 IMMUTABLE STRICT;
+
+SELECT * from migrationAddInterfaceSupport();
