@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.5 (Debian 14.5-2.pgdg110+2)
--- Dumped by pg_dump version 14.5
+-- Dumped by pg_dump version 14.5 (Ubuntu 14.5-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -64,6 +64,11 @@ ALTER TABLE IF EXISTS ONLY app.cw20_balance_changes DROP CONSTRAINT IF EXISTS cw
 ALTER TABLE IF EXISTS ONLY app.contracts DROP CONSTRAINT IF EXISTS contracts_store_message_id_fkey;
 ALTER TABLE IF EXISTS ONLY app.contracts DROP CONSTRAINT IF EXISTS contracts_instantiate_message_id_fkey;
 ALTER TABLE IF EXISTS ONLY app.c_w20_contracts DROP CONSTRAINT IF EXISTS c_w20_contracts_contract_id_fkey;
+ALTER TABLE IF EXISTS ONLY app.authz_execs DROP CONSTRAINT IF EXISTS authz_execs_transaction_id_fkey;
+ALTER TABLE IF EXISTS ONLY app.authz_execs DROP CONSTRAINT IF EXISTS authz_execs_message_id_fkey;
+ALTER TABLE IF EXISTS ONLY app.authz_execs DROP CONSTRAINT IF EXISTS authz_execs_block_id_fkey;
+ALTER TABLE IF EXISTS ONLY app.authz_exec_messages DROP CONSTRAINT IF EXISTS authz_exec_messages_message_id_fkey;
+ALTER TABLE IF EXISTS ONLY app.authz_exec_messages DROP CONSTRAINT IF EXISTS authz_exec_messages_authz_exec_id_fkey;
 DROP INDEX IF EXISTS app.transactions_timeout_height;
 DROP INDEX IF EXISTS app.transactions_signer_address;
 DROP INDEX IF EXISTS app.transactions_fees;
@@ -144,6 +149,12 @@ DROP INDEX IF EXISTS app.contracts_instantiate_message_id;
 DROP INDEX IF EXISTS app.c_w20_contracts_contract_id;
 DROP INDEX IF EXISTS app.blocks_height;
 DROP INDEX IF EXISTS app.blocks_chain_id;
+DROP INDEX IF EXISTS app.authz_execs_transaction_id;
+DROP INDEX IF EXISTS app.authz_execs_message_id;
+DROP INDEX IF EXISTS app.authz_execs_grantee;
+DROP INDEX IF EXISTS app.authz_execs_block_id;
+DROP INDEX IF EXISTS app.authz_exec_messages_message_id;
+DROP INDEX IF EXISTS app.authz_exec_messages_authz_exec_id;
 DROP INDEX IF EXISTS app.accounts_chain_id;
 ALTER TABLE IF EXISTS ONLY app.transactions DROP CONSTRAINT IF EXISTS transactions_pkey;
 ALTER TABLE IF EXISTS ONLY app.store_contract_messages DROP CONSTRAINT IF EXISTS store_contract_messages_pkey;
@@ -163,6 +174,8 @@ ALTER TABLE IF EXISTS ONLY app.cw20_balance_changes DROP CONSTRAINT IF EXISTS cw
 ALTER TABLE IF EXISTS ONLY app.contracts DROP CONSTRAINT IF EXISTS contracts_pkey;
 ALTER TABLE IF EXISTS ONLY app.c_w20_contracts DROP CONSTRAINT IF EXISTS c_w20_contracts_pkey;
 ALTER TABLE IF EXISTS ONLY app.blocks DROP CONSTRAINT IF EXISTS blocks_pkey;
+ALTER TABLE IF EXISTS ONLY app.authz_execs DROP CONSTRAINT IF EXISTS authz_execs_pkey;
+ALTER TABLE IF EXISTS ONLY app.authz_exec_messages DROP CONSTRAINT IF EXISTS authz_exec_messages_pkey;
 ALTER TABLE IF EXISTS ONLY app.accounts DROP CONSTRAINT IF EXISTS accounts_pkey;
 ALTER TABLE IF EXISTS ONLY app._metadata DROP CONSTRAINT IF EXISTS _metadata_pkey;
 DROP TABLE IF EXISTS app.transactions;
@@ -183,6 +196,8 @@ DROP TABLE IF EXISTS app.cw20_balance_changes;
 DROP TABLE IF EXISTS app.contracts;
 DROP TABLE IF EXISTS app.c_w20_contracts;
 DROP TABLE IF EXISTS app.blocks;
+DROP TABLE IF EXISTS app.authz_execs;
+DROP TABLE IF EXISTS app.authz_exec_messages;
 DROP TABLE IF EXISTS app.accounts;
 DROP TABLE IF EXISTS app._metadata;
 DROP SCHEMA IF EXISTS app;
@@ -224,6 +239,34 @@ CREATE TABLE app.accounts (
 
 
 ALTER TABLE app.accounts OWNER TO subquery;
+
+--
+-- Name: authz_exec_messages; Type: TABLE; Schema: app; Owner: subquery
+--
+
+CREATE TABLE app.authz_exec_messages (
+    id text NOT NULL,
+    authz_exec_id text NOT NULL,
+    message_id text NOT NULL
+);
+
+
+ALTER TABLE app.authz_exec_messages OWNER TO subquery;
+
+--
+-- Name: authz_execs; Type: TABLE; Schema: app; Owner: subquery
+--
+
+CREATE TABLE app.authz_execs (
+    id text NOT NULL,
+    grantee text NOT NULL,
+    message_id text NOT NULL,
+    transaction_id text NOT NULL,
+    block_id text NOT NULL
+);
+
+
+ALTER TABLE app.authz_execs OWNER TO subquery;
 
 --
 -- Name: blocks; Type: TABLE; Schema: app; Owner: subquery
@@ -548,6 +591,22 @@ ALTER TABLE ONLY app.accounts
 
 
 --
+-- Name: authz_exec_messages authz_exec_messages_pkey; Type: CONSTRAINT; Schema: app; Owner: subquery
+--
+
+ALTER TABLE ONLY app.authz_exec_messages
+    ADD CONSTRAINT authz_exec_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: authz_execs authz_execs_pkey; Type: CONSTRAINT; Schema: app; Owner: subquery
+--
+
+ALTER TABLE ONLY app.authz_execs
+    ADD CONSTRAINT authz_execs_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: blocks blocks_pkey; Type: CONSTRAINT; Schema: app; Owner: subquery
 --
 
@@ -696,6 +755,48 @@ ALTER TABLE ONLY app.transactions
 --
 
 CREATE INDEX accounts_chain_id ON app.accounts USING btree (chain_id);
+
+
+--
+-- Name: authz_exec_messages_authz_exec_id; Type: INDEX; Schema: app; Owner: subquery
+--
+
+CREATE INDEX authz_exec_messages_authz_exec_id ON app.authz_exec_messages USING hash (authz_exec_id);
+
+
+--
+-- Name: authz_exec_messages_message_id; Type: INDEX; Schema: app; Owner: subquery
+--
+
+CREATE INDEX authz_exec_messages_message_id ON app.authz_exec_messages USING hash (message_id);
+
+
+--
+-- Name: authz_execs_block_id; Type: INDEX; Schema: app; Owner: subquery
+--
+
+CREATE INDEX authz_execs_block_id ON app.authz_execs USING hash (block_id);
+
+
+--
+-- Name: authz_execs_grantee; Type: INDEX; Schema: app; Owner: subquery
+--
+
+CREATE INDEX authz_execs_grantee ON app.authz_execs USING btree (grantee);
+
+
+--
+-- Name: authz_execs_message_id; Type: INDEX; Schema: app; Owner: subquery
+--
+
+CREATE INDEX authz_execs_message_id ON app.authz_execs USING hash (message_id);
+
+
+--
+-- Name: authz_execs_transaction_id; Type: INDEX; Schema: app; Owner: subquery
+--
+
+CREATE INDEX authz_execs_transaction_id ON app.authz_execs USING hash (transaction_id);
 
 
 --
@@ -1256,6 +1357,53 @@ CREATE INDEX transactions_signer_address ON app.transactions USING btree (signer
 --
 
 CREATE INDEX transactions_timeout_height ON app.transactions USING btree (timeout_height);
+
+
+--
+-- Name: authz_exec_messages authz_exec_messages_authz_exec_id_fkey; Type: FK CONSTRAINT; Schema: app; Owner: subquery
+--
+
+ALTER TABLE ONLY app.authz_exec_messages
+    ADD CONSTRAINT authz_exec_messages_authz_exec_id_fkey FOREIGN KEY (authz_exec_id) REFERENCES app.authz_execs(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: CONSTRAINT authz_exec_messages_authz_exec_id_fkey ON authz_exec_messages; Type: COMMENT; Schema: app; Owner: subquery
+--
+
+COMMENT ON CONSTRAINT authz_exec_messages_authz_exec_id_fkey ON app.authz_exec_messages IS '@foreignFieldName subMessages';
+
+
+--
+-- Name: authz_exec_messages authz_exec_messages_message_id_fkey; Type: FK CONSTRAINT; Schema: app; Owner: subquery
+--
+
+ALTER TABLE ONLY app.authz_exec_messages
+    ADD CONSTRAINT authz_exec_messages_message_id_fkey FOREIGN KEY (message_id) REFERENCES app.messages(id) ON UPDATE CASCADE;
+
+
+--
+-- Name: authz_execs authz_execs_block_id_fkey; Type: FK CONSTRAINT; Schema: app; Owner: subquery
+--
+
+ALTER TABLE ONLY app.authz_execs
+    ADD CONSTRAINT authz_execs_block_id_fkey FOREIGN KEY (block_id) REFERENCES app.blocks(id) ON UPDATE CASCADE;
+
+
+--
+-- Name: authz_execs authz_execs_message_id_fkey; Type: FK CONSTRAINT; Schema: app; Owner: subquery
+--
+
+ALTER TABLE ONLY app.authz_execs
+    ADD CONSTRAINT authz_execs_message_id_fkey FOREIGN KEY (message_id) REFERENCES app.messages(id) ON UPDATE CASCADE;
+
+
+--
+-- Name: authz_execs authz_execs_transaction_id_fkey; Type: FK CONSTRAINT; Schema: app; Owner: subquery
+--
+
+ALTER TABLE ONLY app.authz_execs
+    ADD CONSTRAINT authz_execs_transaction_id_fkey FOREIGN KEY (transaction_id) REFERENCES app.transactions(id) ON UPDATE CASCADE;
 
 
 --
