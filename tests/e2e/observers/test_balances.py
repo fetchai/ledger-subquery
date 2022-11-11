@@ -48,10 +48,10 @@ class TestBalanceManager(TestWithDBConn):
     def setUpClass(cls):
         TestWithDBConn().setUpClass()
         super().setUpClass()
-        cls.clear_db()
+        cls.reinit_db()
 
     @classmethod
-    def clear_db(cls):
+    def reinit_db(cls):
         cls.truncate_tables("native_balances", cascade=True)
         cls.truncate_tables("accounts", cascade=True)
 
@@ -62,6 +62,9 @@ class TestBalanceManager(TestWithDBConn):
             cls.db_conn.commit()
 
     def test_observe(self):
+        # Clean DB to prevent interaction with other tests
+        self.reinit_db()
+
         expected_balances: List[Balance] = Balance.from_dict_list(test_bank_state_balances)
         scheduler = ThreadPoolScheduler(2)
         lock = Lock()
@@ -77,9 +80,6 @@ class TestBalanceManager(TestWithDBConn):
 
         # Lock returns false if times-out
         assert (lock.acquire(True, 5))
-
-        # Undo DB changes to prevent interaction with other tests
-        self.clear_db()
 
     def collect_actual_balances(self):
         actual_balances = []
@@ -127,6 +127,9 @@ class TestBalanceManager(TestWithDBConn):
 
     @patch("logging.Logger.warning")
     def test_observe_with_duplicate_values(self, logger_warning_mock):
+        # Clean DB to prevent interaction with other tests
+        self.reinit_db()
+
         duplicate_message = "Duplicate balance occurred"
 
         # Insert first set of balances to DB
@@ -142,10 +145,10 @@ class TestBalanceManager(TestWithDBConn):
         for mock_call in logger_warning_mock.mock_calls:
             assert duplicate_message in mock_call.args[0]
 
-        # Undo DB changes to prevent interaction with other tests
-        self.clear_db()
-
     def test_observe_with_duplicate_values_with_errors(self):
+        # Clean DB to prevent interaction with other tests
+        self.reinit_db()
+
         current_bank_state_balances = [
             {
                 "address": "addr123",
@@ -170,9 +173,6 @@ class TestBalanceManager(TestWithDBConn):
         with pytest.raises(RuntimeError) as e:
             test_manager.observe(Genesis(**current_test_genesis_data).source)
         assert 'Balance for addr123-b-token in DB (456) is different from genesis (457)' in str(e)
-
-        # Undo DB changes to prevent interaction with other tests
-        self.clear_db()
 
 
 if __name__ == "__main__":

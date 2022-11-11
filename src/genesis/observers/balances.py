@@ -68,20 +68,26 @@ class NativeBalancesManager(TableManager):
                                                 on_completed=on_completed,
                                                 on_error=on_error)
 
-    def _get_name_and_index(self, e: UniqueViolation, balances: List[Balance]) -> Tuple[str, Tuple[int, int]]:
-        # Extract account name and coin from error string
-        duplicate_balance = str(e).split("(")[2].split(")")[0]
+    @classmethod
+    def _get_db_id(cls, address: str, denom: str):
+        return f"{address}-{denom}"
 
-        # Find duplicate account id
+    @classmethod
+    def _get_name_and_index(cls, e: UniqueViolation, balances: List[Balance]) -> Tuple[str, Tuple[int, int]]:
+        # Extract account name and coin from error string
+        duplicate_balance_id = cls._extract_id_from_unique_violation_exception(e)
+
+        # Find duplicate balance index
         duplicate_balance_index = None
         duplicate_coin_index = None
         for i in range(len(balances)):
             for j in range(len(balances[i].coins)):
-                if f"{balances[i].address}-{balances[i].coins[j].denom}" in duplicate_balance:
+                if cls._get_db_id(balances[i].address,
+                                  balances[i].coins[j].denom) in duplicate_balance_id:
                     duplicate_balance_index = i
                     duplicate_coin_index = j
 
-        return duplicate_balance, duplicate_balance_index, duplicate_coin_index
+        return duplicate_balance_id, duplicate_balance_index, duplicate_coin_index
 
     def copy_balances(self, balances: List[Balance]) -> None:
         with self._db_conn.cursor() as db:
@@ -93,34 +99,35 @@ class NativeBalancesManager(TableManager):
                     with db.copy(f'COPY {self._table} ({",".join(self.column_names)}) FROM STDIN') as copy:
                         for balance in balances:
                             for coin in balance.coins:
-                                id_ = f"{balance.address}-{coin.denom}"
+                                id_ = self._get_db_id(balance.address, coin.denom)
                                 copy.write_row((f"{v}" for v in (id_, balance.address, coin.amount, coin.denom)))
 
                 except UniqueViolation as e:
                     duplicate_occured = True
                     self._db_conn.commit()
 
-                    duplicate_balance, duplicate_balance_index, duplicate_coin_index = \
+                    duplicate_balance_id, duplicate_balance_index, duplicate_coin_index = \
                         self._get_name_and_index(e, balances)
 
                     if duplicate_balance_index is None or duplicate_coin_index is None:
                         raise RuntimeError(
-                            f"Error during duplicate balance handling, account {duplicate_balance} not found")
+                            f"Error during duplicate balance handling, account {duplicate_balance_id} not found")
 
                     # Compare balance in genesis with balance in db
                     amount_on_list = balances[duplicate_balance_index].coins[duplicate_coin_index].amount
-                    amount_in_db = db.execute(NativeBalances.select_where(f"id = '{duplicate_balance}'")).fetchone()[2]
+                    amount_in_db = db.execute(NativeBalances.select_where(f"id = '{duplicate_balance_id}'")).fetchone()[
+                        2]
 
                     if amount_on_list != amount_in_db:
                         raise RuntimeError(
-                            f"Balance for {duplicate_balance} in DB ({amount_in_db}) is different from genesis ({amount_on_list})")
+                            f"Balance for {duplicate_balance_id} in DB ({amount_in_db}) is different from genesis ({amount_on_list})")
 
                     # Remove duplicate balance from queue
                     balances[duplicate_balance_index].coins.pop(duplicate_coin_index)
                     if not balances[duplicate_balance_index].coins:
                         balances.pop(duplicate_balance_index)
 
-                    _logger.warning(f"Duplicate balance occurred during COPY: {duplicate_balance}")
+                    _logger.warning(f"Duplicate balance occurred during COPY: {duplicate_balance_id}")
 
         self._db_conn.commit()
 

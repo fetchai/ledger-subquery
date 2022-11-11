@@ -86,11 +86,12 @@ class AccountsManager(TableManager):
                                           on_completed=on_completed,
                                           on_error=on_error)
 
-    def _get_name_and_index(self, e: UniqueViolation, accounts: List[Account]) -> Tuple[str, int]:
+    @classmethod
+    def _get_name_and_index(cls, e: UniqueViolation, accounts: List[Account]) -> Tuple[str, int]:
         # Extract account name from error string
-        duplicate_account_id = str(e).split("(")[2].split(")")[0]
+        duplicate_account_id = cls._extract_id_from_unique_violation_exception(e)
 
-        # Find duplicate account id
+        # Find duplicate account index
         duplicate_account_index = None
         for i in range(len(accounts)):
             if accounts[i].id == duplicate_account_id:
@@ -115,7 +116,8 @@ class AccountsManager(TableManager):
                     duplicate_account_id, duplicate_account_index = self._get_name_and_index(e, accounts)
 
                     if duplicate_account_index is None:
-                        raise RuntimeError(f"Error during duplicate handling, account id {duplicate_account_id} not found")
+                        raise RuntimeError(
+                            f"Error during duplicate handling, account id {duplicate_account_id} not found")
 
                     # Remove duplicate account from queue
                     accounts.pop(duplicate_account_index)
