@@ -48,12 +48,10 @@ class TestBalanceManager(TestWithDBConn):
     def setUpClass(cls):
         TestWithDBConn().setUpClass()
         super().setUpClass()
-        cls.reinit_db()
 
     @classmethod
     def reinit_db(cls):
-        cls.truncate_tables("native_balances", cascade=True)
-        cls.truncate_tables("accounts", cascade=True)
+        cls.clean_db(["native_balances", "accounts"])
 
         with cls.db_conn.cursor() as db:
             # TODO: reference test data rather than more magic string literals
