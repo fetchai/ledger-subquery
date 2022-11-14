@@ -36,6 +36,9 @@ services:
       CHAIN_ID: "fetchchain"
       OPEN_TELEMETRY_SERVICE_NAME: "ledger-subquery-subquery-node"
       OPEN_TELEMETRY_COLLECTOR_URL: "http://otel-collector:4317"
+      DATABASE_URL: "postgres://subquery:subquery@postgres/subquery"
+      SHADOW_DATABASE_URL: "postgres://subquery:subquery@postgres/subquery_shadow"
+      ROOT_DATABASE_URL: "postgres://subquery:subquery@postgres/postgres"
     volumes:
       - ./:/app
       - ./docker/node-cosmos/package.json:/usr/local/lib/node_modules/@subql/node-cosmos/package.json
