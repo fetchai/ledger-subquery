@@ -14,6 +14,10 @@ RUN yarn codegen && yarn build
 
 FROM onfinality/subql-node-cosmos:v0.2.0
 
+# Add system dependencies
+RUN apk update
+RUN apk add postgresql14-client
+
 # NB: add SigNoz / OpenTelemetry dependencies
 WORKDIR /usr/local/lib/node_modules/@subql/node-cosmos
 RUN yarn add "@grpc/grpc-js" \
@@ -27,6 +31,9 @@ ADD https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_amd64 /us
 RUN chmod +x /usr/local/bin/yq
 
 WORKDIR /app
+
+# install global dependencies
+RUN npm install -g graphile-migrate
 
 # add the dependencies
 ADD ./package.json yarn.lock /app/
