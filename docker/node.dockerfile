@@ -36,6 +36,7 @@ RUN yarn install --frozen-lockfile --prod
 COPY ./docker/node-cosmos /usr/local/lib/node_modules/@subql/node-cosmos
 
 COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/migrations /app/migrations
 ADD ./proto /app/proto
 ADD ./project.yaml schema.graphql /app/
 ADD ./scripts/node-entrypoint.sh /entrypoint.sh
