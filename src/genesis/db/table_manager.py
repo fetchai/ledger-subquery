@@ -28,6 +28,7 @@ class TableManager:
     _table: str
     _columns: Tuple[Tuple[str, DBTypes], ...]  # [(<name>, <type>)]
     _indexes: Tuple[str, ...]
+    _schema: str = "app"
 
     def __init__(self, db_conn: Connection):
         self._db_conn = db_conn
@@ -46,11 +47,11 @@ class TableManager:
         with self._db_conn.cursor() as db:
             db.execute(
                 f"""
-                CREATE TABLE IF NOT EXISTS {self._table} (
+                CREATE TABLE IF NOT EXISTS {self._schema}.{self._table} (
                     {", ".join([f"{name} {type_.value}" for name, type_ in self._columns])}
                 );
                 -- TODO: psycopg break out of transaction
-                -- CREATE INDEX CONCURRENTLY ON {self._table} ({",".join(self._indexes)})
+                -- CREATE INDEX CONCURRENTLY ON {self._schema}.{self._table} ({",".join(self._indexes)})
             """
             )
             self._db_conn.commit()
@@ -64,7 +65,7 @@ class TableManager:
         with self._db_conn.cursor() as db:
             db.execute(
                 f"""
-                DROP TABLE IF EXISTS {self._table} {cascade_clause};
+                DROP TABLE IF EXISTS {self._schema}.{self._table} {cascade_clause};
             """
             )
             self._db_conn.commit()
