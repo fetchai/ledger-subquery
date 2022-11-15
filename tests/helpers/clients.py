@@ -23,6 +23,7 @@ DB_PORT = "5432"
 DB_NAME = "subquery"
 DB_USER = "subquery"
 DB_PASS = "subquery"
+DB_SCHEMA = "app"
 FETCHD_HOST = "localhost"
 FETCHD_GRPC_PORT = "9090"
 WASMD_HOST = "localhost"
@@ -53,6 +54,8 @@ class TestWithDBConn(unittest.TestCase):
         )
 
         cls.db_cursor = cls.db_conn.cursor()
+        cls.db_cursor.execute(f"SET SCHEMA '{DB_SCHEMA}'")
+        cls.db_conn.commit()
 
     @classmethod
     def tearDownClass(cls) -> None:
