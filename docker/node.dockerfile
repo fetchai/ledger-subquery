@@ -45,6 +45,7 @@ RUN yarn install --frozen-lockfile --prod
 
 # NB: replace built node-cosmos run module
 COPY ./docker/node-cosmos /usr/local/lib/node_modules/@subql/node-cosmos
+COPY ./.gmrc /app/.gmrc
 COPY --from=builder /app/subql/packages/common /usr/local/lib/node_modules/@subql/node-cosmos/node_modules/@subql/common
 
 COPY --from=builder /app/dist /app/dist
