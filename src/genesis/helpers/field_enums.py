@@ -83,7 +83,6 @@ class EventFields(NamedFields):
     transaction_id = 1
     block_id = 2
     type = 3
-    attributes = 4
 
     @classmethod
     @property
