@@ -1,3 +1,4 @@
+
 import sys
 from pathlib import Path
 
@@ -13,11 +14,14 @@ import json
 import time
 import unittest
 
+from tests.helpers.graphql import test_filtered_query
+
 repo_root_path = Path(__file__).parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
 from tests.helpers.entity_test import EntityTest
 from src.genesis.helpers.field_enums import GovProposalVoteFields
+
 
 class TestGovernance(EntityTest):
     vote_tx = None
@@ -30,44 +34,44 @@ class TestGovernance(EntityTest):
         super().setUpClass()
         cls.clean_db({"gov_proposal_votes"})
 
-        proposal_content = any_pb2.Any()
-        proposal_content.Pack(gov_pb2.TextProposal(
-            title="Test Proposal",
-            description="This is a test proposal"
-        ), "")
+        for proposal in range(3):
+            proposal_content = any_pb2.Any()
+            proposal_content.Pack(gov_pb2.TextProposal(
+                title="Test Proposal",
+                description="This is a test proposal"
+            ), "")
 
-        msg = gov_tx.MsgSubmitProposal(
-            content=proposal_content,
-            initial_deposit=[coin_pb2.Coin(
-                denom=cls.denom,
-                amount=cls.amount
-            )],
-            proposer=cls.validator_address
-        )
+            msg = gov_tx.MsgSubmitProposal(
+                content=proposal_content,
+                initial_deposit=[coin_pb2.Coin(
+                    denom=cls.denom,
+                    amount=cls.amount
+                )],
+                proposer=cls.validator_address
+            )
 
-        tx = Transaction()
-        tx.add_message(msg)
+            tx = Transaction()
+            tx.add_message(msg)
 
-        tx = utils.prepare_and_broadcast_basic_transaction(cls.ledger_client, tx, cls.validator_wallet)
-        tx.wait_to_complete()
-        cls.assertTrue(tx.response.is_successful(), "\nTXError: governance proposal tx unsuccessful")
+            tx = utils.prepare_and_broadcast_basic_transaction(cls.ledger_client, tx, cls.validator_wallet)
+            tx.wait_to_complete()
+            cls.assertTrue(tx.response.is_successful(), "\nTXError: governance proposal tx unsuccessful")
 
-        cls.msg = gov_tx.MsgVote(
-            proposal_id=1,
-            voter=cls.validator_address,
-            option=gov_pb2.VoteOption.VOTE_OPTION_YES
-        )
-        cls.vote_tx = Transaction()
-        cls.vote_tx.add_message(cls.msg)
-
-    def test_proposal_vote(self):
-        tx = utils.prepare_and_broadcast_basic_transaction(self.ledger_client, self.vote_tx, self.validator_wallet)
-        tx.wait_to_complete()
-        self.assertTrue(tx.response.is_successful(), "\nTXError: vote tx unsuccessful")
+            cls.msg = gov_tx.MsgVote(
+                proposal_id=int(tx.response.events['submit_proposal']['proposal_id']),
+                voter=cls.validator_address,
+                option=gov_pb2.VoteOption.VOTE_OPTION_YES
+            )
+            cls.vote_tx = Transaction()
+            cls.vote_tx.add_message(cls.msg)
+            tx = utils.prepare_and_broadcast_basic_transaction(cls.ledger_client, cls.vote_tx, cls.validator_wallet)
+            tx.wait_to_complete()
+            cls.assertTrue(tx.response.is_successful(), "\nTXError: vote tx unsuccessful")
 
         # primitive solution to wait for indexer to observe and handle new tx - TODO: add robust solution
         time.sleep(5)
 
+    def test_proposal_vote(self):
         vote = self.db_cursor.execute(GovProposalVoteFields.select_query()).fetchone()
         self.assertIsNotNone(vote, "\nDBError: table is empty - maybe indexer did not find an entry?")
         self.assertEqual(vote[GovProposalVoteFields.voter_address.value], self.validator_address, "\nDBError: voter address does not match")
@@ -79,70 +83,69 @@ class TestGovernance(EntityTest):
         min_timestamp = (latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
         max_timestamp = latest_block_timestamp.isoformat()
 
-        # query governance votes, query related block and filter by timestamp, returning all within last five minutes
-        query_by_timestamp = gql(
-            """
-            query get_votes_by_timestamp {
-                govProposalVotes (
-                filter: {
-                    block: {
-                    timestamp: {
-                        greaterThanOrEqualTo: """ + json.dumps(min_timestamp) + """,
-                                lessThanOrEqualTo: """ + json.dumps(max_timestamp) + """
-                            }
-                        }
-                    }) {
-                    nodes {
-                        transactionId
-                        voterAddress
-                        option
-                    }
+        gov_proposal_vote_nodes = """
+            {
+                id,
+                message { id }
+                transaction { id }
+                block {
+                    id
+                    height
                 }
+                proposalId
+                voterAddress
+                option
             }
             """
-        )
 
-        # query governance votes, filter by voter
-        query_by_voter = gql(
-            """
-            query get_votes_by_voter {
-                govProposalVotes (
-                filter: {
-                    voterAddress: {
-                        equalTo: \"""" + str(self.validator_address) + """\"
-                    }
-                }) {
-                    nodes {
-                        transactionId
-                        voterAddress
-                        option
-                        }
-                    }
+        def filtered_gov_proposal_votes_query(_filter, order=""):
+            return test_filtered_query("govProposalVotes", _filter, gov_proposal_vote_nodes, _order=order)
+
+        order_by_block_height_asc = filtered_gov_proposal_votes_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
                 }
-            """
+            }
+        },
+            'GOV_PROPOSAL_VOTES_BY_BLOCK_HEIGHT_ASC'
         )
 
-        # query governance votes, filter by option
-        query_by_option = gql(
-            """
-            query get_votes_by_option {
-                govProposalVotes (
-                filter: {
-                    option: {
-                        equalTo: """ + self.option + """
-                    }
-                }) {
-                    nodes {
-                        transactionId
-                        voterAddress
-                        option
-                        }
-                    }
+        order_by_block_height_desc = filtered_gov_proposal_votes_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
                 }
-            """
+            }
+        },
+            'GOV_PROPOSAL_VOTES_BY_BLOCK_HEIGHT_DESC'
         )
 
-        for query in [query_by_timestamp, query_by_voter, query_by_option]:
+        # query native transactions, query related block and filter by timestamp, returning all within last five minutes
+        filter_by_block_timestamp_range = filtered_gov_proposal_votes_query({
+            "block": {
+                "timestamp": {
+                    "greaterThanOrEqualTo": min_timestamp,
+                    "lessThanOrEqualTo": max_timestamp
+                }
+            }
+        })
+
+        # query native transactions, filter by recipient address
+        filter_by_voter_address_equals = filtered_gov_proposal_votes_query({
+            "voterAddress": {
+                "equalTo": str(self.validator_address)
+            }
+        })
+
+        # query native transactions, filter by recipient address
+        filter_by_option_equals = filtered_gov_proposal_votes_query({
+            "option": {
+                "isNull": False
+            }
+        })
+
+        for query in [filter_by_option_equals, filter_by_block_timestamp_range, filter_by_voter_address_equals]:
             result = self.gql_client.execute(query)
             """
             ["govProposalVotes"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
@@ -154,6 +157,19 @@ class TestGovernance(EntityTest):
             self.assertEqual(votes[0]["voterAddress"], self.validator_address,
                              "\nGQLError: voter address does not match")
             self.assertEqual(votes[0]["option"], self.option, "\nGQLError: voter option does not match")
+
+        with self.subTest("order by block height"):
+            for query, orderAssert in {
+                order_by_block_height_asc: self.assertGreaterEqual,
+                order_by_block_height_desc: self.assertLessEqual
+            }.items():
+                result = self.gql_client.execute(query)
+                gov_proposal_votes = result["govProposalVotes"]["nodes"]
+                last = gov_proposal_votes[0]['block']['height']
+                for entry in gov_proposal_votes:
+                    cur = entry["block"]["height"]
+                    orderAssert(cur, last, msg="OrderAssertError: order of objects is incorrect")
+                    last = cur
 
 
 if __name__ == '__main__':

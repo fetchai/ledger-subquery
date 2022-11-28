@@ -8,6 +8,8 @@ from src.genesis.helpers.field_enums import NativeBalanceChangeFields
 
 from gql import gql
 
+from tests.helpers.graphql import test_filtered_query
+
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
@@ -66,6 +68,37 @@ class TestNativeBalances(EntityTest):
             }
         """)
 
+        native_balance_nodes = """
+            {
+                block {
+                    height
+                }
+            }
+        """
+
+        def filtered_native_balance_query(_filter, order=""):
+            return test_filtered_query("nativeBalanceChanges", _filter, native_balance_nodes, _order=order)
+
+        order_native_balance_changes_by_block_height_desc = filtered_native_balance_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        },
+            'NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC'
+        )
+
+        order_native_balance_changes_by_block_height_asc = filtered_native_balance_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        },
+            'NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC'
+        )
+
         result = self.gql_client.execute(query)
         validator_balance = 0
         delegator_balance = 0
@@ -77,9 +110,21 @@ class TestNativeBalances(EntityTest):
                 delegator_balance += int(balance["sum"]["balanceOffset"])
             else:
                 self.fail("couldn't find validator or delegator address in keys")
-
         self.assertLessEqual(validator_balance, -7*10**18)
         self.assertLessEqual(delegator_balance, 7*10**18)
+
+        with self.subTest("order by block height"):
+            for query, orderAssert in {
+                order_native_balance_changes_by_block_height_asc: self.assertGreaterEqual,
+                order_native_balance_changes_by_block_height_desc: self.assertLessEqual
+            }.items():
+                result = self.gql_client.execute(query)
+                native_balance_changes = result["nativeBalanceChanges"]["nodes"]
+                last = native_balance_changes[0]['block']['height']
+                for entry in native_balance_changes:
+                    cur = entry["block"]["height"]
+                    orderAssert(cur, last, msg="OrderAssertError: order of objects is incorrect")
+                    last = cur
 
 
 if __name__ == '__main__':
