@@ -23,6 +23,8 @@ class TestCw20BalanceChange(EntityTest):
         super().setUpClass()
         cls.clean_db({"cw20_transfers"})
         cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
+        cls._contract._store()
+        cls._contract._instantiate()
         cls.methods = {
             "burn": {
                 "balance_offset": [-cls.amount],
@@ -40,27 +42,27 @@ class TestCw20BalanceChange(EntityTest):
                 "contract": cls._contract.address
             }
         }
+        for i in range(3):
+            resp = cls._contract.execute(
+                {"mint": {"recipient": cls.validator_address, "amount": str(cls.amount)}},
+                cls.validator_wallet)
+            cls.ledger_client.wait_for_query_tx(resp.tx_hash)
 
-        resp = cls._contract.execute(
-            {"mint": {"recipient": cls.validator_address, "amount": str(cls.amount)}},
-            cls.validator_wallet)
-        cls.ledger_client.wait_for_query_tx(resp.tx_hash)
+            resp = cls._contract.execute(
+                {"transfer": {"recipient": cls.delegator_address, "amount": str(cls.amount)}},
+                cls.validator_wallet)
+            cls.ledger_client.wait_for_query_tx(resp.tx_hash)
 
-        resp = cls._contract.execute(
-            {"transfer": {"recipient": cls.delegator_address, "amount": str(cls.amount)}},
-            cls.validator_wallet)
-        cls.ledger_client.wait_for_query_tx(resp.tx_hash)
-
-        resp = cls._contract.execute(
-            {"burn": {"amount": str(cls.amount)}},
-            cls.validator_wallet)
-        cls.ledger_client.wait_for_query_tx(resp.tx_hash)
+            resp = cls._contract.execute(
+                {"burn": {"amount": str(cls.amount)}},
+                cls.validator_wallet)
+            cls.ledger_client.wait_for_query_tx(resp.tx_hash)
 
         time.sleep(5)
 
     def test_execute_balance_change(self):
         for method in list(self.methods.keys()):
-            transfer = self.db_cursor.execute(Cw20BalanceChangeFields.by_execute_contract_method(str(method))).fetchall()
+            transfer = self.db_cursor.execute(Cw20BalanceChangeFields.by_execute_contract_method(str(method))).fetchmany(3)
             entry = self.methods[method]
             """Due to differences in structure of each tabled test case, self.assertIn checks if the entry is in 
                the short list of possible values given in the methods dict"""
@@ -85,12 +87,35 @@ class TestCw20BalanceChange(EntityTest):
                 account { id }
                 message { id }
                 transaction { id }
-                block { id }
+                block {
+                    id
+                    height 
+                }
             }
             """
 
-        def filtered_cw20_balance_change_query(_filter):
-            return test_filtered_query("cw20BalanceChanges", _filter, cw20_balance_change_nodes)
+        def filtered_cw20_balance_change_query(_filter, order=""):
+            return test_filtered_query("cw20BalanceChanges", _filter, cw20_balance_change_nodes, _order=order)
+
+        order_by_block_height_asc = filtered_cw20_balance_change_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        },
+            'CW20_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC'
+        )
+
+        order_by_block_height_desc = filtered_cw20_balance_change_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        },
+            'CW20_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC'
+        )
 
         # query Cw20 transfers, query related block and filter by timestamp, returning all within last five minutes
         for method in list(self.methods.keys()):
@@ -178,6 +203,19 @@ class TestCw20BalanceChange(EntityTest):
                         self.assertIn(result["accountId"], entry["account_id"], "\nGQLError: transfer recipient address does not match")
                         self.assertIn(int(result["balanceOffset"]), entry["balance_offset"], "\nGQLError: fund amount does not match")
                         self.assertEqual(result["contract"], entry["contract"], "\nGQLError: contract address does not match")
+
+        with self.subTest("order by block height"):
+            for query, orderAssert in {
+                order_by_block_height_asc: self.assertGreaterEqual,
+                order_by_block_height_desc: self.assertLessEqual
+            }.items():
+                result = self.gql_client.execute(query)
+                cw20_balance_changes = result["cw20BalanceChanges"]["nodes"]
+                last = cw20_balance_changes[0]['block']['height']
+                for entry in cw20_balance_changes:
+                    cur = entry["block"]["height"]
+                    orderAssert(cur, last, msg="OrderAssertError: order of objects is incorrect")
+                    last = cur
 
 
 if __name__ == '__main__':

@@ -21,12 +21,14 @@ class TestCw20Transfer(EntityTest):
     def setUpClass(cls):
         super().setUpClass()
         cls.clean_db({"cw20_transfers"})
-
         cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
-        resp = cls._contract.execute(
-            {"transfer": {"recipient": cls.delegator_address, "amount": str(cls.amount)}},
-            cls.validator_wallet)
-        cls.ledger_client.wait_for_query_tx(resp.tx_hash)
+        cls._contract._store()
+        cls._contract._instantiate()
+        for i in range(3):
+            resp = cls._contract.execute(
+                {"transfer": {"recipient": cls.delegator_address, "amount": str(cls.amount)}},
+                cls.validator_wallet)
+            cls.ledger_client.wait_for_query_tx(resp.tx_hash)
         time.sleep(5)
 
     def test_execute_transfer(self):
@@ -52,12 +54,35 @@ class TestCw20Transfer(EntityTest):
                 amount
                 message { id }
                 transaction { id }
-                block { id }
+                block {
+                    id
+                    height 
+                }
             }
             """
 
-        def filtered_cw20_transfer_query(_filter):
-            return test_filtered_query("cw20Transfers", _filter, cw20_transfer_nodes)
+        def filtered_cw20_transfer_query(_filter, order=""):
+            return test_filtered_query("cw20Transfers", _filter, cw20_transfer_nodes, _order=order)
+
+        order_by_block_height_asc = filtered_cw20_transfer_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        },
+            'CW20_TRANSFERS_BY_BLOCK_HEIGHT_ASC'
+        )
+
+        order_by_block_height_desc = filtered_cw20_transfer_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        },
+            'CW20_TRANSFERS_BY_BLOCK_HEIGHT_DESC'
+        )
 
         # query Cw20 transfers, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_cw20_transfer_query({
@@ -117,6 +142,19 @@ class TestCw20Transfer(EntityTest):
                 self.assertEqual(transfer[0]["fromAddress"], self.validator_address, "\nGQLError: transfer sender address does not match")
                 self.assertEqual(int(transfer[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
                 self.assertEqual(transfer[0]["contract"], self._contract.address, "\nGQLError: contract address does not match")
+
+        with self.subTest("order by block height"):
+            for query, orderAssert in {
+                order_by_block_height_asc: self.assertGreaterEqual,
+                order_by_block_height_desc: self.assertLessEqual
+            }.items():
+                result = self.gql_client.execute(query)
+                cw20_transfers = result["cw20Transfers"]["nodes"]
+                last = cw20_transfers[0]['block']['height']
+                for entry in cw20_transfers:
+                    cur = entry["block"]["height"]
+                    orderAssert(cur, last, msg="OrderAssertError: order of objects is incorrect")
+                    last = cur
 
 
 if __name__ == '__main__':

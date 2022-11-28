@@ -24,14 +24,15 @@ class TestContractSwap(EntityTest):
     def setUpClass(cls):
         super().setUpClass()
         cls.clean_db({"legacy_bridge_swaps"})
-
         cls._contract = BridgeContract(cls.ledger_client, cls.validator_wallet, DefaultBridgeContractConfig)
-        resp = cls._contract.execute(
-            {"swap": {"destination": cls.validator_address}},
-            cls.validator_wallet,
-            funds=str(cls.amount)+cls.denom
-        )
-        cls.ledger_client.wait_for_query_tx(resp.tx_hash)
+        for i in range(3):
+            resp = cls._contract.execute(
+                {"swap": {"destination": cls.validator_address}},
+                cls.validator_wallet,
+                funds=str(cls.amount)+cls.denom
+            )
+            cls.ledger_client.wait_for_query_tx(resp.tx_hash)
+
         time.sleep(5) # stil need to give some extra time for the indexer to pickup the tx
 
     def test_contract_swap(self):
@@ -58,12 +59,36 @@ class TestContractSwap(EntityTest):
                 executeContractMessage { id }
                 message { id }
                 transaction { id }
-                block { id }
+                block {
+                    id
+                    height 
+                }
             }
             """
 
-        def filtered_legacy_bridge_swap_query(_filter):
-            return test_filtered_query("legacyBridgeSwaps", _filter, legacy_bridge_swap_nodes)
+        def filtered_legacy_bridge_swap_query(_filter, order=""):
+            return test_filtered_query("legacyBridgeSwaps", _filter, legacy_bridge_swap_nodes, _order=order)
+
+        order_by_block_height_asc = filtered_legacy_bridge_swap_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        },
+            'LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_ASC'
+        )
+
+        order_by_block_height_desc = filtered_legacy_bridge_swap_query({
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        },
+            'LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_DESC'
+        )
+
 
         # query legacy bridge swaps, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_legacy_bridge_swap_query({
@@ -114,6 +139,19 @@ class TestContractSwap(EntityTest):
                 self.assertEqual(swaps[0]["destination"], self.validator_address, "\nGQLError: swap destination address does not match")
                 self.assertEqual(int(swaps[0]["amount"]), int(self.amount), "\nGQLError: fund amount does not match")
                 self.assertEqual(swaps[0]["denom"], self.denom, "\nGQLError: fund denomination does not match")
+
+        with self.subTest("order by block height"):
+            for query, orderAssert in {
+                order_by_block_height_asc: self.assertGreaterEqual,
+                order_by_block_height_desc: self.assertLessEqual
+            }.items():
+                result = self.gql_client.execute(query)
+                legacy_bridge_swaps = result["legacyBridgeSwaps"]["nodes"]
+                last = legacy_bridge_swaps[0]['block']['height']
+                for entry in legacy_bridge_swaps:
+                    cur = entry["block"]["height"]
+                    orderAssert(cur, last, msg="OrderAssertError: order of objects is incorrect")
+                    last = cur
 
 
 if __name__ == '__main__':
