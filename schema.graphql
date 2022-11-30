@@ -265,3 +265,9 @@ type UnprocessedEntity @entity {
   transaction: Transaction
   block: Block
 }
+
+type ReleaseVersion @entity {
+  id: String!
+  gitHash: String!
+  gitTag: String!
+}
