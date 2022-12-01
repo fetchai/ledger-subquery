@@ -267,7 +267,7 @@ type UnprocessedEntity @entity {
 }
 
 type ReleaseVersion @entity {
-  id: String!
+  id: ID!
   gitHash: String!
   gitTag: String!
 }

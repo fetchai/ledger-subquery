@@ -104,6 +104,17 @@ class NativeTransferFields(NamedFields):
         return "native_transfers"
 
 
+class ReleaseVersionFields(NamedFields):
+    id = 0
+    git_tag = 1
+    git_hash = 2
+
+    @classmethod
+    @property
+    def table(self):
+        return "release_versions"
+
+
 class StoreMessageFields(NamedFields):
     id = 0
     sender = 1
