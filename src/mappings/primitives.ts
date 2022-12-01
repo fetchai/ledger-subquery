@@ -112,9 +112,13 @@ async function _handleEvent(event: CosmosEvent): Promise<void> {
   logger.debug(`[handleEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`);
 
   // NB: sanitize attribute values (may contain non-text characters)
+  const sanitize = (value: unknown) => {
+    const json = JSON.stringify(value);
+    return json.substring(1, json.length - 1);
+  };
   const attributes = event.event.attributes.map((attribute) => {
     const {key, value} = attribute;
-    return {key, value: JSON.stringify(value)};
+    return {key, value: sanitize(value)};
   });
 
   const id = `${messageId(event)}-${event.idx}`;
