@@ -22,9 +22,9 @@ class TestCw20Transfer(EntityTest):
         super().setUpClass()
         cls.clean_db({"cw20_transfers"})
         cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
-        cls._contract._store()
-        cls._contract._instantiate()
-        for i in range(3):
+        code_id = cls._contract._store()
+        cls._contract._instantiate(code_id)
+        for i in range(3):  # repeat entity creation three times to create enough data to verify sorting
             resp = cls._contract.execute(
                 {"transfer": {"recipient": cls.delegator_address, "amount": str(cls.amount)}},
                 cls.validator_wallet)
@@ -61,28 +61,20 @@ class TestCw20Transfer(EntityTest):
             }
             """
 
+        default_filter = {  # filter parameter of helper function must not be null, so instead use rhetorical filter
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        }
+
         def filtered_cw20_transfer_query(_filter, order=""):
             return test_filtered_query("cw20Transfers", _filter, cw20_transfer_nodes, _order=order)
 
-        order_by_block_height_asc = filtered_cw20_transfer_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'CW20_TRANSFERS_BY_BLOCK_HEIGHT_ASC'
-        )
+        order_by_block_height_asc = filtered_cw20_transfer_query(default_filter, 'CW20_TRANSFERS_BY_BLOCK_HEIGHT_ASC')
 
-        order_by_block_height_desc = filtered_cw20_transfer_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'CW20_TRANSFERS_BY_BLOCK_HEIGHT_DESC'
-        )
+        order_by_block_height_desc = filtered_cw20_transfer_query(default_filter, 'CW20_TRANSFERS_BY_BLOCK_HEIGHT_DESC')
 
         # query Cw20 transfers, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_cw20_transfer_query({

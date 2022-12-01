@@ -59,9 +59,11 @@ class Cw20Contract(LedgerContract):
         assert self.admin is not None
         return self.store(self.admin, self.gas_limit)
 
-    def _instantiate(self) -> Address:
+    def _instantiate(self, code_id) -> Address:
         assert self.admin is not None
-        return self.instantiate({
+        return self.instantiate(
+            code_id,
+            {
             "name": "test coin",
             "symbol": "TEST",
             "decimals": 6,

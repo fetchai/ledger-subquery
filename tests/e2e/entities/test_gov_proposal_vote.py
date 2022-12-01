@@ -33,7 +33,10 @@ class TestGovernance(EntityTest):
     def setUpClass(cls):
         super().setUpClass()
         cls.clean_db({"gov_proposal_votes"})
-
+        ''' 
+        As voting can only occur once from an address per proposal, three must be created and voted upon individually.
+        All proposals must reach the voting stage and be voted upon to create enough data to assert correct sorting.
+        '''
         for proposal in range(3):
             proposal_content = any_pb2.Any()
             proposal_content.Pack(gov_pb2.TextProposal(
@@ -98,28 +101,20 @@ class TestGovernance(EntityTest):
             }
             """
 
+        default_filter = {  # filter parameter of helper function must not be null, so instead use rhetorical filter
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        }
+
         def filtered_gov_proposal_votes_query(_filter, order=""):
             return test_filtered_query("govProposalVotes", _filter, gov_proposal_vote_nodes, _order=order)
 
-        order_by_block_height_asc = filtered_gov_proposal_votes_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'GOV_PROPOSAL_VOTES_BY_BLOCK_HEIGHT_ASC'
-        )
+        order_by_block_height_asc = filtered_gov_proposal_votes_query(default_filter, 'GOV_PROPOSAL_VOTES_BY_BLOCK_HEIGHT_ASC')
 
-        order_by_block_height_desc = filtered_gov_proposal_votes_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'GOV_PROPOSAL_VOTES_BY_BLOCK_HEIGHT_DESC'
-        )
+        order_by_block_height_desc = filtered_gov_proposal_votes_query(default_filter, 'GOV_PROPOSAL_VOTES_BY_BLOCK_HEIGHT_DESC')
 
         # query native transactions, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_gov_proposal_votes_query({

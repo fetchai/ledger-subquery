@@ -22,11 +22,10 @@ class TestNativeTransfer(EntityTest):
     def setUpClass(cls):
         super().setUpClass()
         cls.clean_db({"native_transfers"})
-        for i in range(3):
+        for i in range(3):  # enough entities are created to verify sorting
             tx = cls.ledger_client.send_tokens(cls.delegator_address, cls.amount, cls.denom, cls.validator_wallet)
             tx.wait_to_complete()
             cls.assertTrue(tx.response.is_successful(), "TXError: transfer unsuccessful")
-
         # primitive solution to wait for indexer to observe and handle new tx - TODO: add robust solution
         time.sleep(5)
 
@@ -60,28 +59,20 @@ class TestNativeTransfer(EntityTest):
             }
             """
 
+        default_filter = {  # filter parameter of helper function must not be null, so instead use rhetorical filter
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        }
+
         def filtered_native_transfer_query(_filter, order=""):
             return test_filtered_query("nativeTransfers", _filter, native_transfer_nodes, _order=order)
 
-        order_by_block_height_asc = filtered_native_transfer_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'NATIVE_TRANSFERS_BY_BLOCK_HEIGHT_ASC'
-        )
+        order_by_block_height_asc = filtered_native_transfer_query(default_filter, 'NATIVE_TRANSFERS_BY_BLOCK_HEIGHT_ASC')
 
-        order_by_block_height_desc = filtered_native_transfer_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'NATIVE_TRANSFERS_BY_BLOCK_HEIGHT_DESC'
-        )
+        order_by_block_height_desc = filtered_native_transfer_query(default_filter, 'NATIVE_TRANSFERS_BY_BLOCK_HEIGHT_DESC')
 
         # query native transactions, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_native_transfer_query({

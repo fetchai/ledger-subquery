@@ -23,7 +23,13 @@ class TestContractDeploy(EntityTest):
         cls.clean_db({"contracts"})
         cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
         code_id = cls._contract._store()
-        address = cls._contract._instantiate()
+        address = cls._contract._instantiate(code_id)
+        '''
+        An initial proposal is created in order to make value assertions. These values are stored within a dictionary
+        to be recalled for the assertions. However to create enough data for sorting tests, two further contracts are 
+        stored and instantiated afterwards. These two additional contracts are used only for sorting test data, and their
+        unique addresses and contents are ignored.
+        '''
         cls.entities = {
             "storeContractMsg": {
                 "query": StoreMessageFields.select_query(),
@@ -60,8 +66,8 @@ class TestContractDeploy(EntityTest):
             }
         }
         for i in range(2):
-            cls._contract._store()
-            cls._contract._instantiate()
+            code_id = cls._contract._store()
+            cls._contract._instantiate(code_id)
         time.sleep(5)
 
     def test_execute_transfer(self):
@@ -70,7 +76,8 @@ class TestContractDeploy(EntityTest):
             self.assertIsNotNone(transfer, "\nDBError: table is empty - maybe indexer did not find an entry?")
 
             for assertion_key in self.entities[entity]["equal"]:
-                self.assertEqual(transfer[assertion_key], self.entities[entity]["equal"][assertion_key], f"DBError: `{entity}` attribute not equal")
+                self.assertEqual(transfer[assertion_key], self.entities[entity]["equal"][assertion_key],
+                                 f"DBError: `{entity}` attribute not equal")
 
             for assertion_key in self.entities[entity]["not_null"]:
                 self.assertIsNotNone(transfer[assertion_key], f"DBError: `{entity}` attribute not null")
@@ -93,7 +100,11 @@ class TestContractDeploy(EntityTest):
             }
             """
 
-        def filtered_store_contract_message_query(_filter, order=""):
+        ''' 
+        Each query is sorted by codeId to allow us to test only the initial created contract, from which our tabled
+        data is stored.
+        '''
+        def filtered_store_contract_message_query(_filter, order='CODE_ID_ASC'):
             return test_filtered_query("storeContractMessages", _filter, store_contract_nodes, _order=order)
 
         # query store contract messages, query related block and filter by timestamp, returning all within last five minutes
@@ -104,36 +115,28 @@ class TestContractDeploy(EntityTest):
                     "lessThanOrEqualTo": max_timestamp
                 }
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         # query store contract messages, filter by sender address
         filter_by_sender_equals = filtered_store_contract_message_query({
             "sender": {
                 "equalTo": str(self.validator_address)
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         # query store contract messages, filter by permission
         filter_by_permission_equals = filtered_store_contract_message_query({
             "permission": {
                 "isNull": True
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         # query store contract messages, filter by codeId
         filter_by_code_id_equals = filtered_store_contract_message_query({
             "codeId": {
                 "equalTo": self.entities['storeContractMsg']['equal'][StoreMessageFields.code_id.value]
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         for (name, query) in [
             ("by block timestamp range", filter_by_block_timestamp_range),
@@ -148,16 +151,22 @@ class TestContractDeploy(EntityTest):
                 This provides {"sender":sender address, "permission: access type enum, "codeId": code ID}
                 which can be destructured for the values of interest.
                 """
-                transfer = result["storeContractMessages"]["nodes"]  # We are sorting by code id in order to access contracts in order of creation
+                # We are sorting by code id in order to access contracts in order of creation
+                # As can be seen from `transfer[0]`, we only assert values from the initial contract
+                transfer = result["storeContractMessages"]["nodes"]
                 self.assertNotEqual(transfer, [], "\nGQLError: No results returned from query")
-                self.assertEqual(transfer[0]["sender"], self.validator_address, "\nGQLError: sender address does not match")
+                self.assertEqual(transfer[0]["sender"], self.validator_address,
+                                 "\nGQLError: sender address does not match")
                 self.assertEqual(transfer[0]["permission"], None, "\nGQLError: contract permission does not match")
-                self.assertEqual(int(transfer[0]["codeId"]), self.entities['storeContractMsg']['equal'][StoreMessageFields.code_id.value], "\nGQLError: code_id does not match")
+                self.assertEqual(int(transfer[0]["codeId"]),
+                                 self.entities['storeContractMsg']['equal'][StoreMessageFields.code_id.value],
+                                 "\nGQLError: code_id does not match")
 
     def test_retrieve_instantiate_contract_msg(self):
         latest_block_timestamp = self.get_latest_block_timestamp()
         # create a second timestamp for five minutes before
-        min_timestamp = (latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
+        min_timestamp = (
+                    latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
         max_timestamp = latest_block_timestamp.isoformat()
 
         instantiate_contract_nodes = """
@@ -175,7 +184,7 @@ class TestContractDeploy(EntityTest):
             }
             """
 
-        def filtered_instantiate_contract_message_query(_filter, order=""):
+        def filtered_instantiate_contract_message_query(_filter, order='CODE_ID_ASC'):
             return test_filtered_query("instantiateContractMessages", _filter, instantiate_contract_nodes, _order=order)
 
         # query instantiate contract messages, query related block and filter by timestamp, returning all within last five minutes
@@ -186,63 +195,49 @@ class TestContractDeploy(EntityTest):
                     "lessThanOrEqualTo": max_timestamp
                 }
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         # query instantiate contract messages, filter by sender address
         filter_by_sender_equals = filtered_instantiate_contract_message_query({
             "sender": {
                 "equalTo": str(self.validator_address)
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         # query instantiate contract messages, filter by admin
         filter_by_admin_equals = filtered_instantiate_contract_message_query({
             "admin": {
                 "equalTo": ''
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         # query instantiate contract messages, filter by codeId
         filter_by_code_id_equals = filtered_instantiate_contract_message_query({
             "codeId": {
                 "equalTo": self.entities['instantiateMsg']['equal'][InstantiateMessageFields.code_id.value]
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         # query instantiate contract messages, filter by label
         filter_by_label_equals = filtered_instantiate_contract_message_query({
             "label": {
                 "isNull": False
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         # query instantiate contract messages, filter by payload
         filter_by_payload_equals = filtered_instantiate_contract_message_query({
             "payload": {
                 "isNull": False
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         # query instantiate contract messages, filter by funds
         filter_by_funds_equals = filtered_instantiate_contract_message_query({
             "funds": {
                 "equalTo": []
             }
-        },
-            'CODE_ID_ASC'
-        )
+        })
 
         for (name, query) in [
             ("by block timestamp range", filter_by_block_timestamp_range),
@@ -261,6 +256,7 @@ class TestContractDeploy(EntityTest):
                 "payload": contract configuration/payload, "funds": funds held within contract}
                 which can be destructured for the values of interest.
                 """
+                # As can be seen from `transfer[0]`, we only assert values from the initial contract
                 transfer = result["instantiateContractMessages"]["nodes"]
                 self.assertNotEqual(transfer, [], "\nGQLError: No results returned from query")
                 self.assertEqual(transfer[0]["sender"], self.validator_address, "\nGQLError: sender address does not match")
@@ -273,60 +269,48 @@ class TestContractDeploy(EntityTest):
     def test_retrieve_contract(self):
         latest_block_timestamp = self.get_latest_block_timestamp()
         # create a second timestamp for five minutes before
-        min_timestamp = (latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
+        min_timestamp = (
+                    latest_block_timestamp - dt.timedelta(minutes=5)).isoformat()  # convert both to JSON ISO format
         max_timestamp = latest_block_timestamp.isoformat()
 
         contract_nodes = """
             {
                 id
                 interfaces
-                storeMessage { id }
-                instantiateMessage { id }
+                storeMessage {
+                    id
+                    codeId
+                }
+                instantiateMessage { 
+                    id 
+                    codeId
+                }
             }
             """
 
-        def filtered_contract_query(_filter, order=""):
+        default_filter = {  # filter parameter of helper function must not be null, so instead use rhetorical filter
+            "storeMessage": {
+                "codeId": {
+                    "greaterThanOrEqualTo": 0
+                }
+            }
+        }
+
+        ''' 
+        Again here our queries used to assert contract values are by default sorted by codeId in order to allow us to 
+        separate the initial contract from the dummy contracts used for sorting
+        '''
+        def filtered_contract_query(_filter, order='CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_ASC'):
             return test_filtered_query("contracts", _filter, contract_nodes, _order=order)
 
-        order_by_store_contract_messages_code_id_asc = filtered_contract_query({
-            "storeMessage": {
-                "codeId": {
-                    "greaterThanOrEqualTo": 0
-                }
-            }
-        },
-            'CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_ASC'
-        )
+        order_by_store_contract_messages_code_id_asc = filtered_contract_query(default_filter, 'CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_ASC')
 
-        order_by_store_contract_messages_code_id_desc = filtered_contract_query({
-            "storeMessage": {
-                "codeId": {
-                    "greaterThanOrEqualTo": 0
-                }
-            }
-        },
-            'CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_DESC'
-        )
+        order_by_store_contract_messages_code_id_desc = filtered_contract_query(default_filter, 'CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_DESC')
 
-        order_by_instantiate_contract_messages_code_id_desc = filtered_contract_query({
-            "storeMessage": {
-                "codeId": {
-                    "greaterThanOrEqualTo": 0
-                }
-            }
-        },
-            'CONTRACTS_BY_INSTANTIATE_CONTRACT_MESSAGES_CODE_ID_DESC'
-        )
+        order_by_instantiate_contract_messages_code_id_desc = filtered_contract_query(default_filter, 'CONTRACTS_BY_INSTANTIATE_CONTRACT_MESSAGES_CODE_ID_DESC')
 
-        order_by_instantiate_contract_messages_code_id_asc = filtered_contract_query({
-            "storeMessage": {
-                "codeId": {
-                    "greaterThanOrEqualTo": 0
-                }
-            }
-        },
-            'CONTRACTS_BY_INSTANTIATE_CONTRACT_MESSAGES_CODE_ID_ASC'
-        )
+        order_by_instantiate_contract_messages_code_id_asc = filtered_contract_query(default_filter, 'CONTRACTS_BY_INSTANTIATE_CONTRACT_MESSAGES_CODE_ID_ASC')
+
         # query contract, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_contract_query({
             "storeMessage": {
@@ -337,54 +321,21 @@ class TestContractDeploy(EntityTest):
                     }
                 }
             }
-        },
-            'CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_ASC'
-        )
+        })
 
         # query contract, filter by contract address
         filter_by_id_equals = filtered_contract_query({
             "id": {
                 "equalTo": str(self.entities['contractEntity']['equal'][ContractFields.id.value])
             }
-        },
-            'CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_ASC'
-        )
+        })
 
         # query contract, filter by interfaces
         filter_by_interfaces_equals = filtered_contract_query({
             "interfaces": {
                 "isNull": False
             }
-        },
-            'CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_ASC'
-        )
-
-        store_contract_nodes = "{codeId}"
-        instantiate_contract_nodes = "{codeId}"
-
-        def filtered_store_contract_message_query(_filter, order=""):
-            return test_filtered_query("storeContractMessages", _filter, store_contract_nodes, _order=order)
-
-        def filtered_instantiate_contract_message_query(_filter, order=""):
-            return test_filtered_query("instantiateContractMessages", _filter, instantiate_contract_nodes, _order=order)
-
-        def get_store_message_by_code_id(store_message_id):
-            code_id = self.gql_client.execute(filtered_store_contract_message_query({
-                "id": {
-                    "equalTo": str(store_message_id)
-                }
-            }))['storeContractMessages']['nodes'][0]['codeId']
-            self.assertIsNotNone(code_id, "GQLError: code id from store code message id not found")
-            return code_id
-
-        def get_instantiate_message_by_code_id(instantiate_message_id):
-            code_id = self.gql_client.execute(filtered_instantiate_contract_message_query({
-                "id": {
-                    "equalTo": str(instantiate_message_id)
-                }
-            }))['instantiateContractMessages']['nodes'][0]['codeId']
-            self.assertIsNotNone(code_id, "GQLError: code id from instantiate message id not found")
-            return code_id
+        })
 
         for (name, query) in [
             ("by block timestamp range", filter_by_block_timestamp_range),
@@ -400,34 +351,37 @@ class TestContractDeploy(EntityTest):
                 """
                 contracts = result["contracts"]["nodes"]
                 self.assertNotEqual(contracts, [], "\nGQLError: No results returned from query")
-                self.assertEqual(contracts[0]["id"], str(self.entities['contractEntity']['equal'][ContractFields.id.value]),
+                self.assertEqual(contracts[0]["id"],
+                                 str(self.entities['contractEntity']['equal'][ContractFields.id.value]),
                                  "\nGQLError: contract address does not match")
                 self.assertIsNotNone(contracts[0]["interfaces"], "\nGQLError: contract interface prediction is null")
 
-        for query, orderAssert in {
-            order_by_store_contract_messages_code_id_asc: self.assertGreaterEqual,
-            order_by_store_contract_messages_code_id_desc: self.assertLessEqual
+        for query, entity in {
+            # Iterate through contract code_id from related storeMessage & instantiateMessage to assert ascending
+            order_by_store_contract_messages_code_id_asc: 'storeMessage',
+            order_by_instantiate_contract_messages_code_id_asc: 'instantiateMessage'
         }.items():
-            with self.subTest("order by code ID from store message"):
-                result = self.gql_client.execute(query)
+            with self.subTest("order by code ID ascending"):
+                result = self.gql_client.execute(query)  # use query iterable from above
                 contracts = result["contracts"]["nodes"]
-                last = get_store_message_by_code_id(contracts[0]['storeMessage']['id'])
+                last = contracts[0][entity]['codeId']  # use relevant entity from above
                 for entry in contracts:
-                    cur = get_store_message_by_code_id(entry['storeMessage']['id'])
-                    orderAssert(cur, last, msg="OrderAssertError: order of contracts is incorrect")
+                    cur = entry[entity]['codeId']
+                    self.assertGreaterEqual(cur, last, msg="OrderAssertError: order of contracts is incorrect")
                     last = cur
 
-        for query, orderAssert in {
-            order_by_instantiate_contract_messages_code_id_asc: self.assertGreaterEqual,
-            order_by_instantiate_contract_messages_code_id_desc: self.assertLessEqual
+        for query, entity in {
+            # Repeat sorting assertion for descending
+            order_by_store_contract_messages_code_id_desc: 'storeMessage',
+            order_by_instantiate_contract_messages_code_id_desc: 'instantiateMessage'
         }.items():
-            with self.subTest("order by code ID from instantiate message"):
+            with self.subTest("order by code ID descending"):
                 result = self.gql_client.execute(query)
                 contracts = result["contracts"]["nodes"]
-                last = get_instantiate_message_by_code_id(contracts[0]['instantiateMessage']['id'])
+                last = contracts[0][entity]['codeId']
                 for entry in contracts:
-                    cur = get_instantiate_message_by_code_id(entry['instantiateMessage']['id'])
-                    orderAssert(cur, last, msg="OrderAssertError: order of contracts is incorrect")
+                    cur = entry[entity]['codeId']
+                    self.assertLessEqual(cur, last, msg="OrderAssertError: order of contracts is incorrect")
                     last = cur
 
 

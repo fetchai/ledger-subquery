@@ -21,7 +21,7 @@ class TestDelegation(EntityTest):
     def setUpClass(cls):
         super().setUpClass()
         cls.clean_db({"dist_delegator_claims"})
-        for claim in range(3):
+        for claim in range(3):  # enough entities are created to verify sorting
             delegate_tx = cls.ledger_client.delegate_tokens(cls.validator_operator_address, cls.amount, cls.validator_wallet)
             delegate_tx.wait_to_complete()
             cls.assertTrue(delegate_tx.response.is_successful(), "\nTXError: delegation tx unsuccessful")
@@ -64,25 +64,17 @@ class TestDelegation(EntityTest):
             }
             """
 
-        order_by_block_height_asc = filtered_dist_delegate_claim_query({
+        default_filter = {
             "block": {
                 "height": {
                     "greaterThanOrEqualTo": "0"
                 }
             }
-        },
-            'DIST_DELEGATOR_CLAIMS_BY_BLOCK_HEIGHT_ASC'
-        )
+        }
 
-        order_by_block_height_desc = filtered_dist_delegate_claim_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'DIST_DELEGATOR_CLAIMS_BY_BLOCK_HEIGHT_DESC'
-        )
+        order_by_block_height_asc = filtered_dist_delegate_claim_query(default_filter, 'DIST_DELEGATOR_CLAIMS_BY_BLOCK_HEIGHT_ASC')
+
+        order_by_block_height_desc = filtered_dist_delegate_claim_query(default_filter, 'DIST_DELEGATOR_CLAIMS_BY_BLOCK_HEIGHT_DESC')
 
         # query governance votes, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_dist_delegate_claim_query({

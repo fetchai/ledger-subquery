@@ -23,8 +23,8 @@ class TestCw20BalanceChange(EntityTest):
         super().setUpClass()
         cls.clean_db({"cw20_transfers"})
         cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
-        cls._contract._store()
-        cls._contract._instantiate()
+        code_id = cls._contract._store()
+        cls._contract._instantiate(code_id)
         cls.methods = {
             "burn": {
                 "balance_offset": [-cls.amount],
@@ -42,7 +42,7 @@ class TestCw20BalanceChange(EntityTest):
                 "contract": cls._contract.address
             }
         }
-        for i in range(3):
+        for i in range(3):  # repeat entity creation three times to create enough data to verify sorting
             resp = cls._contract.execute(
                 {"mint": {"recipient": cls.validator_address, "amount": str(cls.amount)}},
                 cls.validator_wallet)
@@ -62,7 +62,7 @@ class TestCw20BalanceChange(EntityTest):
 
     def test_execute_balance_change(self):
         for method in list(self.methods.keys()):
-            transfer = self.db_cursor.execute(Cw20BalanceChangeFields.by_execute_contract_method(str(method))).fetchmany(3)
+            transfer = self.db_cursor.execute(Cw20BalanceChangeFields.by_execute_contract_method(str(method))).fetchall()
             entry = self.methods[method]
             """Due to differences in structure of each tabled test case, self.assertIn checks if the entry is in 
                the short list of possible values given in the methods dict"""
@@ -94,28 +94,20 @@ class TestCw20BalanceChange(EntityTest):
             }
             """
 
+        default_filter = {  # filter parameter of helper function must not be null, so instead use rhetorical filter
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        }
+
         def filtered_cw20_balance_change_query(_filter, order=""):
             return test_filtered_query("cw20BalanceChanges", _filter, cw20_balance_change_nodes, _order=order)
 
-        order_by_block_height_asc = filtered_cw20_balance_change_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'CW20_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC'
-        )
+        order_by_block_height_asc = filtered_cw20_balance_change_query(default_filter, 'CW20_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC')
 
-        order_by_block_height_desc = filtered_cw20_balance_change_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'CW20_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC'
-        )
+        order_by_block_height_desc = filtered_cw20_balance_change_query(default_filter, 'CW20_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC')
 
         # query Cw20 transfers, query related block and filter by timestamp, returning all within last five minutes
         for method in list(self.methods.keys()):

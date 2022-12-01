@@ -28,7 +28,7 @@ class TestContractExecution(EntityTest):
         cls.clean_db({"execute_contract_messages"})
 
         cls._contract = BridgeContract(cls.ledger_client, cls.validator_wallet, DefaultBridgeContractConfig)
-        for i in range(3):
+        for i in range(3):  # enough entities are created to verify sorting
             resp = cls._contract.execute(
                 {cls.method: {"destination": cls.validator_address}},
                 cls.validator_wallet,

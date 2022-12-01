@@ -25,7 +25,7 @@ class TestContractSwap(EntityTest):
         super().setUpClass()
         cls.clean_db({"legacy_bridge_swaps"})
         cls._contract = BridgeContract(cls.ledger_client, cls.validator_wallet, DefaultBridgeContractConfig)
-        for i in range(3):
+        for i in range(3):  # repeat entity creation three times to create enough data to verify sorting
             resp = cls._contract.execute(
                 {"swap": {"destination": cls.validator_address}},
                 cls.validator_wallet,
@@ -33,7 +33,7 @@ class TestContractSwap(EntityTest):
             )
             cls.ledger_client.wait_for_query_tx(resp.tx_hash)
 
-        time.sleep(5) # stil need to give some extra time for the indexer to pickup the tx
+        time.sleep(5)  # extra time required for the indexer to pick up on the transaction
 
     def test_contract_swap(self):
         swap = self.db_cursor.execute(LegacyBridgeSwapFields.select_query()).fetchone()
@@ -66,29 +66,20 @@ class TestContractSwap(EntityTest):
             }
             """
 
+        default_filter = {  # filter parameter of helper function must not be null, so instead use rhetorical filter
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        }
+
         def filtered_legacy_bridge_swap_query(_filter, order=""):
             return test_filtered_query("legacyBridgeSwaps", _filter, legacy_bridge_swap_nodes, _order=order)
 
-        order_by_block_height_asc = filtered_legacy_bridge_swap_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_ASC'
-        )
+        order_by_block_height_asc = filtered_legacy_bridge_swap_query(default_filter, 'LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_ASC')
 
-        order_by_block_height_desc = filtered_legacy_bridge_swap_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_DESC'
-        )
-
+        order_by_block_height_desc = filtered_legacy_bridge_swap_query(default_filter, 'LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_DESC')
 
         # query legacy bridge swaps, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_legacy_bridge_swap_query({

@@ -260,6 +260,14 @@ class TestNativePrimitives(EntityTest):
             }
             """
 
+        default_filter = {  # filter parameter of helper function must not be null, so instead use rhetorical filter
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        }
+
         def filtered_event_query(_filter, order=""):
             return test_filtered_query("events", _filter, event_nodes, _order=order)
 
@@ -269,65 +277,17 @@ class TestNativePrimitives(EntityTest):
         def filtered_messages_query(_filter, order=""):
             return test_filtered_query("messages", _filter, messages_nodes, _order=order)
 
-        order_events_by_block_height_desc = filtered_event_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'EVENTS_BY_BLOCK_HEIGHT_DESC'
-        )
+        order_events_by_block_height_desc = filtered_event_query(default_filter, 'EVENTS_BY_BLOCK_HEIGHT_DESC')
 
-        order_events_by_block_height_asc = filtered_event_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'EVENTS_BY_BLOCK_HEIGHT_ASC'
-        )
+        order_events_by_block_height_asc = filtered_event_query(default_filter, 'EVENTS_BY_BLOCK_HEIGHT_ASC')
 
-        order_transactions_by_block_height_asc = filtered_transaction_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'TRANSACTIONS_BY_BLOCK_HEIGHT_ASC'
-        )
+        order_transactions_by_block_height_asc = filtered_transaction_query(default_filter, 'TRANSACTIONS_BY_BLOCK_HEIGHT_ASC')
 
-        order_transactions_by_block_height_desc = filtered_transaction_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'TRANSACTIONS_BY_BLOCK_HEIGHT_DESC'
-        )
+        order_transactions_by_block_height_desc = filtered_transaction_query(default_filter, 'TRANSACTIONS_BY_BLOCK_HEIGHT_DESC')
 
-        order_messages_by_block_height_asc = filtered_messages_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'MESSAGES_BY_BLOCK_HEIGHT_ASC'
-        )
+        order_messages_by_block_height_asc = filtered_messages_query(default_filter, 'MESSAGES_BY_BLOCK_HEIGHT_ASC')
 
-        order_messages_by_block_height_desc = filtered_messages_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'MESSAGES_BY_BLOCK_HEIGHT_DESC'
-        )
+        order_messages_by_block_height_desc = filtered_messages_query(default_filter, 'MESSAGES_BY_BLOCK_HEIGHT_DESC')
 
         with self.subTest("event id by regex"):
             result = self.gql_client.execute(query)
@@ -350,6 +310,7 @@ class TestNativePrimitives(EntityTest):
                     # These three event types have an "amount" key/value
                     if attr["key"] in ["coin_spent", "coin_received", "transfer"]:
                         self.assertEqual(attr["value"], f"{self.amount}{self.denom}")
+
         value_table = {
                 "transactions": {
                     order_transactions_by_block_height_asc: self.assertGreaterEqual,

@@ -19,7 +19,7 @@ class TestNativeBalances(EntityTest):
     def setUpClass(cls):
         super().setUpClass()
         cls.clean_db({"native_balance_changes"})
-
+        # enough entities are created to verify sorting
         tx = cls.ledger_client.send_tokens(cls.delegator_wallet.address(), 10*10**18, "atestfet", cls.validator_wallet)
         tx.wait_to_complete()
         cls.assertTrue(tx.response.is_successful(), "first set-up tx failed")
@@ -76,28 +76,20 @@ class TestNativeBalances(EntityTest):
             }
         """
 
+        default_filter = {  # filter parameter of helper function must not be null, so instead use rhetorical filter
+            "block": {
+                "height": {
+                    "greaterThanOrEqualTo": "0"
+                }
+            }
+        }
+
         def filtered_native_balance_query(_filter, order=""):
             return test_filtered_query("nativeBalanceChanges", _filter, native_balance_nodes, _order=order)
 
-        order_native_balance_changes_by_block_height_desc = filtered_native_balance_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC'
-        )
+        order_native_balance_changes_by_block_height_desc = filtered_native_balance_query(default_filter, 'NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC')
 
-        order_native_balance_changes_by_block_height_asc = filtered_native_balance_query({
-            "block": {
-                "height": {
-                    "greaterThanOrEqualTo": "0"
-                }
-            }
-        },
-            'NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC'
-        )
+        order_native_balance_changes_by_block_height_asc = filtered_native_balance_query(default_filter, 'NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC')
 
         result = self.gql_client.execute(query)
         validator_balance = 0
