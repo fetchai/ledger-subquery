@@ -94,6 +94,13 @@ type DistDelegatorClaim @entity {
     denom: String!
 }
 
+type Contract @entity {
+  id: ID!
+  interfaces: [Interface]
+  storeMessage: StoreContractMessage!
+  instantiateMessage: InstantiateContractMessage!
+}
+
 type LegacyBridgeSwap @entity {
   id: ID! # id field is always required and must look like this
   destination: String!
@@ -192,7 +199,7 @@ type IbcTransfer @entity {
 type Cw20BalanceChange @entity {
   id: ID!
   balanceOffset: BigInt!
-  contract: String! @index
+  contract: Contract!
   account: Account!
   executeContractMessage: ExecuteContractMessage!
   event: Event!
@@ -248,13 +255,6 @@ type InstantiateContractMessage @entity {
   message: Message!
   transaction: Transaction!
   block: Block!
-}
-
-type Contract @entity {
-  id: ID!
-  interfaces: [Interface]
-  storeMessage: StoreContractMessage!
-  instantiateMessage: InstantiateContractMessage!
 }
 
 type UnprocessedEntity @entity {

@@ -67,7 +67,7 @@ class TestCw20BalanceChange(EntityTest):
             for query in transfer:
                 self.assertIsNotNone(transfer, "\nDBError: table is empty - maybe indexer did not find an entry?")
                 self.assertIn(query[Cw20BalanceChangeFields.balance_offset.value], entry["balance_offset"], "\nDBError: balance offset does not match")
-                self.assertEqual(query[Cw20BalanceChangeFields.contract.value], entry["contract"], "\nDBError: contract address does not match")
+                self.assertEqual(query[Cw20BalanceChangeFields.contract_id.value], entry["contract"], "\nDBError: contract address does not match")
                 self.assertIn(query[Cw20BalanceChangeFields.account_id.value], entry["account_id"], "\nDBError: account id amount does not match")
 
     def test_retrieve_balance_change(self):
@@ -80,7 +80,7 @@ class TestCw20BalanceChange(EntityTest):
             {
                 id
                 balanceOffset
-                contract
+                contract { id }
                 accountId
                 account { id }
                 message { id }
@@ -113,7 +113,9 @@ class TestCw20BalanceChange(EntityTest):
             # query Cw20 balance changes, filter by contract address
             filter_by_contract_address = filtered_cw20_balance_change_query({
                 "contract": {
-                    "equalTo": str(self._contract.address)
+                    "id": {
+                        "equalTo": str(self._contract.address)
+                    }
                 },
                 "block": {
                     "executeContractMessages": {
@@ -168,7 +170,7 @@ class TestCw20BalanceChange(EntityTest):
                     result = self.gql_client.execute(query)
                     """
                     ["cw20BalanceChanges"]["nodes"][0] denotes the sequence of keys to access the message contents queried for above.
-                    This provides {"accountId":Account address/id, "balanceOffset: balance change amount, "contract":contract address}
+                    This provides {"accountId":Account address/id, "balanceOffset: balance change amount, "contract":"id":contract address}
                     which can be destructured for the values of interest.
                     """
                     transfer = result["cw20BalanceChanges"]["nodes"]
@@ -177,7 +179,7 @@ class TestCw20BalanceChange(EntityTest):
                         self.assertNotEqual(result, [], "\nGQLError: No results returned from query")
                         self.assertIn(result["accountId"], entry["account_id"], "\nGQLError: transfer recipient address does not match")
                         self.assertIn(int(result["balanceOffset"]), entry["balance_offset"], "\nGQLError: fund amount does not match")
-                        self.assertEqual(result["contract"], entry["contract"], "\nGQLError: contract address does not match")
+                        self.assertEqual(result["contract"]["id"], entry["contract"], "\nGQLError: contract address does not match")
 
 
 if __name__ == '__main__':
