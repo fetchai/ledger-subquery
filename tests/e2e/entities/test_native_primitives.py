@@ -365,9 +365,9 @@ class TestNativePrimitives(EntityTest):
             },
         }
 
-        with self.subTest("order by block height"):
-            for key in ["transactions", "messages", "events"]:
-                for query in list(value_table[key].keys()):
+        for key in ["transactions", "messages", "events"]:
+            for query in list(value_table[key].keys()):
+                with self.subTest(f'ordering {key} by block height'):
                     result = self.gql_client.execute(query)
                     entities = result[key]["nodes"]
                     last = entities[0]["block"]["height"]

@@ -235,11 +235,19 @@ class TestCw20BalanceChange(EntityTest):
                             "\nGQLError: contract address does not match",
                         )
 
-        with self.subTest("order by block height"):
-            for query, orderAssert in {
-                order_by_block_height_asc: self.assertGreaterEqual,
-                order_by_block_height_desc: self.assertLessEqual,
-            }.items():
+        for (name, query, orderAssert) in (
+            (
+                "order by block height ascending",
+                order_by_block_height_asc,
+                self.assertGreaterEqual,
+            ),
+            (
+                "order by block height descending",
+                order_by_block_height_desc,
+                self.assertLessEqual,
+            ),
+        ):
+            with self.subTest(name):
                 result = self.gql_client.execute(query)
                 cw20_balance_changes = result["cw20BalanceChanges"]["nodes"]
                 last = cw20_balance_changes[0]["block"]["height"]

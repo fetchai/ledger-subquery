@@ -178,20 +178,27 @@ class TestNativeTransfer(EntityTest):
                     "\nGQLError: from address does not match",
                 )
 
-        with self.subTest("order by block height"):
-            for query, orderAssert in {
-                order_by_block_height_asc: self.assertGreaterEqual,
-                order_by_block_height_desc: self.assertLessEqual,
-            }.items():
-                result = self.gql_client.execute(query)
-                native_transfers = result["nativeTransfers"]["nodes"]
-                last = native_transfers[0]["block"]["height"]
-                for entry in native_transfers:
-                    cur = entry["block"]["height"]
-                    orderAssert(
-                        cur, last, msg="OrderAssertError: order of objects is incorrect"
-                    )
-                    last = cur
+        for (name, query, orderAssert) in (
+            (
+                "order by block height ascending",
+                order_by_block_height_asc,
+                self.assertGreaterEqual,
+            ),
+            (
+                "order by block height descending",
+                order_by_block_height_desc,
+                self.assertLessEqual,
+            ),
+        ):
+            result = self.gql_client.execute(query)
+            native_transfers = result["nativeTransfers"]["nodes"]
+            last = native_transfers[0]["block"]["height"]
+            for entry in native_transfers:
+                cur = entry["block"]["height"]
+                orderAssert(
+                    cur, last, msg="OrderAssertError: order of objects is incorrect"
+                )
+                last = cur
 
 
 if __name__ == "__main__":

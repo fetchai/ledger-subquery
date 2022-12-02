@@ -153,11 +153,19 @@ class TestDelegation(EntityTest):
                 self.assertRegex(claims[0]["amount"], re.compile("^\d+$"))
                 self.assertRegex(claims[0]["denom"], re.compile("^[\w/]{2,127}$"))
 
-        with self.subTest("order by block height"):
-            for query, orderAssert in {
-                order_by_block_height_asc: self.assertGreaterEqual,
-                order_by_block_height_desc: self.assertLessEqual,
-            }.items():
+        for (name, query, orderAssert) in (
+            (
+                "order by block height ascending",
+                order_by_block_height_asc,
+                self.assertGreaterEqual,
+            ),
+            (
+                "order by block height descending",
+                order_by_block_height_desc,
+                self.assertLessEqual,
+            ),
+        ):
+            with self.subTest(name):
                 result = self.gql_client.execute(query)
                 dist_delegator_claims = result["distDelegatorClaims"]["nodes"]
                 last = dist_delegator_claims[0]["block"]["height"]

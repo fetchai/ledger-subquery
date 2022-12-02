@@ -106,16 +106,12 @@ class TestNativeBalances(EntityTest):
                 "nativeBalanceChanges", _filter, native_balance_nodes, _order=order
             )
 
-        order_native_balance_changes_by_block_height_desc = (
-            filtered_native_balance_query(
-                default_filter, "NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC"
-            )
+        order_by_block_height_desc = filtered_native_balance_query(
+            default_filter, "NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC"
         )
 
-        order_native_balance_changes_by_block_height_asc = (
-            filtered_native_balance_query(
-                default_filter, "NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC"
-            )
+        order_by_block_height_asc = filtered_native_balance_query(
+            default_filter, "NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC"
         )
 
         result = self.gql_client.execute(query)
@@ -132,11 +128,19 @@ class TestNativeBalances(EntityTest):
         self.assertLessEqual(validator_balance, -7 * 10 ** 18)
         self.assertLessEqual(delegator_balance, 7 * 10 ** 18)
 
-        with self.subTest("order by block height"):
-            for query, orderAssert in {
-                order_native_balance_changes_by_block_height_asc: self.assertGreaterEqual,
-                order_native_balance_changes_by_block_height_desc: self.assertLessEqual,
-            }.items():
+        for (name, query, orderAssert) in (
+            (
+                "order by block height ascending",
+                order_by_block_height_asc,
+                self.assertGreaterEqual,
+            ),
+            (
+                "order by block height descending",
+                order_by_block_height_desc,
+                self.assertLessEqual,
+            ),
+        ):
+            with self.subTest(name):
                 result = self.gql_client.execute(query)
                 native_balance_changes = result["nativeBalanceChanges"]["nodes"]
                 last = native_balance_changes[0]["block"]["height"]

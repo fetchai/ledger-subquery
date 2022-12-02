@@ -7,9 +7,11 @@ from pathlib import Path
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
-from src.genesis.helpers.field_enums import (ContractFields,
-                                             InstantiateMessageFields,
-                                             StoreMessageFields)
+from src.genesis.helpers.field_enums import (
+    ContractFields,
+    InstantiateMessageFields,
+    StoreMessageFields,
+)
 from tests.helpers.contracts import Cw20Contract
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import test_filtered_query
@@ -442,7 +444,7 @@ class TestContractDeploy(EntityTest):
             order_by_store_contract_messages_code_id_asc: "storeMessage",
             order_by_instantiate_contract_messages_code_id_asc: "instantiateMessage",
         }.items():
-            with self.subTest("order by code ID ascending"):
+            with self.subTest(f"order {entity} instances by code ID ascending"):
                 result = self.gql_client.execute(query)  # use query iterable from above
                 contracts = result["contracts"]["nodes"]
                 last = contracts[0][entity]["codeId"]  # use relevant entity from above
@@ -460,7 +462,7 @@ class TestContractDeploy(EntityTest):
             order_by_store_contract_messages_code_id_desc: "storeMessage",
             order_by_instantiate_contract_messages_code_id_desc: "instantiateMessage",
         }.items():
-            with self.subTest("order by code ID descending"):
+            with self.subTest(f"order {entity} instances by code ID descending"):
                 result = self.gql_client.execute(query)
                 contracts = result["contracts"]["nodes"]
                 last = contracts[0][entity]["codeId"]
