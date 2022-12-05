@@ -171,7 +171,6 @@ class TestNativePrimitives(EntityTest):
             # TODO: fees
 
     def test_messages(self):
-
         msgs = self.db_cursor.execute(MsgFields.select_query()).fetchall()
         self.assertEqual(len(msgs), self.expected_msgs_len)
         for msg in msgs:
@@ -251,24 +250,29 @@ class TestNativePrimitives(EntityTest):
             self.assertNotEqual(event[EventFields.type.value], "")
             # TODO: more assertions (?)
 
-    def test_events_query(self):
+    def test_primitives_query(self):
         query = gql(
             """
-                    query {
-                        events {
-                            nodes {
+                query {
+                    events {
+                        nodes {
+                            id
+                            block {
                                 id
-                                block {
-                                    id
+                            }
+                            transaction {
+                                id
+                            }
+                            attributes {
+                                nodes {
+                                    key
+                                    value
                                 }
-                                transaction {
-                                    id
-                                }
-                                attributes
                             }
                         }
                     }
-                """
+                }
+            """
         )
 
         event_nodes = """
@@ -300,7 +304,9 @@ class TestNativePrimitives(EntityTest):
         }
 
         def filtered_event_query(_filter, order=""):
-            return test_filtered_query("events", _filter, event_nodes, _order=order)
+            return test_filtered_query(
+                "events", _filter, event_nodes, _order=order
+            )
 
         def filtered_transaction_query(_filter, order=""):
             return test_filtered_query(
@@ -312,12 +318,12 @@ class TestNativePrimitives(EntityTest):
                 "messages", _filter, messages_nodes, _order=order
             )
 
-        order_events_by_block_height_desc = filtered_event_query(
-            default_filter, "EVENTS_BY_BLOCK_HEIGHT_DESC"
-        )
-
         order_events_by_block_height_asc = filtered_event_query(
             default_filter, "EVENTS_BY_BLOCK_HEIGHT_ASC"
+        )
+
+        order_events_by_block_height_desc = filtered_event_query(
+            default_filter, "EVENTS_BY_BLOCK_HEIGHT_DESC"
         )
 
         order_transactions_by_block_height_asc = filtered_transaction_query(
@@ -336,7 +342,7 @@ class TestNativePrimitives(EntityTest):
             default_filter, "MESSAGES_BY_BLOCK_HEIGHT_DESC"
         )
 
-        with self.subTest("event id by regex"):
+        with self.subTest("primitive id by regex"):
             result = self.gql_client.execute(query)
             events = result["events"]["nodes"]
             self.assertIsNotNone(events)
@@ -347,7 +353,7 @@ class TestNativePrimitives(EntityTest):
                 self.assertRegex(event["block"]["id"], block_id_regex)
                 self.assertRegex(event["transaction"]["id"], tx_id_regex)
 
-                attributes = event["attributes"]
+                attributes = event["attributes"]["nodes"]
                 self.assertGreater(len(attributes), 0)
                 for attr in attributes:
                     for field in ["key", "value"]:
