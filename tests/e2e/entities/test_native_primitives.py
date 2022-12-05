@@ -11,11 +11,19 @@ from tests.helpers.graphql import test_filtered_query
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
-from src.genesis.helpers.field_enums import (BlockFields, EventFields,
-                                             MsgFields, TxFields)
+from src.genesis.helpers.field_enums import (
+    BlockFields,
+    EventFields,
+    MsgFields,
+    TxFields,
+)
 from tests.helpers.entity_test import EntityTest
-from tests.helpers.regexes import (block_id_regex, event_id_regex,
-                                   msg_id_regex, tx_id_regex)
+from tests.helpers.regexes import (
+    block_id_regex,
+    event_id_regex,
+    msg_id_regex,
+    tx_id_regex,
+)
 
 
 class TestNativePrimitives(EntityTest):
@@ -367,7 +375,7 @@ class TestNativePrimitives(EntityTest):
 
         for key in ["transactions", "messages", "events"]:
             for query in list(value_table[key].keys()):
-                with self.subTest(f'ordering {key} by block height'):
+                with self.subTest(f"ordering {key} by block height"):
                     result = self.gql_client.execute(query)
                     entities = result[key]["nodes"]
                     last = entities[0]["block"]["height"]
