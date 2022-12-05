@@ -104,7 +104,7 @@ class TestContractExecution(EntityTest):
 
         order_by_block_height_asc = filtered_execute_contract_messages_query(
             {"block": {"height": {"greaterThanOrEqualTo": "0"}}},
-            "EXECUTE_CONTRACT_MESSAGES_BY_BLOCK_HEIGHT_DESC",
+            "EXECUTE_CONTRACT_MESSAGES_BY_BLOCK_HEIGHT_ASC",
         )
 
         order_by_block_height_desc = filtered_execute_contract_messages_query(

@@ -112,7 +112,7 @@ query transferEventsDuring {
 
 ### Order by / Sorting
 Each entity, by default, can be sorted by any of its respective fields.
-Additional support for ordering by certain fields on related entities is facilitated by custom ordering plugins generated from makeAddPgTableOrderByPlugin (see: [postgraphile-docs](https://www.graphile.org/postgraphile/make-add-pg-table-order-by-plugin/)).
+Additional support for ordering by certain fields on related entities is facilitated by custom ordering plugins generated from `makeAddPgTableOrderByPlugin` (see: [postgraphile-docs](https://www.graphile.org/postgraphile/make-add-pg-table-order-by-plugin/)).
 
 #### Block height
 Any entity which relates to `Block` can be ordered by a related block's `height` field:

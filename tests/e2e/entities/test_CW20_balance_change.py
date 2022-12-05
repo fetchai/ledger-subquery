@@ -42,36 +42,32 @@ class TestCw20BalanceChange(EntityTest):
                 "contract": cls._contract.address,
             },
         }
-        for i in range(
-            3
-        ):  # repeat entity creation three times to create enough data to verify sorting
-            resp = cls._contract.execute(
-                {
-                    "mint": {
-                        "recipient": cls.validator_address,
-                        "amount": str(cls.amount),
-                    }
-                },
-                cls.validator_wallet,
-            )
-            cls.ledger_client.wait_for_query_tx(resp.tx_hash)
+        resp = cls._contract.execute(
+            {
+                "mint": {
+                    "recipient": cls.validator_address,
+                    "amount": str(cls.amount),
+                }
+            },
+            cls.validator_wallet,
+        )
+        cls.ledger_client.wait_for_query_tx(resp.tx_hash)
 
-            resp = cls._contract.execute(
-                {
-                    "transfer": {
-                        "recipient": cls.delegator_address,
-                        "amount": str(cls.amount),
-                    }
-                },
-                cls.validator_wallet,
-            )
-            cls.ledger_client.wait_for_query_tx(resp.tx_hash)
+        resp = cls._contract.execute(
+            {
+                "transfer": {
+                    "recipient": cls.delegator_address,
+                    "amount": str(cls.amount),
+                }
+        },
+            cls.validator_wallet,
+        )
+        cls.ledger_client.wait_for_query_tx(resp.tx_hash)
 
-            resp = cls._contract.execute(
-                {"burn": {"amount": str(cls.amount)}}, cls.validator_wallet
-            )
-            cls.ledger_client.wait_for_query_tx(resp.tx_hash)
-
+        resp = cls._contract.execute(
+            {"burn": {"amount": str(cls.amount)}}, cls.validator_wallet
+        )
+        cls.ledger_client.wait_for_query_tx(resp.tx_hash)
         time.sleep(5)
 
     def test_execute_balance_change(self):
