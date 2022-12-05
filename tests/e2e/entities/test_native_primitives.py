@@ -1,17 +1,22 @@
 import json
 import sys
-from pathlib import Path
 import time
 import unittest
+from pathlib import Path
 
 from gql import gql
 
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
+from src.genesis.helpers.field_enums import (BlockFields, EventFields,
+                                             MsgFields, TxFields)
 from tests.helpers.entity_test import EntityTest
 from src.genesis.helpers.field_enums import BlockFields, TxFields, MsgFields, EventFields
-from tests.helpers.regexes import block_id_regex, tx_id_regex, msg_id_regex, event_id_regex
+from tests.helpers.regexes import (block_id_regex, event_id_regex,
+                                   msg_id_regex, tx_id_regex, 
+                                   event_attr_id_regex)
+from tests.helpers.graphql import test_filtered_query
 
 
 class TestNativePrimitives(EntityTest):
@@ -23,7 +28,7 @@ class TestNativePrimitives(EntityTest):
     expected_blocks_len = 2
     expected_txs_len = 2
     expected_msgs_len = 2
-    expected_msg_type_url = '/cosmos.bank.v1beta1.MsgSend'
+    expected_msg_type_url = "/cosmos.bank.v1beta1.MsgSend"
     # NB: for each transfer:
     #   - coin_received
     #   - coin_spent
@@ -36,11 +41,15 @@ class TestNativePrimitives(EntityTest):
         super().setUpClass()
         cls.clean_db()
 
-        tx = cls.ledger_client.send_tokens(cls.delegator_address, cls.amount, cls.denom, cls.validator_wallet)
+        tx = cls.ledger_client.send_tokens(
+            cls.delegator_address, cls.amount, cls.denom, cls.validator_wallet
+        )
         tx.wait_to_complete()
         cls.assertTrue(tx.response.is_successful(), f"first set-up tx failed")
 
-        tx = cls.ledger_client.send_tokens(cls.validator_address, int(cls.amount / 10), cls.denom, cls.delegator_wallet)
+        tx = cls.ledger_client.send_tokens(
+            cls.validator_address, int(cls.amount / 10), cls.denom, cls.delegator_wallet
+        )
         tx.wait_to_complete()
         cls.assertTrue(tx.response.is_successful(), f"second set-up tx failed")
 
@@ -49,7 +58,11 @@ class TestNativePrimitives(EntityTest):
 
     def test_blocks(self):
         blocks = self.db_cursor.execute(BlockFields.select_query()).fetchall()
-        self.assertNotEqual(blocks, [], f"\nDBError: block table is empty - maybe indexer did not find an entry?")
+        self.assertNotEqual(
+            blocks,
+            [],
+            f"\nDBError: block table is empty - maybe indexer did not find an entry?",
+        )
 
         self.assertGreaterEqual(len(blocks), self.expected_blocks_len)
         for block in blocks:
@@ -64,7 +77,8 @@ class TestNativePrimitives(EntityTest):
             self.assertNotEqual(block[BlockFields.timestamp.value], "")
 
     def test_blocks_query(self):
-        query = gql("""
+        query = gql(
+            """
             query {
                 blocks {
                     nodes {
@@ -75,7 +89,8 @@ class TestNativePrimitives(EntityTest):
                     }
                 }
             }
-        """)
+        """
+        )
 
         result = self.gql_client.execute(query)
         blocks = result["blocks"]["nodes"]
@@ -98,8 +113,10 @@ class TestNativePrimitives(EntityTest):
             self.assertGreater(tx[TxFields.gas_used.value], 0)
             self.assertGreater(tx[TxFields.gas_wanted.value], 0)
             tx_signer_address = tx[TxFields.signer_address.value]
-            self.assertTrue(tx_signer_address == self.validator_address or
-                            tx_signer_address == self.delegator_address)
+            self.assertTrue(
+                tx_signer_address == self.validator_address
+                or tx_signer_address == self.delegator_address
+            )
 
             fees = tx[TxFields.fees.value]
             self.assertEqual(len(fees), 1)
@@ -110,7 +127,8 @@ class TestNativePrimitives(EntityTest):
             self.assertNotEqual(tx[TxFields.log.value], "")
 
     def test_transactions_query(self):
-        query = gql("""
+        query = gql(
+            """
             query {
                 transactions {
                     nodes {
@@ -126,7 +144,8 @@ class TestNativePrimitives(EntityTest):
                     }
                 }
             }
-        """)
+        """
+        )
 
         result = self.gql_client.execute(query)
         txs = result["transactions"]["nodes"]
@@ -138,8 +157,10 @@ class TestNativePrimitives(EntityTest):
             self.assertRegex(tx["block"]["id"], block_id_regex)
             self.assertGreater(int(tx["gasUsed"]), 0)
             self.assertGreater(int(tx["gasWanted"]), 0)
-            self.assertTrue(tx["signerAddress"] == self.validator_address or
-                            tx["signerAddress"] == self.delegator_address)
+            self.assertTrue(
+                tx["signerAddress"] == self.validator_address
+                or tx["signerAddress"] == self.delegator_address
+            )
             # TODO: fees
 
     def test_messages(self):
@@ -154,7 +175,8 @@ class TestNativePrimitives(EntityTest):
             self.assertNotEqual(msg[MsgFields.json.value], "")
 
     def test_messages_query(self):
-        query_all = gql("""
+        query_all = gql(
+            """
             query {
                 messages {
                     nodes {
@@ -170,7 +192,8 @@ class TestNativePrimitives(EntityTest):
                     }
                 }
             }
-        """)
+        """
+        )
 
         result = self.gql_client.execute(query_all)
         msgs = result["messages"]["nodes"]
@@ -187,9 +210,12 @@ class TestNativePrimitives(EntityTest):
 
     def test_messages_by_tx_signer_query(self):
         for address in [self.validator_address, self.delegator_address]:
-            query_by_tx_signer = gql("""
+            query_by_tx_signer = gql(
+                """
                 query {
-                    messages (filter:  {transaction: {signerAddress: {equalTo: """ + json.dumps(address) + """}}}) {
+                    messages (filter:  {transaction: {signerAddress: {equalTo: """
+                + json.dumps(address)
+                + """}}}) {
                         nodes {
                             transaction {
                                 signerAddress
@@ -197,7 +223,8 @@ class TestNativePrimitives(EntityTest):
                         }
                     }
                 }
-            """)
+            """
+            )
 
             result = self.gql_client.execute(query_by_tx_signer)
             msgs = result["messages"]["nodes"]
@@ -218,44 +245,77 @@ class TestNativePrimitives(EntityTest):
             # TODO: more assertions (?)
 
     def test_events_query(self):
-        query = gql("""
-            query {
-                events {
-                    nodes {
-                        id
-                        block {
-                            id
-                        }
-                        transaction {
-                            id
-                        }
-                        attributes
-                    }
+        event_nodes = """
+        {
+            id
+            attributes {
+                nodes {
+                    id
+                    key
+                    value
+                    eventId
                 }
             }
-        """)
+            transactionId
+            blockId
+        }
+        """
 
-        result = self.gql_client.execute(query)
-        events = result["events"]["nodes"]
-        self.assertIsNotNone(events)
-        self.assertEqual(len(events), self.expected_events_len)
+        all_events_query = gql(
+            """
+            query {
+                events {
+                    nodes """ + event_nodes + """
+                }
+            }
+        """
+        )
 
-        for event in events:
-            self.assertRegex(event["id"], event_id_regex)
-            self.assertRegex(event["block"]["id"], block_id_regex)
-            self.assertRegex(event["transaction"]["id"], tx_id_regex)
+        filter_by_action_query = test_filtered_query("events", {
+            "attributes": {
+                "action": {
+                    "equalTo": "transfer"
+                }
+            }
+        }, event_nodes)
 
-            attributes = event["attributes"]
-            self.assertGreater(len(attributes), 0)
-            for attr in attributes:
-                for field in ["key", "value"]:
-                    self.assertTrue(field in list(attr))
-                    self.assertNotEqual(attr[field], "")
+        filter_by_module_query = test_filtered_query("events", {
+            "attributes": {
+                "module": {
+                    "equalTo": "bank"
+                }
+            }
+        }, event_nodes)
 
-                # These three event types have an "amount" key/value
-                if attr["key"] in ["coin_spent", "coin_received", "transfer"]:
-                    self.assertEqual(attr["value"], f"{self.amount}{self.denom}")
+        for (name, query) in (
+                ("transfer events", filter_by_action_query),
+                ("bank module events", filter_by_module_query),
+                ("all events", all_events_query),
+        ):
+            with self.subTest(name):
+                result = self.gql_client.execute(all_events_query)
+                events = result["events"]["nodes"]
+                self.assertIsNotNone(events)
+                self.assertEqual(len(events), self.expected_events_len)
+
+                for event in events:
+                    self.assertRegex(event["id"], event_id_regex)
+                    self.assertRegex(event["blockId"], block_id_regex)
+                    self.assertRegex(event["transactionId"], tx_id_regex)
+
+                    attributes = event["attributes"]["nodes"]
+                    self.assertGreater(len(attributes), 0)
+                    for attr in attributes:
+                        self.assertRegex(attr["id"], event_attr_id_regex)
+                        self.assertRegex(attr["eventId"], event_id_regex)
+                        for field in ["key", "value"]:
+                            self.assertTrue(field in list(attr))
+                            self.assertNotEqual(attr[field], "")
+
+                        # These three event types have an "amount" key/value
+                        if attr["key"] in ["coin_spent", "coin_received", "transfer"]:
+                            self.assertEqual(attr["value"], f"{self.amount}{self.denom}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
