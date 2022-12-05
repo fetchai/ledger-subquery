@@ -14,8 +14,11 @@ sys.path.insert(0, str(repo_root_path))
 from src.genesis.helpers.field_enums import (BlockFields, EventFields,
                                              MsgFields, TxFields)
 from tests.helpers.entity_test import EntityTest
+from src.genesis.helpers.field_enums import BlockFields, TxFields, MsgFields, EventFields
 from tests.helpers.regexes import (block_id_regex, event_id_regex,
-                                   msg_id_regex, tx_id_regex)
+                                   msg_id_regex, tx_id_regex, 
+                                   event_attr_id_regex)
+from tests.helpers.graphql import test_filtered_query
 
 
 class TestNativePrimitives(EntityTest):
@@ -244,23 +247,39 @@ class TestNativePrimitives(EntityTest):
             # TODO: more assertions (?)
 
     def test_events_query(self):
-        query = gql(
+        event_nodes = """
+        {
+            id
+            attributes {
+                nodes {
+                    id
+                    key
+                    value
+                    eventId
+                }
+            }
+            transactionId
+            blockId
+        }
+        """
+
+        all_events_query = gql(
             """
-                    query {
-                        events {
-                            nodes {
+                query {
+                    events {
+                        nodes {
+                            id
+                            block {
                                 id
-                                block {
-                                    id
-                                }
-                                transaction {
-                                    id
-                                }
-                                attributes
                             }
+                            transaction {
+                                id
+                            }
+                            attributes
                         }
                     }
-                """
+                }
+            """
         )
 
         event_nodes = """
@@ -307,7 +326,7 @@ class TestNativePrimitives(EntityTest):
         order_events_by_block_height_desc = filtered_event_query(
             default_filter, "EVENTS_BY_BLOCK_HEIGHT_DESC"
         )
-
+        
         order_events_by_block_height_asc = filtered_event_query(
             default_filter, "EVENTS_BY_BLOCK_HEIGHT_ASC"
         )
