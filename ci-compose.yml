@@ -2,7 +2,7 @@ version: "3"
 
 services:
   postgres:
-    image: postgres:14-alpine
+    image: gcr.io/fetch-ai-images/subquery-postgres@sha256:e505924d370e085342ddccadc781ff82c9d48a80d5bb3d63a39dce6b8dd59ffc
     ports:
       - 5432:5432
     volumes:
