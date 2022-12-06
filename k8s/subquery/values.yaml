@@ -5,7 +5,7 @@ subquery:
     startBlock: "827201"
     networkEndpoint: https://rpc-dorado.fetch.ai:443
     chainId: "dorado-1"
-    batchSize: 1
+    batchSize: 1      
 
   api:
     image: gcr.io/fetch-ai-sandbox/subquery-api
@@ -21,7 +21,12 @@ subquery:
       name: staging.subquery.sandbox-london-b.fetch-ai.com
       target: "gaia.sandbox-london-b.fetch-ai.com"
       additionalDnsNames: []
+    
+    observability:
+      name: ledger-subquery-graphql-api
 
+  otelCollector: http://signoz-otel-collector.signoz.svc.cluster.local:4317
+  
   genesis_processor:
     image: gcr.io/fetch-ai-images/subquery-genesis-processor
     tag: v2

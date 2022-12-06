@@ -11,3 +11,5 @@ data:
   DB_USER: {{ .Values.db.user | quote }}
   DB_HOST: "subquery-db"
   DB_PORT: "5432"
+  OPEN_TELEMETRY_SERVICE_NAME: {{ .Values.subquery.api.observability.name | quote }}
+  OPEN_TELEMETRY_COLLECTOR_URL: {{ .Values.subquery.otelCollector | quote }}

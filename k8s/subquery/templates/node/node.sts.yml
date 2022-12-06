@@ -24,7 +24,7 @@ spec:
       containers:
         - name: node
           image: "{{ .Values.subquery.node.image }}:{{ .Values.subquery.node.tag }}"
-          args: ["-f=/app", "--db-schema=app", "--batch-size={{ .Values.subquery.node.batchSize }}"]
+          args: ["-f=/app", "--db-schema=app", "--batch-size={{ .Values.subquery.node.batchSize }}", "--tracing", "--otel-collector={{ .Values.subquery.otelCollector }}"]
           envFrom:
             - configMapRef:
                 name: subquery-node-config

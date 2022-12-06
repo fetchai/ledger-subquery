@@ -14,3 +14,5 @@ data:
   START_BLOCK: {{ .Values.subquery.node.startBlock | quote }}
   CHAIN_ID: {{ .Values.subquery.node.chainId }}
   NETWORK_ENDPOINT: {{ .Values.subquery.node.networkEndpoint }}
+  OPEN_TELEMETRY_SERVICE_NAME: {{ .Values.subquery.api.observability.name | quote }}
+  OPEN_TELEMETRY_COLLECTOR_URL: {{ .Values.subquery.api.observability.collector | quote }}
