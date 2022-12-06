@@ -10,7 +10,7 @@ RUN yarn install --frozen-lockfile
 
 # add the remaining parts of the produce the build
 COPY . /app
-RUN yarn codegen && yarn buildo
+RUN yarn codegen && yarn build
 
 # build subql common package
 WORKDIR /app/subql
