@@ -24,9 +24,8 @@ class TestCw20Transfer(EntityTest):
         cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
         code_id = cls._contract._store()
         cls._contract._instantiate(code_id)
-        for i in range(
-            3
-        ):  # repeat entity creation three times to create enough data to verify sorting
+        # repeat entity creation three times to create enough data to verify sorting
+        for i in range(3):
             resp = cls._contract.execute(
                 {
                     "transfer": {
@@ -50,7 +49,7 @@ class TestCw20Transfer(EntityTest):
             "\nDBError: transfer recipient address does not match",
         )
         self.assertEqual(
-            transfer[Cw20TransferFields.contract.value],
+            transfer[Cw20TransferFields.contract_id.value],
             self._contract.address,
             "\nDBError: contract address does not match",
         )
@@ -78,7 +77,7 @@ class TestCw20Transfer(EntityTest):
                 id
                 toAddress
                 fromAddress
-                contract
+                contract { id }
                 amount
                 message { id }
                 transaction { id }
@@ -130,7 +129,7 @@ class TestCw20Transfer(EntityTest):
 
         # query Cw20 transfers, filter by contract address
         filter_by_contract_equals = filtered_cw20_transfer_query(
-            {"contract": {"equalTo": str(self._contract.address)}}
+            {"contract": {"id": {"equalTo": str(self._contract.address)}}}
         )
 
         # query Cw20 transfers, filter by amount
@@ -172,7 +171,7 @@ class TestCw20Transfer(EntityTest):
                     "\nGQLError: fund amount does not match",
                 )
                 self.assertEqual(
-                    transfer[0]["contract"],
+                    transfer[0]["contract"]["id"],
                     self._contract.address,
                     "\nGQLError: contract address does not match",
                 )
