@@ -7,6 +7,5 @@ SET SCHEMA 'app';
 
 alter table app.legacy_bridge_swaps
     RENAME column contract to contract_id;
-CREATE INDEX legacy_bridge_swaps_contract_id ON app.legacy_bridge_swaps USING hash (contract_id);
 ALTER TABLE ONLY app.legacy_bridge_swaps
     ADD CONSTRAINT legacy_bridge_swaps_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES app.contracts(id) ON UPDATE CASCADE;
