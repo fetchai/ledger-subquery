@@ -99,4 +99,4 @@ class BridgeContract(LedgerContract):
         # deploy will store the contract only if no existing contracts was found during init.
         # and it will instantiate the contract only if contract.address is None
         # see: https://github.com/fetchai/cosmpy/blob/master/cosmpy/aerial/contract/__init__.py#L168-L179
-        self.deploy(cfg.to_dict(), admin, store_gas_limit=3000000)
+        self.deploy(cfg.to_dict(), admin, store_gas_limit=3000000)  # type: ignore

@@ -14,7 +14,7 @@ from src.genesis.db import table_exists
 from .gql_queries import latest_block_timestamp
 
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
-sys.path.append(repo_root_path)
+sys.path.append(str(repo_root_path))
 
 
 CASCADE_TRUNCATE_TABLES = frozenset({"blocks", "transactions", "messages", "events"})

@@ -2,7 +2,7 @@ import sys
 import unittest
 from pathlib import Path
 from threading import Lock
-from typing import List, Tuple
+from typing import Any, List, Tuple
 from unittest.mock import patch
 
 from gql import gql
@@ -32,7 +32,7 @@ class TestAccountsObserver(TestWithDBConn):
             for b in test_genesis_data["app_state"]["bank"]["balances"]
         ]
 
-        def on_next(next_: Tuple[str, any]):
+        def on_next(next_: Tuple[str, Any]):
             actual_entries.append(next_)
 
         def on_completed():
