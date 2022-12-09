@@ -1,4 +1,5 @@
 import sys
+from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import List
@@ -7,7 +8,7 @@ repo_root_path = Path(__file__).parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
 
-class NamedFields(Enum):
+class NamedFields(ABC, Enum):
     @classmethod
     def select_column_names(cls) -> List[str]:
         return [f'"{field.name}"' for field in cls]
@@ -15,7 +16,7 @@ class NamedFields(Enum):
     @classmethod
     def select_query(cls, tables: List[str] = None, prefix=False) -> str:
         if tables is None:
-            tables = [cls.table]
+            tables = [str(cls.table)]
 
         columns = cls.select_column_names()
         """ More complex queries might require disambiguation, eg. where two 'id' attributes are being referenced
@@ -36,6 +37,11 @@ class NamedFields(Enum):
     ) -> str:
         return f"{cls.select_query(tables=tables, prefix=True)} WHERE {where_clause}"
 
+    @abstractmethod
+    @property
+    def table(self) -> str:
+        pass
+
 
 class BlockFields(NamedFields):
     id = 0
@@ -45,7 +51,7 @@ class BlockFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "blocks"
 
 
@@ -63,7 +69,7 @@ class TxFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "transactions"
 
 
@@ -76,7 +82,7 @@ class MsgFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "messages"
 
 
@@ -88,7 +94,7 @@ class EventFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "events"
 
 
@@ -101,7 +107,7 @@ class NativeTransferFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "native_transfers"
 
 
@@ -116,7 +122,7 @@ class StoreMessageFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "store_contract_messages"
 
 
@@ -134,7 +140,7 @@ class InstantiateMessageFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "instantiate_contract_messages"
 
 
@@ -146,7 +152,7 @@ class ContractFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "contracts"
 
 
@@ -162,7 +168,7 @@ class Cw20TransferFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "cw20_transfers"
 
 
@@ -177,7 +183,7 @@ class Cw20BalanceChangeFields(NamedFields):
 
     @classmethod
     @property
-    def table(self):
+    def table(self) -> str:
         return "cw20_balance_changes"
 
     @classmethod

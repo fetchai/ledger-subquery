@@ -35,7 +35,7 @@ class AccountsObserver(Observer):
     _chain_id_subscription: DisposableBase
 
     @staticmethod
-    def filter_accounts(next_: Tuple[str, any]):
+    def filter_accounts(next_: Tuple[str, Any]):
         return next_[0].startswith(accounts_keys_path)
 
     def __init__(self, on_next=None, on_completed=None, on_error=None) -> None:
@@ -94,7 +94,7 @@ class AccountsManager(TableManager):
     @classmethod
     def _get_name_and_index(
         cls, e: UniqueViolation, accounts: List[Account]
-    ) -> Tuple[str, int]:
+    ) -> Tuple[str, Optional[int]]:
         # Extract account name from error string
         duplicate_account_id = cls._extract_id_from_unique_violation_exception(e)
 
@@ -117,10 +117,9 @@ class AccountsManager(TableManager):
                         f'COPY {self._table} ({",".join(self.column_names)}) FROM STDIN'
                     ) as copy:
                         for account in accounts:
-                            values = (
-                                f"{getattr(account, c)}" for c in self.column_names
+                            copy.write_row(
+                                [f"{getattr(account, c)}" for c in self.column_names]
                             )
-                            copy.write_row(values)
                 except UniqueViolation as e:
                     duplicate_occured = True
 
