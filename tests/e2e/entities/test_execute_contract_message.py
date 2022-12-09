@@ -30,6 +30,9 @@ class TestContractExecution(EntityTest):
         cls._contract = BridgeContract(
             cls.ledger_client, cls.validator_wallet, DefaultBridgeContractConfig
         )
+        code_id = cls._contract._store()
+        cls._contract._instantiate(code_id)
+
         for i in range(3):  # enough entities are created to verify sorting
             resp = cls._contract.execute(
                 {cls.method: {"destination": cls.validator_address}},
