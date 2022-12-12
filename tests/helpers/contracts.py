@@ -142,18 +142,30 @@ class Cw20Contract(LedgerContract):
 
 
 class BridgeContract(LedgerContract):
+    admin: Wallet = None
+    cfg: BridgeContractConfig = None
+    gas_limit: int = 3000000
+
     def __init__(self, client: LedgerClient, admin: Wallet, cfg: BridgeContractConfig):
+        self.cfg = cfg
+        self.admin = admin
         url = "https://github.com/fetchai/fetch-ethereum-bridge-v1/releases/download/v0.2.0/bridge.wasm"
         contract_path = ensure_contract("bridge", url)
-
         # LedgerContract will attempt to discover any existing contract having the same bytecode hash
         # see https://github.com/fetchai/cosmpy/blob/master/cosmpy/aerial/contract/__init__.py#L74
         super().__init__(contract_path, client)
 
-        # deploy will store the contract only if no existing contracts was found during init.
-        # and it will instantiate the contract only if contract.address is None
-        # see: https://github.com/fetchai/cosmpy/blob/master/cosmpy/aerial/contract/__init__.py#L168-L179
-        self.deploy(cfg.to_dict(), admin, store_gas_limit=3000000)
+    def _store(self) -> int:
+        assert self.admin is not None
+        return self.store(self.admin, self.gas_limit)
+
+    def _instantiate(self, code_id) -> Address:
+        assert (self.admin and self.cfg) is not None
+        return self.instantiate(
+            code_id,
+            self.cfg.to_dict(),
+            self.admin
+        )
 
 
 class AlmanacContract(LedgerContract):
