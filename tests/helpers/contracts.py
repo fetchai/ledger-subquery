@@ -143,7 +143,7 @@ class Cw20Contract(LedgerContract):
 
 class BridgeContract(LedgerContract):
     def __init__(self, client: LedgerClient, admin: Wallet, cfg: BridgeContractConfig):
-        url = "https://github.com/fetchai/contract-agent-almanac/releases/download/v0.1.0/contract_agent_almanac.wasm"
+        url = "https://github.com/fetchai/fetch-ethereum-bridge-v1/releases/download/v0.2.0/bridge.wasm"
         contract_path = ensure_contract("bridge", url)
 
         # LedgerContract will attempt to discover any existing contract having the same bytecode hash
