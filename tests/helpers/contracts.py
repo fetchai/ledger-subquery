@@ -168,9 +168,11 @@ class BridgeContract(LedgerContract):
 
 class AlmanacContract(LedgerContract):
     def __init__(self, client: LedgerClient, admin: Wallet, cfg: AlmanacContractConfig = DefaultAlmanacContractConfig):
+        self.cfg = cfg
+        self.admin = admin
         token = os.environ.get("GITHUB_AUTHORIZATION_TOKEN")
-        url = "https://github.com/fetchai/contract-agent-almanac/releases/download/v0.1.1/contract_agent_almanac.wasm"
-        contract_path = ensure_contract("almanac", url)
+        url = "https://github.com/fetchai/contract-agent-almanac/releases/download/v0.2.0/contract_agent_almanac.wasm"
+        contract_path = ensure_contract("almanac", url, token=token)
         super().__init__(contract_path, client)
 
         self.deploy(
