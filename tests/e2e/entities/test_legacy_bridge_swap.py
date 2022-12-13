@@ -11,7 +11,7 @@ sys.path.insert(0, str(repo_root_path))
 from src.genesis.helpers.field_enums import LegacyBridgeSwapFields
 from tests.helpers.contracts import BridgeContract, DefaultBridgeContractConfig
 from tests.helpers.entity_test import EntityTest
-from tests.helpers.graphql import test_filtered_query
+from tests.helpers.graphql import filtered_test_query
 
 
 class TestContractSwap(EntityTest):
@@ -27,19 +27,18 @@ class TestContractSwap(EntityTest):
         cls._contract = BridgeContract(
             cls.ledger_client, cls.validator_wallet, DefaultBridgeContractConfig
         )
-        for i in range(
-            3
-        ):  # repeat entity creation three times to create enough data to verify sorting
+        cls._contract._store()
+        cls._contract._instantiate()
+        # repeat entity creation three times to create enough data to verify sorting
+        for i in range(3):
             resp = cls._contract.execute(
                 {"swap": {"destination": cls.validator_address}},
                 cls.validator_wallet,
                 funds=str(cls.amount) + cls.denom,
             )
             cls.ledger_client.wait_for_query_tx(resp.tx_hash)
-
-        time.sleep(
-            5
-        )  # extra time required for the indexer to pick up on the transaction
+        # extra time required for the indexer to pick up on the transaction
+        time.sleep(5)
 
     def test_contract_swap(self):
         swap = self.db_cursor.execute(LegacyBridgeSwapFields.select_query()).fetchone()
@@ -52,7 +51,7 @@ class TestContractSwap(EntityTest):
             "\nDBError: swap sender address does not match",
         )
         self.assertEqual(
-            swap[LegacyBridgeSwapFields.contract.value],
+            swap[LegacyBridgeSwapFields.contract_id.value],
             self._contract.address,
             "\nDBError: contract address does not match",
         )
@@ -79,7 +78,9 @@ class TestContractSwap(EntityTest):
             {
                 id
                 destination
-                contract
+                contract {
+                    id
+                }
                 amount
                 denom
                 executeContractMessage { id }
@@ -97,7 +98,7 @@ class TestContractSwap(EntityTest):
         }
 
         def filtered_legacy_bridge_swap_query(_filter, order=""):
-            return test_filtered_query(
+            return filtered_test_query(
                 "legacyBridgeSwaps", _filter, legacy_bridge_swap_nodes, _order=order
             )
 
@@ -128,7 +129,7 @@ class TestContractSwap(EntityTest):
 
         # query bridge swaps, filter by contract address
         filter_by_contract_equals = filtered_legacy_bridge_swap_query(
-            {"contract": {"equalTo": str(self._contract.address)}}
+            {"contract": {"id": {"equalTo": str(self._contract.address)}}}
         )
 
         # query legacy bridge swaps, filter by amount
@@ -167,6 +168,11 @@ class TestContractSwap(EntityTest):
                     swaps[0]["denom"],
                     self.denom,
                     "\nGQLError: fund denomination does not match",
+                )
+                self.assertEqual(
+                    swaps[0]["contract"]["id"],
+                    self._contract.address,
+                    "\nGQLError: contract address does not match",
                 )
 
         for (name, query, orderAssert) in (
