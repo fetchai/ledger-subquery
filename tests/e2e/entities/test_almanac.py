@@ -19,7 +19,7 @@ from uagents.src.nexus.crypto import Identity
 from src.genesis.helpers.field_enums import AlmanacRegistrations, AlmanacRecords, Agents
 from tests.helpers.contracts import AlmanacContract, DefaultAlmanacContractConfig
 from tests.helpers.entity_test import EntityTest
-from tests.helpers.graphql import test_filtered_query
+from tests.helpers.graphql import filtered_test_query
 from tests.helpers.regexes import msg_id_regex, tx_id_regex, block_id_regex
 
 
@@ -162,13 +162,13 @@ class TestAlmanac(EntityTest):
         """
 
         last_tx_height = self.submitted_txs[-1].response.height
-        expired_registrations_query = test_filtered_query("almanacRegistrations", {
+        expired_registrations_query = filtered_test_query("almanacRegistrations", {
             "expiryHeight": {
                 "lessThanOrEqualTo": str(last_tx_height)
             }
         }, registrations_nodes)
 
-        active_registrations_query = test_filtered_query("almanacRegistrations", {
+        active_registrations_query = filtered_test_query("almanacRegistrations", {
             "expiryHeight": {
                 "greaterThan": str(last_tx_height)
             }
