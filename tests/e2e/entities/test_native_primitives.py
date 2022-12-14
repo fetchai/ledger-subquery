@@ -19,9 +19,6 @@ from tests.helpers.regexes import (
     tx_id_regex,
 )
 
-repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
-sys.path.insert(0, str(repo_root_path))
-
 
 class TestNativePrimitives(EntityTest):
     tables = ("blocks", "transactions", "messages", "events")

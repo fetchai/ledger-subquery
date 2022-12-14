@@ -5,8 +5,6 @@ from typing import Any, Dict, List, Tuple
 
 from src.genesis.state import OwnAttrsMixin
 
-from src.genesis.state import OwnAttrsMixin
-
 repo_root_path = Path(__file__).parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
