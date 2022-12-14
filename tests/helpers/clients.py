@@ -11,12 +11,13 @@ from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.aiohttp import log as aiohttp_logger
 from psycopg import Connection, Cursor
 
+from src.genesis.db import table_exists
+
 from .gql_queries import latest_block_timestamp
 
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.append(repo_root_path)
 
-from src.genesis.db import table_exists
 
 aiohttp_logger.setLevel(logging.WARNING)
 
@@ -54,7 +55,7 @@ class TestWithDBConn(unittest.TestCase):
             dbname=DB_NAME,
             user=DB_USER,
             password=DB_PASS,
-            options=f"-c search_path=app",
+            options="-c search_path=app",
         )
 
         cls.db_cursor = cls.db_conn.cursor()
