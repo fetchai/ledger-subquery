@@ -23,7 +23,7 @@ class ChainIdObserver(Observer):
     ) -> DisposableBase:
         operators = [
             filter_(self.filter_chain_id),
-            map_(lambda next_: next_[1]),
+            map_(lambda next_: next_[1]),  # type: ignore
         ]
         if scheduler is not None:
             operators.insert(0, observe_on(scheduler=scheduler))

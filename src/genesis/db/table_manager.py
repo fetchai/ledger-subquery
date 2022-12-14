@@ -32,10 +32,9 @@ class TableManager:
     def __init__(self, db_conn: Connection):
         self._db_conn = db_conn
 
-    @classmethod
     @property
-    def column_names(cls) -> Generator[str, Any, None]:
-        return (name for name, _ in cls._columns)
+    def column_names(self) -> Generator[str, Any, None]:
+        return (name for name, _ in self._columns)
 
     @classmethod
     def select_query(cls) -> str:
