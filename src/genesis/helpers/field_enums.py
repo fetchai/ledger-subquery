@@ -1,5 +1,5 @@
 import sys
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import List
@@ -8,7 +8,7 @@ repo_root_path = Path(__file__).parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
 
 
-class NamedFields(ABC, Enum):
+class NamedFields(Enum):
     @classmethod
     def select_column_names(cls) -> List[str]:
         return [f'"{field.name}"' for field in cls]
@@ -37,8 +37,8 @@ class NamedFields(ABC, Enum):
     ) -> str:
         return f"{cls.select_query(tables=tables, prefix=True)} WHERE {where_clause}"
 
-    @abstractmethod
     @property
+    @abstractmethod
     def table(self) -> str:
         pass
 
