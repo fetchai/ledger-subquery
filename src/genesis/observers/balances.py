@@ -113,8 +113,8 @@ class NativeBalancesManager(TableManager):
                             for coin in balance.coins:
                                 id_ = self._get_db_id(balance.address, coin.denom)
                                 copy.write_row(
-                                    list(
-                                        f"{v}"
+                                    (
+                                        f"{v}"  # type: ignore
                                         for v in (
                                             id_,
                                             balance.address,

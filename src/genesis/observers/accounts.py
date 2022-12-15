@@ -118,8 +118,8 @@ class AccountsManager(TableManager):
                     ) as copy:
                         for account in accounts:
                             copy.write_row(
-                                list(
-                                    f"{getattr(account, c)}"
+                                (
+                                    f"{getattr(account, c)}"  # type: ignore
                                     for c in self.get_column_names()
                                 )
                             )
