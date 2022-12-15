@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional, Union, BinaryIO
 
 import requests
 from cosmpy.aerial.client import LedgerClient
@@ -8,6 +8,8 @@ from cosmpy.aerial.contract import LedgerContract
 from cosmpy.aerial.wallet import Wallet
 from cosmpy.crypto.address import Address
 from dataclasses_json import dataclass_json
+
+GITHUB_API__REPO_URL = "https://api.github.com/repos"
 
 
 @dataclass_json
@@ -59,26 +61,56 @@ DefaultAlmanacContractConfig = AlmanacContractConfig(
 )
 
 
-def download_contract(url: str, token: Optional[str] = None) -> bytes:
-    headers = None
+# TODO: move to utils
+def download_github_release_asset(owner: str, repo: str, target_filename: str, writer: BinaryIO,
+                                  token: Optional[str] = None,
+                                  *,
+                                  version: Optional[str] = "latest"):
+    # query the latest information about the release
+    asset_list_url = f'{GITHUB_API__REPO_URL}/{owner}/{repo}/releases/{version}'
+    auth = None
     if token is not None:
-        headers = {"authorization": token}
+        auth = (token, '')
+    r = requests.get(asset_list_url, auth=auth)
+    r.raise_for_status()
 
-    response = requests.request("get", url, headers=headers)
-    return response.content
+    _json = r.json()
+    print(_json)
+    # find the release binary
+    assets = list(
+        filter(
+            lambda x: x.get('name', '') == target_filename,
+            _json.get('assets', []),
+        )
+    )
+    print("PRE ASSERT")
+    assert len(assets) == 1
+    print("POST ASSERT")
+
+    # build link to the asset we want to download
+    target_url = f'{GITHUB_API__REPO_URL}/{owner}/{repo}/releases/assets/{assets[0]["id"]}'
+
+    headers = {
+        'Accept': 'application/octet-stream'
+    }
+
+    with requests.get(target_url, stream=True, auth=(token, ''), headers=headers) as r:
+        r.raise_for_status()
+
+        for chunk in r.iter_content(chunk_size=8192):
+            writer.write(chunk)
 
 
-def ensure_contract(name: str, url: str, token: Optional[str] = None) -> str:
-    contract_path = f".contract/{name}.wasm"
+def ensure_contract(owner: str, repo: str, filename: str, token: Optional[str] = None, *, version: str = "latest") -> str:
+    contract_path = f".contract/{filename}"
     if not os.path.exists(".contract"):
         os.mkdir(".contract")
     try:
         temp = open(contract_path, "rb")
         temp.close()
     except OSError:
-        contract_content = download_contract(url, token)
         with open(contract_path, "wb") as file:
-            file.write(contract_content)
+            download_github_release_asset(owner, repo, filename, file, token, version=version)
     finally:
         return contract_path
 
@@ -88,8 +120,7 @@ class DeployTestContract(LedgerContract):
     def __init__(self, client: LedgerClient, admin: Wallet):
         """ Using a slightly older version of CW20 contract as a test contract - as this will still be classified as the
             CW20 interface, but is different enough to allow a unique store_code message during testing."""
-        url = "https://github.com/CosmWasm/cw-plus/releases/download/v0.14.0/cw20_base.wasm"
-        contract_path = ensure_contract("test_contract", url)
+        contract_path = ensure_contract("CosmWasm", "cw-plus", "cw20_base.wasm", version="v0.14.0")
         super().__init__(contract_path, client)
 
         self.deploy({
@@ -113,8 +144,7 @@ class Cw20Contract(LedgerContract):
 
     def __init__(self, client: LedgerClient, admin: Wallet):
         self.admin = admin
-        url = "https://github.com/CosmWasm/cw-plus/releases/download/v0.16.0/cw20_base.wasm"
-        contract_path = ensure_contract("cw20", url)
+        contract_path = ensure_contract("cw20_base.wasm", "CosmWasm", "cw-plus", version="v0.16.0")
         super().__init__(contract_path, client)
 
     def _store(self) -> int:
@@ -148,8 +178,7 @@ class BridgeContract(LedgerContract):
     def __init__(self, client: LedgerClient, admin: Wallet, cfg: BridgeContractConfig):
         self.cfg = cfg
         self.admin = admin
-        url = "https://github.com/fetchai/fetch-ethereum-bridge-v1/releases/download/v0.2.0/bridge.wasm"
-        contract_path = ensure_contract("bridge", url)
+        contract_path = ensure_contract("fetchai", "fetch-ethereum-bridge-v1", "bridge.wasm")
         # LedgerContract will attempt to discover any existing contract having the same bytecode hash
         # see https://github.com/fetchai/cosmpy/blob/master/cosmpy/aerial/contract/__init__.py#L74
         super().__init__(contract_path, client)
@@ -168,8 +197,7 @@ class AlmanacContract(LedgerContract):
         self.cfg = cfg
         self.admin = admin
         token = os.environ.get("GITHUB_AUTHORIZATION_TOKEN")
-        url = "https://github.com/fetchai/contract-agent-almanac/releases/download/v0.2.0/contract_agent_almanac.wasm"
-        contract_path = ensure_contract("almanac", url, token=token)
+        contract_path = ensure_contract("fetchai", "contract-agent-almanac", "contract_agent_almanac.wasm", token=token)
         super().__init__(contract_path, client)
 
         self.deploy(
