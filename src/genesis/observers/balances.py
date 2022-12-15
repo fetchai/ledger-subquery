@@ -128,10 +128,6 @@ class NativeBalancesManager(TableManager):
                     duplicate_occured = True
                     self._db_conn.commit()
 
-                    duplicate_balance_id: str
-                    duplicate_balance_index: Optional[int]
-                    duplicate_coin_index: Optional[int]
-
                     (
                         duplicate_balance_id,
                         duplicate_balance_index,
