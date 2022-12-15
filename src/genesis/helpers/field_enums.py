@@ -1,11 +1,6 @@
-import sys
 from abc import abstractmethod
 from enum import Enum
-from pathlib import Path
 from typing import List, Optional
-
-repo_root_path = Path(__file__).parent.parent.parent.absolute()
-sys.path.insert(0, str(repo_root_path))
 
 
 class NamedFields(Enum):

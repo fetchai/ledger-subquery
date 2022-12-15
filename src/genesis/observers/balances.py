@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from psycopg import Connection
 from psycopg.errors import UniqueViolation
@@ -24,7 +24,7 @@ _logger = get_logger(__name__)
 
 class NativeBalancesObserver(Observer):
     @staticmethod
-    def filter_balances(next_: Tuple[str, Any]) -> bool:
+    def filter_balances(next_: Tuple[str, Balance]) -> bool:
         return next_[0].startswith(native_balances_keys_path)
 
     @staticmethod
