@@ -140,7 +140,7 @@ class InstantiateMessageFields(NamedFields):
 
 class ContractFields(NamedFields):
     id = 0
-    interfaces = 1
+    contract_interface = 1
     store_message_id = 2
     instantiate_message_id = 3
 
