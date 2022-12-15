@@ -16,13 +16,13 @@ class NamedFields(Enum):
     @classmethod
     def select_query(cls, tables: Optional[List[str]] = None, prefix=False) -> str:
         if tables is None:
-            tables = [str(cls.table)]
+            tables = [cls.get_table()]
 
         columns = cls.select_column_names()
         """ More complex queries might require disambiguation, eg. where two 'id' attributes are being referenced
             - 'relevant_table.id' this prefix would solve it"""
         if prefix:
-            columns = [f"{cls.table}.{column}" for column in columns]
+            columns = [f"{cls.get_table()}.{column}" for column in columns]
 
         if len(tables) == 1:
             tables_str = tables[0]
@@ -37,9 +37,9 @@ class NamedFields(Enum):
     ) -> str:
         return f"{cls.select_query(tables=tables, prefix=True)} WHERE {where_clause}"
 
-    @property
+    @classmethod
     @abstractmethod
-    def table(self):
+    def get_table(cls):
         pass
 
 
@@ -49,7 +49,9 @@ class BlockFields(NamedFields):
     height = 2
     timestamp = 3
 
-    table = "blocks"
+    @classmethod
+    def get_table(cls):
+        return "blocks"
 
 
 class TxFields(NamedFields):
@@ -64,7 +66,9 @@ class TxFields(NamedFields):
     timeout_height = 8
     signer_address = 9
 
-    table = "transactions"
+    @classmethod
+    def get_table(cls):
+        return "transactions"
 
 
 class MsgFields(NamedFields):
@@ -74,7 +78,9 @@ class MsgFields(NamedFields):
     type_url = 3
     json = 4
 
-    table = "messages"
+    @classmethod
+    def get_table(cls):
+        return "messages"
 
 
 class EventFields(NamedFields):
@@ -83,7 +89,9 @@ class EventFields(NamedFields):
     block_id = 2
     type = 3
 
-    table = "events"
+    @classmethod
+    def get_table(cls):
+        return "events"
 
 
 class NativeTransferFields(NamedFields):
@@ -93,7 +101,9 @@ class NativeTransferFields(NamedFields):
     to_address = 3
     from_address = 4
 
-    table = "native_transfers"
+    @classmethod
+    def get_table(cls):
+        return "native_transfers"
 
 
 class StoreMessageFields(NamedFields):
@@ -105,7 +115,9 @@ class StoreMessageFields(NamedFields):
     transaction_id = 5
     block_id = 6
 
-    table = "store_contract_messages"
+    @classmethod
+    def get_table(cls):
+        return "store_contract_messages"
 
 
 class InstantiateMessageFields(NamedFields):
@@ -120,7 +132,9 @@ class InstantiateMessageFields(NamedFields):
     transaction_id = 8
     block_id = 9
 
-    table = "instantiate_contract_messages"
+    @classmethod
+    def get_table(cls):
+        return "instantiate_contract_messages"
 
 
 class ContractFields(NamedFields):
@@ -129,7 +143,9 @@ class ContractFields(NamedFields):
     store_message_id = 2
     instantiate_message_id = 3
 
-    table = "contracts"
+    @classmethod
+    def get_table(cls):
+        return "contracts"
 
 
 class Cw20TransferFields(NamedFields):
@@ -142,7 +158,9 @@ class Cw20TransferFields(NamedFields):
     from_address = 6
     contract = 7
 
-    table = "cw20_transfers"
+    @classmethod
+    def get_table(cls):
+        return "cw20_transfers"
 
 
 class Cw20BalanceChangeFields(NamedFields):
@@ -154,12 +172,14 @@ class Cw20BalanceChangeFields(NamedFields):
     transaction_id = 5
     block_id = 6
 
-    table = "cw20_balance_changes"
+    @classmethod
+    def get_table(cls):
+        return "cw20_balance_changes"
 
     @classmethod
     def by_execute_contract_method(cls, method):
         where = f" execute_contract_messages.id = execute_contract_message_id and method = '{method}'"
-        tables = (cls.table, "execute_contract_messages")
+        tables = (cls.get_table(), "execute_contract_messages")
         return cls.select_where(where_clause=where, tables=tables, prefix=True)
 
 
@@ -173,7 +193,9 @@ class LegacyBridgeSwapFields(NamedFields):
     denom = 6
     contract_id = 7
 
-    table = "legacy_bridge_swaps"
+    @classmethod
+    def get_table(cls):
+        return "legacy_bridge_swaps"
 
 
 class GovProposalVoteFields(NamedFields):
@@ -185,7 +207,9 @@ class GovProposalVoteFields(NamedFields):
     voter_address = 5
     option = 6
 
-    table = "gov_proposal_votes"
+    @classmethod
+    def get_table(cls):
+        return "gov_proposal_votes"
 
 
 class ExecuteContractMessageFields(NamedFields):
@@ -197,7 +221,9 @@ class ExecuteContractMessageFields(NamedFields):
     method = 5
     funds = 6
 
-    table = "execute_contract_messages"
+    @classmethod
+    def get_table(cls):
+        return "execute_contract_messages"
 
 
 class DistDelegatorClaimFields(NamedFields):
@@ -210,7 +236,9 @@ class DistDelegatorClaimFields(NamedFields):
     amount = 6
     denom = 7
 
-    table = "dist_delegator_claims"
+    @classmethod
+    def get_table(cls):
+        return "dist_delegator_claims"
 
 
 class NativeBalanceChangeFields(NamedFields):
@@ -222,14 +250,18 @@ class NativeBalanceChangeFields(NamedFields):
     transaction_id = 5
     block_id = 6
 
-    table = "native_balance_changes"
+    @classmethod
+    def get_table(cls):
+        return "native_balance_changes"
 
 
 class Accounts(NamedFields):
     id = 0
     chain_id = 1
 
-    table = "accounts"
+    @classmethod
+    def get_table(cls):
+        return "accounts"
 
 
 class NativeBalances(NamedFields):
@@ -238,7 +270,9 @@ class NativeBalances(NamedFields):
     amount = 2
     denom = 3
 
-    table = "genesis_balances"
+    @classmethod
+    def get_table(cls):
+        return "genesis_balances"
 
 
 class IBCTransferFields(NamedFields):
@@ -254,7 +288,9 @@ class IBCTransferFields(NamedFields):
     transaction_id = 9
     block_id = 10
 
-    table = "ibc_transfers"
+    @classmethod
+    def get_table(cls):
+        return "ibc_transfers"
 
 
 class AuthzExecFields(NamedFields):
@@ -264,7 +300,9 @@ class AuthzExecFields(NamedFields):
     transaction_id = 3
     block_id = 4
 
-    table = "authz_execs"
+    @classmethod
+    def get_table(cls):
+        return "authz_execs"
 
 
 class AuthzExecMessageFields(NamedFields):
@@ -272,4 +310,6 @@ class AuthzExecMessageFields(NamedFields):
     authz_exec_id = 1
     message_id = 2
 
-    table = "authz_exec_messages"
+    @classmethod
+    def get_table(cls):
+        return "authz_exec_messages"

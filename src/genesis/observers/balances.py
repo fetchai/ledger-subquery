@@ -54,7 +54,7 @@ class NativeBalancesManager(TableManager):
     _observer: NativeBalancesObserver
     _subscription: DisposableBase
     _db_conn: Connection
-    _table = NativeBalances.table
+    _table = NativeBalances.get_table()
     _columns = (
         ("id", DBTypes.text),
         ("account_id", DBTypes.text),

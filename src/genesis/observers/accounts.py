@@ -70,7 +70,7 @@ class AccountsManager(TableManager):
     _observer: AccountsObserver
     _subscription: DisposableBase
     _db_conn: Connection
-    _table = Accounts.table
+    _table = Accounts.get_table()
     _columns = (
         ("id", DBTypes.text),
         ("chain_id", DBTypes.text),
@@ -80,9 +80,9 @@ class AccountsManager(TableManager):
         "chain_id",
     )
 
-    @property
-    def column_names(self) -> Generator[str, Any, None]:
-        return (name for name, _ in self._columns)
+    @classmethod
+    def get_column_names(cls) -> Generator[str, Any, None]:
+        return (name for name, _ in cls._columns)
 
     def __init__(self, db_conn: Connection, on_completed=None, on_error=None) -> None:
         super().__init__(db_conn)
@@ -114,11 +114,14 @@ class AccountsManager(TableManager):
                 try:
                     duplicate_occured = False
                     with db.copy(
-                        f'COPY {self._table} ({",".join(self.column_names)}) FROM STDIN'
+                        f'COPY {self._table} ({",".join(self.get_column_names())}) FROM STDIN'
                     ) as copy:
                         for account in accounts:
                             copy.write_row(
-                                [f"{getattr(account, c)}" for c in self.column_names]
+                                [
+                                    f"{getattr(account, c)}"
+                                    for c in self.get_column_names()
+                                ]
                             )
                 except UniqueViolation as e:
                     duplicate_occured = True
