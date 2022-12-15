@@ -117,12 +117,10 @@ class AccountsManager(TableManager):
                         f'COPY {self._table} ({",".join(self.get_column_names())}) FROM STDIN'
                     ) as copy:
                         for account in accounts:
-                            copy.write_row(
-                                (
-                                    f"{getattr(account, c)}"  # type: ignore
-                                    for c in self.get_column_names()
-                                )
+                            values = (
+                                f"{getattr(account, c)}" for c in self.column_names
                             )
+                            copy.write_row(values)  # type: ignore
                 except UniqueViolation as e:
                     duplicate_occured = True
 
