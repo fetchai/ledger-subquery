@@ -7,6 +7,7 @@ from cosmpy.aerial.contract import LedgerContract
 from cosmpy.aerial.wallet import Wallet
 from cosmpy.crypto.address import Address
 from dataclasses_json import dataclass_json
+
 from tests.helpers.github import download_github_release_asset
 
 
