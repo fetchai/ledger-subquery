@@ -1,15 +1,13 @@
 import os
 from dataclasses import dataclass
-from typing import BinaryIO, Optional, Union
+from typing import Optional, Union
 
-import requests
 from cosmpy.aerial.client import LedgerClient
 from cosmpy.aerial.contract import LedgerContract
 from cosmpy.aerial.wallet import Wallet
 from cosmpy.crypto.address import Address
 from dataclasses_json import dataclass_json
-
-GITHUB_API__REPO_URL = "https://api.github.com/repos"
+from helpers.github import download_github_release_asset
 
 
 @dataclass_json
@@ -56,47 +54,6 @@ DefaultBridgeContractConfig = BridgeContractConfig(
 DefaultAlmanacContractConfig = AlmanacContractConfig(
     stake_denom="atestfet", expiry_height=2, register_stake_amount="0", admin=None
 )
-
-
-# TODO: move to utils
-def download_github_release_asset(
-    owner: str,
-    repo: str,
-    target_filename: str,
-    writer: BinaryIO,
-    token: Optional[str] = None,
-    *,
-    version: Optional[str] = "latest",
-):
-    # query the latest information about the release
-    asset_list_url = f"{GITHUB_API__REPO_URL}/{owner}/{repo}/releases/{version}"
-    auth = None
-    if token is not None:
-        auth = (token, "")
-    r = requests.get(asset_list_url, auth=auth)
-    r.raise_for_status()
-
-    # find the release binary
-    assets = list(
-        filter(
-            lambda x: x.get("name", "") == target_filename,
-            r.json().get("assets", []),
-        )
-    )
-    assert len(assets) == 1
-
-    # build link to the asset we want to download
-    target_url = (
-        f'{GITHUB_API__REPO_URL}/{owner}/{repo}/releases/assets/{assets[0]["id"]}'
-    )
-
-    headers = {"Accept": "application/octet-stream"}
-
-    with requests.get(target_url, stream=True, auth=(token, ""), headers=headers) as r:
-        r.raise_for_status()
-
-        for chunk in r.iter_content(chunk_size=8192):
-            writer.write(chunk)
 
 
 def ensure_contract(
@@ -156,7 +113,7 @@ class Cw20Contract(LedgerContract):
     def __init__(self, client: LedgerClient, admin: Wallet):
         self.admin = admin
         contract_path = ensure_contract(
-            "cw20_base.wasm", "CosmWasm", "cw-plus", version="v0.16.0"
+            "CosmWasm", "cw-plus", "cw20_base.wasm", version="v0.16.0"
         )
         super().__init__(contract_path, client)
 
