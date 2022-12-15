@@ -107,7 +107,7 @@ class NativeBalancesManager(TableManager):
                 try:
                     duplicate_occured = False
                     with db.copy(
-                        f'COPY {self._table} ({",".join(self.column_names)}) FROM STDIN'
+                        f'COPY {self._table} ({",".join(self.get_column_names())}) FROM STDIN'
                     ) as copy:
                         for balance in balances:
                             for coin in balance.coins:
