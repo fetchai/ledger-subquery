@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-cosmpy = "*"
+cosmpy = "==0.6.2"
 protobuf = "==3.20.*"
 bip-utils = "*"
 gql = {extras = ["all"], version = "*"}
@@ -16,6 +16,11 @@ click = "*"
 
 [dev-packages]
 pytest = "*"
+black = "*"
+isort = "*"
+flake8 = "*"
+mypy = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.9"

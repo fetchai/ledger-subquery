@@ -7,7 +7,7 @@ from gql import gql
 
 from src.genesis.helpers.field_enums import NativeBalanceChangeFields
 from tests.helpers.entity_test import EntityTest
-from tests.helpers.graphql import test_filtered_query
+from tests.helpers.graphql import filtered_test_query
 
 repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.insert(0, str(repo_root_path))
@@ -21,7 +21,7 @@ class TestNativeBalances(EntityTest):
         # enough entities are created to verify sorting
         tx = cls.ledger_client.send_tokens(
             cls.delegator_wallet.address(),
-            10 * 10 ** 18,
+            10 * 10**18,
             "atestfet",
             cls.validator_wallet,
         )
@@ -30,7 +30,7 @@ class TestNativeBalances(EntityTest):
 
         tx = cls.ledger_client.send_tokens(
             cls.validator_wallet.address(),
-            3 * 10 ** 18,
+            3 * 10**18,
             "atestfet",
             cls.delegator_wallet,
         )
@@ -70,8 +70,8 @@ class TestNativeBalances(EntityTest):
             ]
 
         # TODO: Represent variable fees in more robust way
-        self.assertLessEqual(total[self.validator_wallet.address()], -7 * 10 ** 18)
-        self.assertLessEqual(total[self.delegator_wallet.address()], 7 * 10 ** 18)
+        self.assertLessEqual(total[self.validator_wallet.address()], -7 * 10**18)
+        self.assertLessEqual(total[self.delegator_wallet.address()], 7 * 10**18)
 
     def test_account_balance_tracking_query(self):
         query = gql(
@@ -102,7 +102,7 @@ class TestNativeBalances(EntityTest):
         }
 
         def filtered_native_balance_query(_filter, order=""):
-            return test_filtered_query(
+            return filtered_test_query(
                 "nativeBalanceChanges", _filter, native_balance_nodes, _order=order
             )
 

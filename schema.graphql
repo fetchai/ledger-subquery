@@ -62,7 +62,7 @@ type Event @entity {
 
 type ExecuteContractMessage @entity {
   id: ID!
-  contract: String! @index
+  contract: Contract!
   method: String! @index
   funds: [Coin]!
   message: Message!
@@ -135,7 +135,7 @@ type Cw20Transfer @entity {
   id: ID!
   toAddress: String! @index
   fromAddress: String! @index
-  contract: String! @index
+  contract: Contract!
   amount: BigInt!
   message: Message!
   transaction: Transaction!
