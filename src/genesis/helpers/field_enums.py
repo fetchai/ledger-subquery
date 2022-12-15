@@ -37,8 +37,9 @@ class NamedFields(Enum):
     ) -> str:
         return f"{cls.select_query(tables=tables, prefix=True)} WHERE {where_clause}"
 
-    @abstractmethod
+    @classmethod
     @property
+    @abstractmethod
     def table(self) -> str:
         pass
 
@@ -49,6 +50,7 @@ class BlockFields(NamedFields):
     height = 2
     timestamp = 3
 
+    @classmethod
     @property
     def table(self) -> str:
         return "blocks"
@@ -66,6 +68,7 @@ class TxFields(NamedFields):
     timeout_height = 8
     signer_address = 9
 
+    @classmethod
     @property
     def table(self) -> str:
         return "transactions"
@@ -78,6 +81,7 @@ class MsgFields(NamedFields):
     type_url = 3
     json = 4
 
+    @classmethod
     @property
     def table(self) -> str:
         return "messages"
@@ -89,6 +93,7 @@ class EventFields(NamedFields):
     block_id = 2
     type = 3
 
+    @classmethod
     @property
     def table(self) -> str:
         return "events"
@@ -101,6 +106,7 @@ class NativeTransferFields(NamedFields):
     to_address = 3
     from_address = 4
 
+    @classmethod
     @property
     def table(self) -> str:
         return "native_transfers"
@@ -115,6 +121,7 @@ class StoreMessageFields(NamedFields):
     transaction_id = 5
     block_id = 6
 
+    @classmethod
     @property
     def table(self) -> str:
         return "store_contract_messages"
@@ -132,6 +139,7 @@ class InstantiateMessageFields(NamedFields):
     transaction_id = 8
     block_id = 9
 
+    @classmethod
     @property
     def table(self) -> str:
         return "instantiate_contract_messages"
@@ -143,6 +151,7 @@ class ContractFields(NamedFields):
     store_message_id = 2
     instantiate_message_id = 3
 
+    @classmethod
     @property
     def table(self) -> str:
         return "contracts"
@@ -158,6 +167,7 @@ class Cw20TransferFields(NamedFields):
     from_address = 6
     contract = 7
 
+    @classmethod
     @property
     def table(self) -> str:
         return "cw20_transfers"
@@ -172,6 +182,7 @@ class Cw20BalanceChangeFields(NamedFields):
     transaction_id = 5
     block_id = 6
 
+    @classmethod
     @property
     def table(self) -> str:
         return "cw20_balance_changes"
@@ -193,6 +204,7 @@ class LegacyBridgeSwapFields(NamedFields):
     denom = 6
     contract_id = 7
 
+    @classmethod
     @property
     def table(self):
         return "legacy_bridge_swaps"
@@ -207,6 +219,7 @@ class GovProposalVoteFields(NamedFields):
     voter_address = 5
     option = 6
 
+    @classmethod
     @property
     def table(self):
         return "gov_proposal_votes"
@@ -221,6 +234,7 @@ class ExecuteContractMessageFields(NamedFields):
     method = 5
     funds = 6
 
+    @classmethod
     @property
     def table(self):
         return "execute_contract_messages"
@@ -236,6 +250,7 @@ class DistDelegatorClaimFields(NamedFields):
     amount = 6
     denom = 7
 
+    @classmethod
     @property
     def table(self):
         return "dist_delegator_claims"
@@ -250,6 +265,7 @@ class NativeBalanceChangeFields(NamedFields):
     transaction_id = 5
     block_id = 6
 
+    @classmethod
     @property
     def table(self):
         return "native_balance_changes"
@@ -259,6 +275,7 @@ class Accounts(NamedFields):
     id = 0
     chain_id = 1
 
+    @classmethod
     @property
     def table(self):
         return "accounts"
@@ -270,6 +287,7 @@ class NativeBalances(NamedFields):
     amount = 2
     denom = 3
 
+    @classmethod
     @property
     def table(self):
         return "genesis_balances"
@@ -288,6 +306,7 @@ class IBCTransferFields(NamedFields):
     transaction_id = 9
     block_id = 10
 
+    @classmethod
     @property
     def table(self):
         return "ibc_transfers"
@@ -300,6 +319,7 @@ class AuthzExecFields(NamedFields):
     transaction_id = 3
     block_id = 4
 
+    @classmethod
     @property
     def table(self):
         return "authz_execs"
@@ -310,6 +330,7 @@ class AuthzExecMessageFields(NamedFields):
     authz_exec_id = 1
     message_id = 2
 
+    @classmethod
     @property
     def table(self):
         return "authz_exec_messages"
