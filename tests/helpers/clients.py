@@ -1,3 +1,4 @@
+import logging
 import unittest
 from typing import List, Union
 
@@ -5,11 +6,14 @@ import dateutil.parser as dp
 import psycopg
 from gql import Client
 from gql.transport.aiohttp import AIOHTTPTransport
+from gql.transport.aiohttp import log as aiohttp_logger
 from psycopg import Connection, Cursor
 
 from src.genesis.db import table_exists
 
 from .gql_queries import latest_block_timestamp
+
+aiohttp_logger.setLevel(logging.WARNING)
 
 CASCADE_TRUNCATE_TABLES = frozenset({"blocks", "transactions", "messages", "events"})
 
