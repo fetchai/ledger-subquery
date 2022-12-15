@@ -76,18 +76,14 @@ def download_github_release_asset(
     r = requests.get(asset_list_url, auth=auth)
     r.raise_for_status()
 
-    _json = r.json()
-    print(_json)
     # find the release binary
     assets = list(
         filter(
             lambda x: x.get("name", "") == target_filename,
-            _json.get("assets", []),
+            r.json().get("assets", []),
         )
     )
-    print("PRE ASSERT")
     assert len(assets) == 1
-    print("POST ASSERT")
 
     # build link to the asset we want to download
     target_url = (
