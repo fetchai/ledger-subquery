@@ -113,7 +113,7 @@ class NativeBalancesManager(TableManager):
                             for coin in balance.coins:
                                 id_ = self._get_db_id(balance.address, coin.denom)
                                 copy.write_row(
-                                    [
+                                    list(
                                         f"{v}"
                                         for v in (
                                             id_,
@@ -121,7 +121,7 @@ class NativeBalancesManager(TableManager):
                                             coin.amount,
                                             coin.denom,
                                         )
-                                    ]
+                                    )
                                 )
 
                 except UniqueViolation as e:
