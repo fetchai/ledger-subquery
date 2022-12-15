@@ -347,8 +347,8 @@ class AlmanacRegistrations(NamedFields):
     record_id = 5
     transaction_id = 6
     block_id = 7
-#     event_id = 8
-#     record_id = 9
+    #     event_id = 8
+    #     record_id = 9
 
     @classmethod
     @property
@@ -361,7 +361,7 @@ class AlmanacRecords(NamedFields):
     service = 1
     transaction_id = 2
     block_id = 3
-#     event_id = 4
+    #     event_id = 4
 
     @classmethod
     @property

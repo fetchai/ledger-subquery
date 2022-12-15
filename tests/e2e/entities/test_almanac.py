@@ -1,26 +1,18 @@
-import json
-import sys
 import time
 import unittest
 from dataclasses import dataclass
-from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import Dict, List, Tuple
 
 import graphql
 from cosmpy.aerial.tx_helpers import SubmittedTx
 from gql import gql
 
-repo_root_path = Path(__file__).parent.parent.parent.parent.absolute()
-sys.path.insert(0, str(repo_root_path))
-sys.path.insert(0, str(Path(repo_root_path, "uagents")))
-
-from uagents.src.nexus.crypto import Identity
-
-from src.genesis.helpers.field_enums import AlmanacRegistrations, AlmanacRecords, Agents
+from src.genesis.helpers.field_enums import Agents, AlmanacRecords, AlmanacRegistrations
 from tests.helpers.contracts import AlmanacContract, DefaultAlmanacContractConfig
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
-from tests.helpers.regexes import msg_id_regex, tx_id_regex, block_id_regex
+from tests.helpers.regexes import block_id_regex, msg_id_regex, tx_id_regex
+from uagents.src.nexus.crypto import Identity
 
 
 def gql_by_expiry_height(registration_node: Dict) -> int:
@@ -43,7 +35,7 @@ class TestAlmanac(EntityTest):
         "127.0.0.1:9999",
         "127.0.0.1:8888",
         "127.0.0.1:7777",
-        "127.0.0.1:6666"
+        "127.0.0.1:6666",
     ]
     submitted_txs: List[SubmittedTx] = []
     expected_registrations: List[Dict] = []
@@ -51,13 +43,16 @@ class TestAlmanac(EntityTest):
         {
             "service": {
                 "protocols": ["grpc"],
-                "endpoints": [{
-                    "url": endpoint,
-                    # NB: not "proper" usage of weight; for testing only
-                    "weight": i
-                }]
+                "endpoints": [
+                    {
+                        "url": endpoint,
+                        # NB: not "proper" usage of weight; for testing only
+                        "weight": i,
+                    }
+                ],
             }
-        } for (i, endpoint) in enumerate(test_registrations_endpoints)
+        }
+        for (i, endpoint) in enumerate(test_registrations_endpoints)
     ]
 
     @classmethod
@@ -77,47 +72,67 @@ class TestAlmanac(EntityTest):
             sequence = cls._contract.query(query_msg)["sequence"]
 
             signature = identity.sign_registration(
-                contract_address=str(cls._contract.address),
-                sequence=sequence)
+                contract_address=str(cls._contract.address), sequence=sequence
+            )
 
-            tx = cls._contract.execute({
-                "register": {
-                    "agent_address": agent_address,
-                    "record": expected_record,
-                    "sequence": sequence,
-                    "signature": signature,
-                }
-            }, cls.validator_wallet, funds=DefaultAlmanacContractConfig.register_stake_funds)
+            tx = cls._contract.execute(
+                {
+                    "register": {
+                        "agent_address": agent_address,
+                        "record": expected_record,
+                        "sequence": sequence,
+                        "signature": signature,
+                    }
+                },
+                cls.validator_wallet,
+                funds=DefaultAlmanacContractConfig.register_stake_funds,
+            )
             tx.wait_to_complete()
             cls.submitted_txs.append(tx)
-            cls.expected_registrations.append({
-                "agentId": agent_address,
-                "expiryHeight": tx.response.height + DefaultAlmanacContractConfig.expiry_height,
-                "sequence": sequence,
-                "signature": signature,
-                "record": expected_record
-            })
+            cls.expected_registrations.append(
+                {
+                    "agentId": agent_address,
+                    "expiryHeight": tx.response.height
+                    + DefaultAlmanacContractConfig.expiry_height,
+                    "sequence": sequence,
+                    "signature": signature,
+                    "record": expected_record,
+                }
+            )
         # NB: wait for the indexer
         time.sleep(7)
 
     def test_registrations_sql(self):
-        registrations = self.db_cursor.execute(AlmanacRegistrations.select_query()).fetchall()
+        registrations = self.db_cursor.execute(
+            AlmanacRegistrations.select_query()
+        ).fetchall()
         actual_reg_length = len(registrations)
 
         expected_registrations_count = len(self.expected_registrations)
-        self.assertEqual(expected_registrations_count,
-                         actual_reg_length,
-                         f"expected {expected_registrations_count} registrations; got {actual_reg_length}")
+        self.assertEqual(
+            expected_registrations_count,
+            actual_reg_length,
+            f"expected {expected_registrations_count} registrations; got {actual_reg_length}",
+        )
         # NB: sort by expiry height so that indexes match
         # their respective scenario.expected index
         list.sort(registrations, key=sql_by_expiry_height)
         for (i, registration) in enumerate(registrations):
-            self.assertEqual(self.expected_registrations[i]["agentId"], registration[AlmanacRegistrations.agent_id.value])
-            self.assertLess(self.submitted_txs[i].response.height,
-                            registration[AlmanacRegistrations.expiry_height.value])
+            self.assertEqual(
+                self.expected_registrations[i]["agentId"],
+                registration[AlmanacRegistrations.agent_id.value],
+            )
+            self.assertLess(
+                self.submitted_txs[i].response.height,
+                registration[AlmanacRegistrations.expiry_height.value],
+            )
             self.assertRegex(registration[AlmanacRegistrations.id.value], msg_id_regex)
-            self.assertRegex(registration[AlmanacRegistrations.transaction_id.value], tx_id_regex)
-            self.assertRegex(registration[AlmanacRegistrations.block_id.value], block_id_regex)
+            self.assertRegex(
+                registration[AlmanacRegistrations.transaction_id.value], tx_id_regex
+            )
+            self.assertRegex(
+                registration[AlmanacRegistrations.block_id.value], block_id_regex
+            )
 
             def matches_expected_record(_record: Dict) -> bool:
                 return _record["service"]["endpoints"][0]["weight"] == i
@@ -126,19 +141,27 @@ class TestAlmanac(EntityTest):
             record = self.db_cursor.execute(
                 AlmanacRecords.select_where(
                     f"almanac_records.id = '{registration[AlmanacRegistrations.record_id.value]}'",
-                    [AlmanacRecords.table, AlmanacRegistrations.table])).fetchone()
-            expected_record = next(r for r in self.expected_records if matches_expected_record(r))
+                    [AlmanacRecords.table, AlmanacRegistrations.table],
+                )
+            ).fetchone()
+            expected_record = next(
+                r for r in self.expected_records if matches_expected_record(r)
+            )
             self.assertIsNotNone(record)
             self.assertIsNotNone(expected_record)
-            self.assertDictEqual(expected_record["service"], record[AlmanacRecords.service.value])
+            self.assertDictEqual(
+                expected_record["service"], record[AlmanacRecords.service.value]
+            )
             self.assertRegex(record[AlmanacRecords.id.value], msg_id_regex)
             self.assertRegex(record[AlmanacRecords.transaction_id.value], tx_id_regex)
             self.assertRegex(record[AlmanacRecords.block_id.value], block_id_regex)
 
             # Lookup related agent
-            agent = self.db_cursor.execute(Agents.select_where(
-                f"id = '{registration[AlmanacRegistrations.agent_id.value]}'"
-            )).fetchone()
+            agent = self.db_cursor.execute(
+                Agents.select_where(
+                    f"id = '{registration[AlmanacRegistrations.agent_id.value]}'"
+                )
+            ).fetchone()
             self.assertIsNotNone(agent)
 
     def test_registrations_gql(self):
@@ -162,38 +185,44 @@ class TestAlmanac(EntityTest):
         """
 
         last_tx_height = self.submitted_txs[-1].response.height
-        expired_registrations_query = filtered_test_query("almanacRegistrations", {
-            "expiryHeight": {
-                "lessThanOrEqualTo": str(last_tx_height)
-            }
-        }, registrations_nodes)
+        expired_registrations_query = filtered_test_query(
+            "almanacRegistrations",
+            {"expiryHeight": {"lessThanOrEqualTo": str(last_tx_height)}},
+            registrations_nodes,
+        )
 
-        active_registrations_query = filtered_test_query("almanacRegistrations", {
-            "expiryHeight": {
-                "greaterThan": str(last_tx_height)
-            }
-        }, registrations_nodes)
+        active_registrations_query = filtered_test_query(
+            "almanacRegistrations",
+            {"expiryHeight": {"greaterThan": str(last_tx_height)}},
+            registrations_nodes,
+        )
 
-        all_registrations_query = gql("query {almanacRegistrations {nodes " + registrations_nodes + "}}")
+        all_registrations_query = gql(
+            "query {almanacRegistrations {nodes " + registrations_nodes + "}}"
+        )
 
-        last_expired_height = last_tx_height - DefaultAlmanacContractConfig.expiry_height
-        last_expired = next(r for r in self.submitted_txs if r.response.height == last_expired_height)
+        last_expired_height = (
+            last_tx_height - DefaultAlmanacContractConfig.expiry_height
+        )
+        last_expired = next(
+            r for r in self.submitted_txs if r.response.height == last_expired_height
+        )
         last_expired_index = self.submitted_txs.index(last_expired)
         scenarios = [
             Scenario(
                 name="expired registrations",
                 query=expired_registrations_query,
-                expected=self.expected_registrations[0: last_expired_index + 1]
+                expected=self.expected_registrations[0: last_expired_index + 1],
             ),
             Scenario(
                 name="active registrations",
                 query=active_registrations_query,
-                expected=self.expected_registrations[last_expired_index + 1:]
+                expected=self.expected_registrations[last_expired_index + 1:],
             ),
             Scenario(
                 name="all registrations",
                 query=all_registrations_query,
-                expected=self.expected_registrations
+                expected=self.expected_registrations,
             ),
         ]
 
@@ -211,12 +240,20 @@ class TestAlmanac(EntityTest):
 
                 for (i, registration) in enumerate(registrations):
                     self.assertRegex(registration["id"], msg_id_regex)
-                    self.assertEqual(scenario.expected[i]["agentId"], registration["agentId"])
-                    self.assertEqual(str(self._contract.address), registration["contractId"])
-                    self.assertEqual(str(scenario.expected[i]["expiryHeight"]), registration["expiryHeight"])
+                    self.assertEqual(
+                        scenario.expected[i]["agentId"], registration["agentId"]
+                    )
+                    self.assertEqual(
+                        str(self._contract.address), registration["contractId"]
+                    )
+                    self.assertEqual(
+                        str(scenario.expected[i]["expiryHeight"]),
+                        registration["expiryHeight"],
+                    )
                     self.assertRegex(registration["transactionId"], tx_id_regex)
                     self.assertRegex(registration["blockId"], block_id_regex)
                     # TODO: assert record equality
+
 
 if __name__ == "__main__":
     unittest.main()
