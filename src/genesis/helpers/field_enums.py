@@ -37,8 +37,8 @@ class NamedFields(Enum):
     ) -> str:
         return f"{cls.select_query(tables=tables, prefix=True)} WHERE {where_clause}"
 
-    @property
     @abstractmethod
+    @property
     def table(self) -> str:
         pass
 
