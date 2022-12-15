@@ -212,12 +212,12 @@ class TestAlmanac(EntityTest):
             Scenario(
                 name="expired registrations",
                 query=expired_registrations_query,
-                expected=self.expected_registrations[0: last_expired_index + 1],
+                expected=self.expected_registrations[0 : last_expired_index + 1],
             ),
             Scenario(
                 name="active registrations",
                 query=active_registrations_query,
-                expected=self.expected_registrations[last_expired_index + 1:],
+                expected=self.expected_registrations[last_expired_index + 1 :],
             ),
             Scenario(
                 name="all registrations",
