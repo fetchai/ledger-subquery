@@ -183,4 +183,4 @@ class AlmanacContract(LedgerContract):
         )
         super().__init__(contract_path, client)
 
-        self.deploy(self.cfg.to_dict(), admin, store_gas_limit=3000000)
+        self.deploy(self.cfg.to_dict(), admin, store_gas_limit=3000000)  # type: ignore
