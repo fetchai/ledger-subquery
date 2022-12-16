@@ -35,7 +35,7 @@ class AlmanacContractConfig:
 
     @property
     def register_stake_funds(self) -> Union[None, str]:
-        if self.register_stake_amount == "0":
+        if self.register_stake_amount == "0" or self.register_stake_amount is None:
             return None
         return self.register_stake_amount + self.stake_denom
 
@@ -183,4 +183,4 @@ class AlmanacContract(LedgerContract):
         )
         super().__init__(contract_path, client)
 
-        self.deploy(cfg.to_dict(), admin, store_gas_limit=3000000)
+        self.deploy(self.cfg.to_dict(), admin, store_gas_limit=3000000)

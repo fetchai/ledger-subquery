@@ -314,8 +314,7 @@ class Agents(NamedFields):
     id = 0
 
     @classmethod
-    @property
-    def table(self):
+    def get_table(self):
         return "agents"
 
 
@@ -332,8 +331,7 @@ class AlmanacRegistrations(NamedFields):
     #     record_id = 9
 
     @classmethod
-    @property
-    def table(self):
+    def get_table(self):
         return "almanac_registrations"
 
 
@@ -345,6 +343,5 @@ class AlmanacRecords(NamedFields):
     #     event_id = 4
 
     @classmethod
-    @property
-    def table(self):
+    def get_table(self):
         return "almanac_records"

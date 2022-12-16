@@ -1,7 +1,7 @@
 import time
 import unittest
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import graphql
 from cosmpy.aerial.tx_helpers import SubmittedTx
@@ -27,7 +27,7 @@ def sql_by_expiry_height(registration_row: Tuple) -> int:
 class Scenario:
     name: str
     query: graphql.DocumentNode
-    expected: any
+    expected: Any
 
 
 class TestAlmanac(EntityTest):
