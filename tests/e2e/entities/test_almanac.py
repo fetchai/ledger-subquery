@@ -141,7 +141,7 @@ class TestAlmanac(EntityTest):
             record = self.db_cursor.execute(
                 AlmanacRecords.select_where(
                     f"almanac_records.id = '{registration[AlmanacRegistrations.record_id.value]}'",
-                    [AlmanacRecords.table, AlmanacRegistrations.table],
+                    [AlmanacRecords.get_table(), AlmanacRegistrations.get_table()],
                 )
             ).fetchone()
             expected_record = next(
