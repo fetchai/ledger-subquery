@@ -63,7 +63,7 @@ def ensure_contract(
     filename: str,
     token: Optional[str] = None,
     *,
-    version: str = "latest",
+    version: Optional[str] = "latest",
 ) -> str:
     contract_path = f".contract/{filename}"
     if not os.path.exists(".contract"):
