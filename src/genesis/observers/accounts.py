@@ -118,7 +118,8 @@ class AccountsManager(TableManager):
                     ) as copy:
                         for account in accounts:
                             values = (
-                                f"{getattr(account, c)}" for c in self.column_names
+                                f"{getattr(account, c)}"
+                                for c in self.get_column_names()
                             )
                             copy.write_row(values)  # type: ignore
                 except UniqueViolation as e:
