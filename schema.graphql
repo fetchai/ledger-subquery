@@ -176,7 +176,6 @@ type Agent @entity {
   # id is the agent's address
   id: ID!
   almanacRegistrations: [AlmanacRegistration] @derivedFrom(field: "agent")
-#  almanacResolutions: [AlmanacResolution] @derivedFrom(field: "agent")
 }
 
 type AlmanacService @jsonField {
