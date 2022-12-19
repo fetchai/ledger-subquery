@@ -37,7 +37,6 @@ def download_github_release_asset(
     # query the latest information about the release
     release_url = f"{releases_base_url}/{release_id}"
     r = requests.get(release_url, auth=auth)
-    print(f"release_url: {releases_base_url}")
     r.raise_for_status()
 
     # find the release binary
