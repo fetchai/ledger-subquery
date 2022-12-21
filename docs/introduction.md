@@ -208,9 +208,9 @@ query ReleaseVersionTest {
 }
 ```
 
-Each of these version numbers are stored as the value to the key `"version"` within their relevant module `package.json` file. These files can be found in the `docker/node-cosmos/node_modules` and `subql/packages/query/` directories for the Indexer and GraphQL versions, respectively.
-```json
-// The Indexer version number, taken from "docker/node-cosmos/node_modules"
+Each of these version numbers are stored as the value to the key `"version"` within their relevant module `package.json` file. These files can be found in the `docker/node-cosmos/` and `subql/packages/query/` directories for the Indexer and GraphQL versions, respectively.
+```yaml
+// The Indexer version number, taken from "docker/node-cosmos/package.json"
 { 
   "name": "@subql/node-cosmos",
   "version": "1.0.0",
