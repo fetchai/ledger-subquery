@@ -3,9 +3,9 @@ import time
 import unittest
 
 from src.genesis.helpers.field_enums import (
-    ContractFields,
-    InstantiateMessageFields,
-    StoreMessageFields,
+    Contracts,
+    InstantiateContractMessages,
+    StoreContractMessages,
 )
 from tests.helpers.contracts import Cw20Contract
 from tests.helpers.entity_test import EntityTest
@@ -31,36 +31,36 @@ class TestContractDeploy(EntityTest):
         """
         cls.entities = {
             "storeContractMsg": {
-                "query": StoreMessageFields.select_query(),
+                "query": StoreContractMessages.select_query(),
                 "equal": {
-                    StoreMessageFields.sender.value: cls.validator_address,
-                    StoreMessageFields.code_id.value: code_id,
-                    StoreMessageFields.permission.value: None,
+                    StoreContractMessages.sender.value: cls.validator_address,
+                    StoreContractMessages.code_id.value: code_id,
+                    StoreContractMessages.permission.value: None,
                 },
                 "not_null": {},
             },
             "instantiateMsg": {
-                "query": InstantiateMessageFields.select_query(),
+                "query": InstantiateContractMessages.select_query(),
                 "equal": {
-                    InstantiateMessageFields.sender.value: cls.validator_address,
-                    InstantiateMessageFields.code_id.value: code_id,
-                    InstantiateMessageFields.admin.value: "",
-                    InstantiateMessageFields.funds.value: [],
+                    InstantiateContractMessages.sender.value: cls.validator_address,
+                    InstantiateContractMessages.code_id.value: code_id,
+                    InstantiateContractMessages.admin.value: "",
+                    InstantiateContractMessages.funds.value: [],
                 },
                 "not_null": {
-                    InstantiateMessageFields.label.value,
-                    InstantiateMessageFields.payload.value,
+                    InstantiateContractMessages.label.value,
+                    InstantiateContractMessages.payload.value,
                 },
             },
             "contractEntity": {
-                "query": ContractFields.select_query(),
+                "query": Contracts.select_query(),
                 "equal": {
-                    ContractFields.interface.value: "CW20",
-                    ContractFields.id.value: address,
+                    Contracts.interface.value: "CW20",
+                    Contracts.id.value: address,
                 },
                 "not_null": {
-                    ContractFields.instantiate_message_id.value,
-                    ContractFields.store_message_id.value,
+                    Contracts.instantiate_message_id.value,
+                    Contracts.store_message_id.value,
                 },
             },
         }
@@ -146,7 +146,7 @@ class TestContractDeploy(EntityTest):
             {
                 "codeId": {
                     "equalTo": self.entities["storeContractMsg"]["equal"][
-                        StoreMessageFields.code_id.value
+                        StoreContractMessages.code_id.value
                     ]
                 }
             }
@@ -184,7 +184,7 @@ class TestContractDeploy(EntityTest):
                 self.assertEqual(
                     int(transfer[0]["codeId"]),
                     self.entities["storeContractMsg"]["equal"][
-                        StoreMessageFields.code_id.value
+                        StoreContractMessages.code_id.value
                     ],
                     "\nGQLError: code_id does not match",
                 )
@@ -247,7 +247,7 @@ class TestContractDeploy(EntityTest):
             {
                 "codeId": {
                     "equalTo": self.entities["instantiateMsg"]["equal"][
-                        InstantiateMessageFields.code_id.value
+                        InstantiateContractMessages.code_id.value
                     ]
                 }
             }
@@ -303,7 +303,7 @@ class TestContractDeploy(EntityTest):
                 self.assertEqual(
                     int(transfer[0]["codeId"]),
                     self.entities["instantiateMsg"]["equal"][
-                        InstantiateMessageFields.code_id.value
+                        InstantiateContractMessages.code_id.value
                     ],
                     "\nGQLError: contract code_id does not match",
                 )
@@ -391,9 +391,7 @@ class TestContractDeploy(EntityTest):
             {
                 "id": {
                     "equalTo": str(
-                        self.entities["contractEntity"]["equal"][
-                            ContractFields.id.value
-                        ]
+                        self.entities["contractEntity"]["equal"][Contracts.id.value]
                     )
                 }
             }
@@ -422,11 +420,7 @@ class TestContractDeploy(EntityTest):
                 )
                 self.assertEqual(
                     contracts[0]["id"],
-                    str(
-                        self.entities["contractEntity"]["equal"][
-                            ContractFields.id.value
-                        ]
-                    ),
+                    str(self.entities["contractEntity"]["equal"][Contracts.id.value]),
                     "\nGQLError: contract address does not match",
                 )
                 self.assertIsNotNone(

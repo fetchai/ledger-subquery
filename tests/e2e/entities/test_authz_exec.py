@@ -17,11 +17,7 @@ from google.protobuf.any_pb2 import Any
 from google.protobuf.timestamp_pb2 import Timestamp
 from gql import gql
 
-from src.genesis.helpers.field_enums import (
-    AuthzExecFields,
-    AuthzExecMessageFields,
-    MsgFields,
-)
+from src.genesis.helpers.field_enums import AuthzExecMessages, AuthzExecs, Messages
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.regexes import msg_id_regex
 
@@ -114,35 +110,33 @@ class TestAuthzExec(EntityTest):
     def test_exec_delegate(self):
         # query DB for messages, authz_execs, & authz_exec_messages
         messages = self.db_cursor.execute(
-            MsgFields.select_where(
-                f"{MsgFields.type_url.name} = '/cosmos.staking.v1beta1.MsgDelegate'"
+            Messages.select_where(
+                f"{Messages.type_url.name} = '/cosmos.staking.v1beta1.MsgDelegate'"
             )
         ).fetchall()
         self.assertNotEqual(messages, [])
         self.assertEqual(len(messages), 1)
 
-        authz_execs = self.db_cursor.execute(AuthzExecFields.select_query()).fetchall()
+        authz_execs = self.db_cursor.execute(AuthzExecs.select_query()).fetchall()
         self.assertNotEqual(authz_execs, [])
         self.assertEqual(len(authz_execs), 1)
 
         authz_exec_messages = self.db_cursor.execute(
-            AuthzExecMessageFields.select_query()
+            AuthzExecMessages.select_query()
         ).fetchall()
         self.assertNotEqual(authz_exec_messages, [])
         self.assertEqual(len(authz_exec_messages), 1)
 
         for authz_exec in authz_execs:
-            self.assertRegex(authz_exec[AuthzExecFields.id.value], msg_id_regex)
-            self.assertEqual(
-                authz_exec[AuthzExecFields.grantee.value], self.grantee_address
-            )
+            self.assertRegex(authz_exec[AuthzExecs.id.value], msg_id_regex)
+            self.assertEqual(authz_exec[AuthzExecs.grantee.value], self.grantee_address)
 
         for authz_exec_message in authz_exec_messages:
             found_related_message = False
             for message in messages:
                 if (
-                    message[MsgFields.id.value]
-                    == authz_exec_message[AuthzExecFields.message_id.value]
+                    message[Messages.id.value]
+                    == authz_exec_message[AuthzExecs.message_id.value]
                 ):
                     found_related_message = True
                     break

@@ -35,7 +35,7 @@ def process_genesis(db_conn_factory):
     ).observe(genesis.source, scheduler=scheduler)
 
     balances_db_conn = db_conn_factory()
-    NativeBalancesManager(  # noqa: F405
+    GenesisBalancesManager(  # noqa: F405
         balances_db_conn,
         on_error=on_error,
         on_completed=lambda: balances_done.release(),

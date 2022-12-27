@@ -2,7 +2,7 @@ import datetime as dt
 import time
 import unittest
 
-from src.genesis.helpers.field_enums import NativeTransferFields
+from src.genesis.helpers.field_enums import NativeTransfers
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
 from tests.helpers.regexes import block_id_regex, msg_id_regex, tx_id_regex
@@ -30,29 +30,29 @@ class TestNativeTransfer(EntityTest):
 
     def test_native_transfer(self):
         native_transfer = self.db_cursor.execute(
-            NativeTransferFields.select_query()
+            NativeTransfers.select_query()
         ).fetchone()
         self.assertIsNotNone(
             native_transfer,
             "\nDBError: table is empty - maybe indexer did not find an entry?",
         )
         self.assertEqual(
-            native_transfer[NativeTransferFields.amounts.value][0]["amount"],
+            native_transfer[NativeTransfers.amounts.value][0]["amount"],
             str(self.amount),
             "\nDBError: fund amount does not match",
         )
         self.assertEqual(
-            native_transfer[NativeTransferFields.denom.value],
+            native_transfer[NativeTransfers.denom.value],
             self.denom,
             "\nDBError: fund denomination does not match",
         )
         self.assertEqual(
-            native_transfer[NativeTransferFields.to_address.value],
+            native_transfer[NativeTransfers.to_address.value],
             self.delegator_address,
             "\nDBError: swap sender address does not match",
         )
         self.assertEqual(
-            native_transfer[NativeTransferFields.from_address.value],
+            native_transfer[NativeTransfers.from_address.value],
             self.validator_address,
             "\nDBError: sender address does not match",
         )

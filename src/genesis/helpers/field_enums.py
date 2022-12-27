@@ -49,7 +49,7 @@ class NamedFields(Enum):
         return _class_name_to_snake_case(cls.__name__)
 
 
-class BlockFields(NamedFields):
+class Blocks(NamedFields):
     id = 0
     chain_id = 1
     height = 2
@@ -59,8 +59,7 @@ class BlockFields(NamedFields):
     def get_table(cls):
         return "blocks"
 
-
-class TxFields(NamedFields):
+class Transactions(NamedFields):
     id = 0
     block_id = 1
     gas_used = 2
@@ -76,8 +75,7 @@ class TxFields(NamedFields):
     def get_table(cls):
         return "transactions"
 
-
-class MsgFields(NamedFields):
+class Messages(NamedFields):
     id = 0
     transaction_id = 1
     block_id = 2
@@ -88,8 +86,7 @@ class MsgFields(NamedFields):
     def get_table(cls):
         return "messages"
 
-
-class EventFields(NamedFields):
+class Events(NamedFields):
     id = 0
     transaction_id = 1
     block_id = 2
@@ -99,8 +96,7 @@ class EventFields(NamedFields):
     def get_table(cls):
         return "events"
 
-
-class NativeTransferFields(NamedFields):
+class NativeTransfers(NamedFields):
     id = 0
     amounts = 1
     denom = 2
@@ -111,8 +107,7 @@ class NativeTransferFields(NamedFields):
     def get_table(cls):
         return "native_transfers"
 
-
-class StoreMessageFields(NamedFields):
+class StoreContractMessages(NamedFields):
     id = 0
     sender = 1
     permission = 2
@@ -125,8 +120,7 @@ class StoreMessageFields(NamedFields):
     def get_table(cls):
         return "store_contract_messages"
 
-
-class InstantiateMessageFields(NamedFields):
+class InstantiateContractMessages(NamedFields):
     id = 0
     sender = 1
     admin = 2
@@ -142,8 +136,7 @@ class InstantiateMessageFields(NamedFields):
     def get_table(cls):
         return "instantiate_contract_messages"
 
-
-class ContractFields(NamedFields):
+class Contracts(NamedFields):
     id = 0
     interface = 1
     store_message_id = 2
@@ -153,8 +146,7 @@ class ContractFields(NamedFields):
     def get_table(cls):
         return "contracts"
 
-
-class Cw20TransferFields(NamedFields):
+class Cw20Transfers(NamedFields):
     id = 0
     message_id = 1
     transaction_id = 2
@@ -168,8 +160,7 @@ class Cw20TransferFields(NamedFields):
     def get_table(cls):
         return "cw20_transfers"
 
-
-class Cw20BalanceChangeFields(NamedFields):
+class Cw20BalanceChanges(NamedFields):
     id = 0
     balance_offset = 1
     contract_id = 2
@@ -189,7 +180,7 @@ class Cw20BalanceChangeFields(NamedFields):
         return cls.select_where(where_clause=where, tables=tables, prefix=True)
 
 
-class LegacyBridgeSwapFields(NamedFields):
+class LegacyBridgeSwaps(NamedFields):
     id = 0
     message_id = 1
     transaction_id = 2
@@ -203,8 +194,7 @@ class LegacyBridgeSwapFields(NamedFields):
     def get_table(cls):
         return "legacy_bridge_swaps"
 
-
-class GovProposalVoteFields(NamedFields):
+class GovProposalVotes(NamedFields):
     id = 0
     message_id = 1
     transaction_id = 2
@@ -217,8 +207,7 @@ class GovProposalVoteFields(NamedFields):
     def get_table(cls):
         return "gov_proposal_votes"
 
-
-class ExecuteContractMessageFields(NamedFields):
+class ExecuteContractMessages(NamedFields):
     id = 0
     message_id = 1
     transaction_id = 2
@@ -231,8 +220,7 @@ class ExecuteContractMessageFields(NamedFields):
     def get_table(cls):
         return "execute_contract_messages"
 
-
-class DistDelegatorClaimFields(NamedFields):
+class DistDelegatorClaims(NamedFields):
     id = 0
     message_id = 1
     transaction_id = 2
@@ -246,8 +234,7 @@ class DistDelegatorClaimFields(NamedFields):
     def get_table(cls):
         return "dist_delegator_claims"
 
-
-class NativeBalanceChangeFields(NamedFields):
+class NativeBalanceChanges(NamedFields):
     id = 0
     balance_offset = 1
     denom = 2
@@ -269,8 +256,7 @@ class Accounts(NamedFields):
     def get_table(cls):
         return "accounts"
 
-
-class NativeBalances(NamedFields):
+class GenesisBalances(NamedFields):
     id = 0
     account_id = 1
     amount = 2
@@ -280,8 +266,7 @@ class NativeBalances(NamedFields):
     def get_table(cls):
         return "genesis_balances"
 
-
-class IBCTransferFields(NamedFields):
+class IBCTransfers(NamedFields):
     id = 0
     to_address = 1
     from_address = 2
@@ -299,7 +284,7 @@ class IBCTransferFields(NamedFields):
         return "ibc_transfers"
 
 
-class AuthzExecFields(NamedFields):
+class AuthzExecs(NamedFields):
     id = 0
     grantee = 1
     message_id = 2
@@ -310,8 +295,7 @@ class AuthzExecFields(NamedFields):
     def get_table(cls):
         return "authz_execs"
 
-
-class AuthzExecMessageFields(NamedFields):
+class AuthzExecMessages(NamedFields):
     id = 0
     authz_exec_id = 1
     message_id = 2

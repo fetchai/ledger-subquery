@@ -3,7 +3,7 @@ import json
 import time
 import unittest
 
-from src.genesis.helpers.field_enums import ExecuteContractMessageFields
+from src.genesis.helpers.field_enums import ExecuteContractMessages
 from tests.helpers.contracts import BridgeContract, DefaultBridgeContractConfig
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
@@ -41,28 +41,28 @@ class TestContractExecution(EntityTest):
         self,
     ):
         executes = self.db_cursor.execute(
-            ExecuteContractMessageFields.select_query()
+            ExecuteContractMessages.select_query()
         ).fetchone()
         self.assertIsNotNone(
             executes, "\nDBError: table is empty - maybe indexer did not find an entry?"
         )
         self.assertEqual(
-            executes[ExecuteContractMessageFields.contract_id.value],
+            executes[ExecuteContractMessages.contract_id.value],
             self._contract.address,
             "\nDBError: contract address does not match",
         )
         self.assertEqual(
-            executes[ExecuteContractMessageFields.method.value],
+            executes[ExecuteContractMessages.method.value],
             self.method,
             "\nDBError: contract method does not match",
         )
         self.assertEqual(
-            executes[ExecuteContractMessageFields.funds.value][0]["amount"],
+            executes[ExecuteContractMessages.funds.value][0]["amount"],
             self.amount,
             "\nDBError: fund amount does not match",
         )
         self.assertEqual(
-            executes[ExecuteContractMessageFields.funds.value][0]["denom"],
+            executes[ExecuteContractMessages.funds.value][0]["denom"],
             self.denom,
             "\nDBError: fund denomination does not match",
         )

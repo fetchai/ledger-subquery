@@ -8,10 +8,10 @@ import pytest
 from reactivex.scheduler import ThreadPoolScheduler
 
 from src.genesis.genesis import Genesis
-from src.genesis.helpers.field_enums import NativeBalances
+from src.genesis.helpers.field_enums import GenesisBalances
 from src.genesis.observers import (
-    NativeBalancesManager,
-    NativeBalancesObserver,
+    GenesisBalancesManager,
+    GenesisBalancesObserver,
     native_balances_keys_path,
 )
 from src.genesis.state import Balance, Coin
@@ -36,7 +36,7 @@ class TestNativeBalanceObserver(TestWithDBConn):
             nonlocal completed
             completed = True
 
-        test_balance_observer = NativeBalancesObserver(
+        test_balance_observer = GenesisBalancesObserver(
             on_next=on_next, on_completed=on_completed
         )
         test_balance_observer.subscribe_to(test_genesis.source)
@@ -77,7 +77,7 @@ class TestBalanceManager(TestWithDBConn):
             self.check_balances(expected_balances, actual_balances)
             lock.release()
 
-        test_manager = NativeBalancesManager(self.db_conn, on_completed=on_completed)
+        test_manager = GenesisBalancesManager(self.db_conn, on_completed=on_completed)
         test_manager.observe(Genesis(**test_genesis_data).source, scheduler=scheduler)
 
         # Lock returns false if times-out
@@ -91,13 +91,13 @@ class TestBalanceManager(TestWithDBConn):
                 balance = Balance(**{"address": address})
 
                 for row in db.execute(
-                    NativeBalances.select_where(f"account_id = '{address}'")
+                    GenesisBalances.select_where(f"account_id = '{address}'")
                 ).fetchall():
                     balance.coins.append(
                         Coin(
                             **{
-                                "amount": int(row[NativeBalances.amount.value]),
-                                "denom": row[NativeBalances.denom.value],
+                                "amount": int(row[GenesisBalances.amount.value]),
+                                "denom": row[GenesisBalances.denom.value],
                             }
                         )
                     )
@@ -141,11 +141,11 @@ class TestBalanceManager(TestWithDBConn):
         duplicate_message = "Duplicate balance occurred"
 
         # Insert first set of balances to DB
-        test_manager = NativeBalancesManager(self.db_conn)
+        test_manager = GenesisBalancesManager(self.db_conn)
         test_manager.observe(Genesis(**test_genesis_data).source)
 
         # Try to insert same set again
-        second_test_manager = NativeBalancesManager(self.db_conn)
+        second_test_manager = GenesisBalancesManager(self.db_conn)
         second_test_manager.observe(Genesis(**test_genesis_data).source)
 
         n_min_calls = 4
@@ -174,11 +174,11 @@ class TestBalanceManager(TestWithDBConn):
         ] = current_bank_state_balances
 
         # Insert first set of balances to DB
-        test_manager = NativeBalancesManager(self.db_conn)
+        test_manager = GenesisBalancesManager(self.db_conn)
         test_manager.observe(Genesis(**test_genesis_data).source)
 
         # Insert duplicate entry with different balance
-        test_manager = NativeBalancesManager(self.db_conn)
+        test_manager = GenesisBalancesManager(self.db_conn)
 
         with pytest.raises(RuntimeError) as e:
             test_manager.observe(Genesis(**current_test_genesis_data).source)

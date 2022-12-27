@@ -2,7 +2,7 @@ import datetime as dt
 import time
 import unittest
 
-from src.genesis.helpers.field_enums import Cw20BalanceChangeFields
+from src.genesis.helpers.field_enums import Cw20BalanceChanges
 from tests.helpers.contracts import Cw20Contract
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
@@ -68,7 +68,7 @@ class TestCw20BalanceChange(EntityTest):
     def test_execute_balance_change(self):
         for method in list(self.methods.keys()):
             changes = self.db_cursor.execute(
-                Cw20BalanceChangeFields.by_execute_contract_method(str(method))
+                Cw20BalanceChanges.by_execute_contract_method(str(method))
             ).fetchall()
             entry = self.methods[method]
             """Due to differences in structure of each tabled test case, self.assertIn checks if the entry is in
@@ -79,17 +79,17 @@ class TestCw20BalanceChange(EntityTest):
                     "\nDBError: table is empty - maybe indexer did not find an entry?",
                 )
                 self.assertIn(
-                    query[Cw20BalanceChangeFields.balance_offset.value],
+                    query[Cw20BalanceChanges.balance_offset.value],
                     entry["balance_offset"],
                     "\nDBError: balance offset does not match",
                 )
                 self.assertEqual(
-                    query[Cw20BalanceChangeFields.contract_id.value],
+                    query[Cw20BalanceChanges.contract_id.value],
                     entry["contract"],
                     "\nDBError: contract address does not match",
                 )
                 self.assertIn(
-                    query[Cw20BalanceChangeFields.account_id.value],
+                    query[Cw20BalanceChanges.account_id.value],
                     entry["account_id"],
                     "\nDBError: account id amount does not match",
                 )

@@ -3,12 +3,12 @@ import unittest
 
 from gql import gql
 
-from src.genesis.helpers.field_enums import NativeBalanceChangeFields
+from src.genesis.helpers.field_enums import NativeBalanceChanges
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
 
 
-class TestNativeBalances(EntityTest):
+class TestGenesisBalances(EntityTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -36,9 +36,7 @@ class TestNativeBalances(EntityTest):
         time.sleep(5)
 
     def test_account_balance_tracking_db(self):
-        events = self.db_cursor.execute(
-            NativeBalanceChangeFields.select_query()
-        ).fetchall()
+        events = self.db_cursor.execute(NativeBalanceChanges.select_query()).fetchall()
         self.assertGreater(len(events), 0)
 
         total = {
@@ -49,19 +47,19 @@ class TestNativeBalances(EntityTest):
         for event in events:
             self.assertTrue(
                 (
-                    event[NativeBalanceChangeFields.account_id.value]
+                    event[NativeBalanceChanges.account_id.value]
                     == self.validator_wallet.address()
-                    or event[NativeBalanceChangeFields.account_id.value]
+                    or event[NativeBalanceChanges.account_id.value]
                     == self.delegator_wallet.address()
                 )
             )
             self.assertNotEqual(
-                int(event[NativeBalanceChangeFields.balance_offset.value]), 0
+                int(event[NativeBalanceChanges.balance_offset.value]), 0
             )
-            self.assertEqual(event[NativeBalanceChangeFields.denom.value], "atestfet")
+            self.assertEqual(event[NativeBalanceChanges.denom.value], "atestfet")
 
-            total[event[NativeBalanceChangeFields.account_id.value]] += event[
-                NativeBalanceChangeFields.balance_offset.value
+            total[event[NativeBalanceChanges.account_id.value]] += event[
+                NativeBalanceChanges.balance_offset.value
             ]
 
         # TODO: Represent variable fees in more robust way

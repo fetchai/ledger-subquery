@@ -2,7 +2,7 @@ import datetime as dt
 import time
 import unittest
 
-from src.genesis.helpers.field_enums import Cw20TransferFields
+from src.genesis.helpers.field_enums import Cw20Transfers
 from tests.helpers.contracts import Cw20Contract
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
@@ -34,27 +34,27 @@ class TestCw20Transfer(EntityTest):
         time.sleep(5)
 
     def test_execute_transfer(self):
-        transfer = self.db_cursor.execute(Cw20TransferFields.select_query()).fetchone()
+        transfer = self.db_cursor.execute(Cw20Transfers.select_query()).fetchone()
         self.assertIsNotNone(
             transfer, "\nDBError: table is empty - maybe indexer did not find an entry?"
         )
         self.assertEqual(
-            transfer[Cw20TransferFields.to_address.value],
+            transfer[Cw20Transfers.to_address.value],
             self.delegator_address,
             "\nDBError: transfer recipient address does not match",
         )
         self.assertEqual(
-            transfer[Cw20TransferFields.contract_id.value],
+            transfer[Cw20Transfers.contract_id.value],
             self._contract.address,
             "\nDBError: contract address does not match",
         )
         self.assertEqual(
-            transfer[Cw20TransferFields.amount.value],
+            transfer[Cw20Transfers.amount.value],
             self.amount,
             "\nDBError: fund amount does not match",
         )
         self.assertEqual(
-            transfer[Cw20TransferFields.from_address.value],
+            transfer[Cw20Transfers.from_address.value],
             self.validator_address,
             "\nDBError: transfer sender address does not match",
         )
