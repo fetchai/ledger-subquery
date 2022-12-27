@@ -55,9 +55,6 @@ class Blocks(NamedFields):
     height = 2
     timestamp = 3
 
-    @classmethod
-    def get_table(cls):
-        return "blocks"
 
 class Transactions(NamedFields):
     id = 0
@@ -71,9 +68,6 @@ class Transactions(NamedFields):
     timeout_height = 8
     signer_address = 9
 
-    @classmethod
-    def get_table(cls):
-        return "transactions"
 
 class Messages(NamedFields):
     id = 0
@@ -82,9 +76,6 @@ class Messages(NamedFields):
     type_url = 3
     json = 4
 
-    @classmethod
-    def get_table(cls):
-        return "messages"
 
 class Events(NamedFields):
     id = 0
@@ -92,9 +83,6 @@ class Events(NamedFields):
     block_id = 2
     type = 3
 
-    @classmethod
-    def get_table(cls):
-        return "events"
 
 class NativeTransfers(NamedFields):
     id = 0
@@ -103,9 +91,6 @@ class NativeTransfers(NamedFields):
     to_address = 3
     from_address = 4
 
-    @classmethod
-    def get_table(cls):
-        return "native_transfers"
 
 class StoreContractMessages(NamedFields):
     id = 0
@@ -116,9 +101,6 @@ class StoreContractMessages(NamedFields):
     transaction_id = 5
     block_id = 6
 
-    @classmethod
-    def get_table(cls):
-        return "store_contract_messages"
 
 class InstantiateContractMessages(NamedFields):
     id = 0
@@ -132,9 +114,6 @@ class InstantiateContractMessages(NamedFields):
     transaction_id = 8
     block_id = 9
 
-    @classmethod
-    def get_table(cls):
-        return "instantiate_contract_messages"
 
 class Contracts(NamedFields):
     id = 0
@@ -142,9 +121,6 @@ class Contracts(NamedFields):
     store_message_id = 2
     instantiate_message_id = 3
 
-    @classmethod
-    def get_table(cls):
-        return "contracts"
 
 class Cw20Transfers(NamedFields):
     id = 0
@@ -156,9 +132,6 @@ class Cw20Transfers(NamedFields):
     from_address = 6
     contract_id = 7
 
-    @classmethod
-    def get_table(cls):
-        return "cw20_transfers"
 
 class Cw20BalanceChanges(NamedFields):
     id = 0
@@ -168,10 +141,6 @@ class Cw20BalanceChanges(NamedFields):
     event_id = 4
     transaction_id = 5
     block_id = 6
-
-    @classmethod
-    def get_table(cls):
-        return "cw20_balance_changes"
 
     @classmethod
     def by_execute_contract_method(cls, method):
@@ -190,9 +159,6 @@ class LegacyBridgeSwaps(NamedFields):
     denom = 6
     contract_id = 7
 
-    @classmethod
-    def get_table(cls):
-        return "legacy_bridge_swaps"
 
 class GovProposalVotes(NamedFields):
     id = 0
@@ -203,9 +169,6 @@ class GovProposalVotes(NamedFields):
     voter_address = 5
     option = 6
 
-    @classmethod
-    def get_table(cls):
-        return "gov_proposal_votes"
 
 class ExecuteContractMessages(NamedFields):
     id = 0
@@ -216,9 +179,6 @@ class ExecuteContractMessages(NamedFields):
     method = 5
     funds = 6
 
-    @classmethod
-    def get_table(cls):
-        return "execute_contract_messages"
 
 class DistDelegatorClaims(NamedFields):
     id = 0
@@ -230,9 +190,6 @@ class DistDelegatorClaims(NamedFields):
     amount = 6
     denom = 7
 
-    @classmethod
-    def get_table(cls):
-        return "dist_delegator_claims"
 
 class NativeBalanceChanges(NamedFields):
     id = 0
@@ -243,18 +200,11 @@ class NativeBalanceChanges(NamedFields):
     transaction_id = 5
     block_id = 6
 
-    @classmethod
-    def get_table(cls):
-        return "native_balance_changes"
-
 
 class Accounts(NamedFields):
     id = 0
     chain_id = 1
 
-    @classmethod
-    def get_table(cls):
-        return "accounts"
 
 class GenesisBalances(NamedFields):
     id = 0
@@ -262,9 +212,6 @@ class GenesisBalances(NamedFields):
     amount = 2
     denom = 3
 
-    @classmethod
-    def get_table(cls):
-        return "genesis_balances"
 
 class IBCTransfers(NamedFields):
     id = 0
@@ -291,26 +238,15 @@ class AuthzExecs(NamedFields):
     transaction_id = 3
     block_id = 4
 
-    @classmethod
-    def get_table(cls):
-        return "authz_execs"
 
 class AuthzExecMessages(NamedFields):
     id = 0
     authz_exec_id = 1
     message_id = 2
 
-    @classmethod
-    def get_table(cls):
-        return "authz_exec_messages"
-
 
 class Agents(NamedFields):
     id = 0
-
-    @classmethod
-    def get_table(self):
-        return "agents"
 
 
 class AlmanacRegistrations(NamedFields):
@@ -325,10 +261,6 @@ class AlmanacRegistrations(NamedFields):
     #     event_id = 8
     #     record_id = 9
 
-    @classmethod
-    def get_table(self):
-        return "almanac_registrations"
-
 
 class AlmanacRecords(NamedFields):
     id = 0
@@ -336,7 +268,3 @@ class AlmanacRecords(NamedFields):
     transaction_id = 2
     block_id = 3
     #     event_id = 4
-
-    @classmethod
-    def get_table(self):
-        return "almanac_records"
