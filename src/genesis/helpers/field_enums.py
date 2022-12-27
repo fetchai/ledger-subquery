@@ -1,6 +1,17 @@
-from abc import abstractmethod
 from enum import Enum
 from typing import List, Optional
+
+
+def _class_name_to_snake_case(input_: str) -> str:
+    output = [input_[0].lower()]
+    for char in input_[1:]:
+        if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            output.append("_")
+            output.append(char.lower())
+        else:
+            output.append(char)
+
+    return "".join(output)
 
 
 class NamedFields(Enum):
@@ -33,9 +44,9 @@ class NamedFields(Enum):
         return f"{cls.select_query(tables=tables, prefix=True)} WHERE {where_clause}"
 
     @classmethod
-    @abstractmethod
     def get_table(cls):
-        pass
+        # NB: lower_snake_case of class name must match table name
+        return _class_name_to_snake_case(cls.__name__)
 
 
 class BlockFields(NamedFields):
