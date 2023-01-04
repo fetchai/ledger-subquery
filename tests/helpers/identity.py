@@ -8,12 +8,19 @@ import ecdsa
 
 def _decode_bech32(value: str) -> Tuple[str, bytes]:
     prefix, data_base5 = bech32.bech32_decode(value)
-    data = bytes(bech32.convertbits(data_base5, 5, 8, False))
+    assert data_base5
+
+    res = bech32.convertbits(data_base5, 5, 8, False)
+    assert res
+    data = bytes(res)
+
+    assert prefix
     return prefix, data
 
 
 def _encode_bech32(prefix: str, value: bytes) -> str:
     value_base5 = bech32.convertbits(value, 8, 5)
+    assert value_base5
     return bech32.bech32_encode(prefix, value_base5)
 
 
