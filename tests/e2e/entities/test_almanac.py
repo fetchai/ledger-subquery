@@ -12,7 +12,7 @@ from tests.helpers.contracts import AlmanacContract, DefaultAlmanacContractConfi
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
 from tests.helpers.regexes import block_id_regex, msg_id_regex, tx_id_regex
-from uagents.src.nexus.crypto import Identity
+from tests.helpers.identity import Identity
 
 
 def gql_by_expiry_height(registration_node: Dict) -> int:
