@@ -192,6 +192,13 @@ type AlmanacRecord @entity {
   block: Block!
 }
 
+type AlmanacResolution @entity {
+  id: ID!
+  agent: Agent!
+  contract: Contract!
+  record: AlmanacRecord!
+}
+
 type AlmanacRegistration @entity {
   id: ID!
   expiryHeight: BigInt! @index
@@ -253,6 +260,7 @@ enum Interface {
   Uncertain,
   CW20,
   LegacyBridgeSwap,
+  MicroAgentAlmanac,
 }
 
 enum AccessType {

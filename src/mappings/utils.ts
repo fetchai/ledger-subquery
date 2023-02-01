@@ -2,6 +2,10 @@ import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction} from "@subql
 import {Account, Interface, UnprocessedEntity} from "../types";
 import {createHash} from "crypto";
 import {Attribute} from "@cosmjs/stargate/build/logs";
+import {LegacyBridgeSwapStructure} from "./wasm/contracts/bridge";
+import {CW20Structure} from "./wasm/contracts/cw20";
+import {BaseStructure} from "./wasm/contracts/base";
+import {MicroAgentAlmanacStructure} from "./wasm/contracts/almanac";
 
 export type Primitive = CosmosEvent | CosmosMessage | CosmosTransaction | CosmosBlock;
 
@@ -27,9 +31,10 @@ export async function checkBalancesAccount(address: string, chainId: string) {
 }
 
 export function getJaccardResult(payload: object): Interface {
-  let prediction = Structure, prediction_coefficient = 0.5;   // prediction coefficient can be set as a minimum threshold for the certainty of an output
+  let prediction = BaseStructure, prediction_coefficient = 0.5;   // prediction coefficient can be set as a minimum threshold for the certainty of an output
   let diff = 0, match = 0, coefficient = 0;                   // where coefficient of 1 is a perfect property key match, 2 is a perfect match of property and type
-  const structs = [CW20Structure, LegacyBridgeSwapStructure];
+  // TODO: refactor
+  const structs = [CW20Structure, LegacyBridgeSwapStructure, MicroAgentAlmanacStructure];
   structs.forEach((struct) => {
     Object.keys(payload).forEach((payload_key) => {
       if (struct.listProperties().some((prop) => prop === payload_key)) { // If payload property exists as a property within current structure
@@ -113,60 +118,6 @@ export async function trackUnprocessed(error: Error, primitives: Primitives): Pr
   } catch {
     logger.error("[trackUnprocessable] (ERROR): unable to persist unprocessable entity");
     logger.error(`[trackUnprocessable] (ERROR | stack): ${error.stack}`);
-  }
-}
-
-class Structure {
-  static getInterface() {
-    return Interface.Uncertain;
-  }
-}
-
-class CW20Structure extends Structure {
-  private name = "";
-  private symbol = "";
-  private decimals = 0;
-  private initial_balances: [{ amount: bigint, address: string }] = [{amount: BigInt(0), address: ""}];
-  private mint: { minter: string } = {minter: ""};
-
-  static listProperties() {
-    const a = new CW20Structure();
-    return Object.getOwnPropertyNames(a);
-  }
-
-  static getPropertyType(prop: string) {
-    const a = new CW20Structure();
-    return typeof (a[prop]);
-  }
-
-  static getInterface() {
-    return Interface.CW20;
-  }
-}
-
-class LegacyBridgeSwapStructure extends Structure {
-  private cap = BigInt(0);
-  private reverse_aggregated_allowance = BigInt(0);
-  private reverse_aggregated_allowance_approver_cap = BigInt(0);
-  private lower_swap_limit = BigInt(0);
-  private upper_swap_limit = BigInt(0);
-  private swap_fee = BigInt(0);
-  private paused_since_block = BigInt(0);
-  private denom = "";
-  private next_swap_id = "";
-
-  static listProperties() {
-    const a = new LegacyBridgeSwapStructure();
-    return Object.getOwnPropertyNames(a);
-  }
-
-  static getPropertyType(prop: string) {
-    const a = new LegacyBridgeSwapStructure();
-    return typeof (a[prop]);
-  }
-
-  static getInterface() {
-    return Interface.LegacyBridgeSwap;
   }
 }
 

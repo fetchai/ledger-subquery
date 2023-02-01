@@ -10,6 +10,7 @@ import {
 } from "./utils";
 import {createHash} from "crypto";
 import {toBech32} from "@cosmjs/encoding";
+import {expireAlmanacResolutionsRelativeToHeight} from "./almanac/resolutions";
 
 export async function handleBlock(block: CosmosBlock): Promise<void> {
   await attemptHandling(block, _handleBlock, _handleBlockError);
@@ -30,16 +31,18 @@ export async function handleEvent(event: CosmosEvent): Promise<void> {
 async function _handleBlock(block: CosmosBlock): Promise<void> {
   logger.info(`[handleBlock] (block.header.height): indexing block ${block.block.header.height}`);
 
-  const {id, header: {chainId, height, time}} = block.block;
+  const {id, header: {chainId, height: _height, time}} = block.block;
   const timestamp = new Date(time);
+  const height = BigInt(_height);
   const blockEntity = Block.create({
     id,
     chainId,
-    height: BigInt(height),
+    height,
     timestamp
   });
 
   await blockEntity.save();
+  await expireAlmanacResolutionsRelativeToHeight(height);
 }
 
 async function _handleTransaction(tx: CosmosTransaction): Promise<void> {

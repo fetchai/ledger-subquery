@@ -396,6 +396,9 @@ group by
     }
     getStore() {
         return {
+            selectRaw: async(query) => {
+                return this.sequelize.query(query, {raw: true, type: sequelize_1.QueryTypes.SELECT});
+            },
             get: async (entity, id) => {
                 const model = this.sequelize.model(entity);
                 (0, assert_1.default)(model, `model ${entity} not exists`);

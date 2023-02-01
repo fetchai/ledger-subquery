@@ -7,6 +7,7 @@ import {
 } from "../utils";
 import {CosmosEvent} from "@subql/types-cosmos";
 import {Agent, AlmanacRecord, AlmanacRegistration, Contract} from "../../types";
+import {cacheAlmanacResolution} from "./resolutions";
 
 export async function handleAlmanacRegistration(event: CosmosEvent): Promise<void> {
   await attemptHandling(event, _handleAlmanacRegistration, unprocessedEventHandler);
@@ -107,4 +108,5 @@ async function _handleAlmanacRegistration(event: CosmosEvent): Promise<void> {
     blockId: event.block.block.id,
   });
   await registrationEntity.save();
+  await cacheAlmanacResolution(_contract_address, agent_address, recordEntity);
 }

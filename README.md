@@ -7,51 +7,66 @@ This is the Fetch ledger SubQuery project, an indexer for the Fetch network.
 
 ## Getting Started
 
-### 1. Ensure submodules are updated
+1. **Ensure submodules are updated**
 
-```shell
-git submodule update --init --recursive
-```
+   ```shell
+   git submodule update --init --recursive
+   ```
 
-### 2. Install dependencies
+1. Install dependencies
 
-```shell
-yarn
+   ```shell
+   yarn
 
-# install submodule dependencies
-(cd ./subql && yarn)
-```
+   # install submodule dependencies
+   (cd ./subql && yarn)
+   ```
 
-### 3. Generate types
+1. Link local (non-workspace) dependencies
 
-```shell
-yarn codegen
-```
+   ```shell
+   # register non-workspace package for linking
+   (cd ./docker/types-cosmos && yarn link)
+   
+   # link to repo package (ledger-subquery)
+   yarn link @subql/types-cosmos
+   ```
+   
+1. Generate types
 
-### 4. Build
+   ```shell
+   yarn codegen
+   ```
 
-```shell
-yarn build
+1. Build
 
-# build submodule
-(cd ./subql && yarn build)
-```
+   ```shell
+   yarn build
 
-### 5. Run locally
+   # build submodule
+   (cd ./subql && yarn build)
+   ```
 
-```shell
-yarn start:docker
-```
+1. Run locally
+
+   ```shell
+   yarn start:docker
+   ```
 
 ## End-to-end Testing
 
-### 1. Install dependencies
+### Installing python dependencies
 
 ```shell
-pipenv install
+# ensure pipenv is installed
+pip install --user pipenv
+# (see: https://pipenv.pypa.io/en/latest/index.html)
+
+# ensure local dependencies match Pipfile.lock
+pipenv sync --dev
 ```
 
-### 2. Run e2e tests
+### Run e2e tests
 
 _Note: end-to-end tests will truncate tables in the DB and interact with the configured fetchd node._
 

@@ -40,6 +40,7 @@ services:
       - ./:/app
       - ./docker/node-cosmos/package.json:/usr/local/lib/node_modules/@subql/node-cosmos/package.json
       - ./docker/node-cosmos:/usr/local/lib/node_modules/@subql/node-cosmos
+      - ./docker/types-cosmos:/usr/local/lib/node_modules/@subql/node-cosmos/node_modules/@subql/types-cosmos
       - ./subql/packages/common:/usr/local/lib/node_modules/@subql/node-cosmos/node_modules/@subql/common
     command:
       - -f=/app

@@ -324,15 +324,27 @@ class AlmanacRegistrations(NamedFields):
     signature = 2
     sequence = 3
     agent_id = 4
-    record_id = 5
-    transaction_id = 6
-    block_id = 7
-    #     event_id = 8
-    #     record_id = 9
+    contract_id = 5
+    record_id = 6
+    transaction_id = 7
+    block_id = 8
+    # event_id = 9
+    # record_id = 10
 
     @classmethod
     def get_table(self):
         return "almanac_registrations"
+
+
+class AlmanacResolutions(NamedFields):
+    id = 0
+    agent_id = 1
+    contract_id = 2
+    record_id = 3
+
+    @classmethod
+    def get_table(self):
+        return "almanac_resolutions"
 
 
 class AlmanacRecords(NamedFields):
@@ -340,7 +352,7 @@ class AlmanacRecords(NamedFields):
     service = 1
     transaction_id = 2
     block_id = 3
-    #     event_id = 4
+    # event_id = 4
 
     @classmethod
     def get_table(self):
