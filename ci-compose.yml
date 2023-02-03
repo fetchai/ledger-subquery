@@ -2,11 +2,9 @@ version: "3"
 
 services:
   postgres:
-    image: gcr.io/fetch-ai-images/subquery-postgres:863ce7d
+    image: bryanchriswhite/ledger-subquery-postgres:latest
     ports:
       - 5432:5432
-    volumes:
-      - .data/postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: "subquery"
       POSTGRES_PASSWORD: "subquery"
