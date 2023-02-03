@@ -9,7 +9,7 @@ from cosmpy.protos.cosmos.gov.v1beta1 import gov_pb2
 from cosmpy.protos.cosmos.gov.v1beta1 import tx_pb2 as gov_tx
 from google.protobuf import any_pb2
 
-from src.genesis.helpers.field_enums import GovProposalVoteFields
+from src.genesis.helpers.field_enums import GovProposalVotes
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
 
@@ -74,17 +74,17 @@ class TestGovernance(EntityTest):
         time.sleep(5)
 
     def test_proposal_vote(self):
-        vote = self.db_cursor.execute(GovProposalVoteFields.select_query()).fetchone()
+        vote = self.db_cursor.execute(GovProposalVotes.select_query()).fetchone()
         self.assertIsNotNone(
             vote, "\nDBError: table is empty - maybe indexer did not find an entry?"
         )
         self.assertEqual(
-            vote[GovProposalVoteFields.voter_address.value],
+            vote[GovProposalVotes.voter_address.value],
             self.validator_address,
             "\nDBError: voter address does not match",
         )
         self.assertEqual(
-            vote[GovProposalVoteFields.option.value],
+            vote[GovProposalVotes.option.value],
             self.option,
             "\nDBError: voter option does not match",
         )

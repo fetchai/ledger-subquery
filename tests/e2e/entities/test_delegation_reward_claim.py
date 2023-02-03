@@ -3,7 +3,7 @@ import re
 import time
 import unittest
 
-from src.genesis.helpers.field_enums import DistDelegatorClaimFields
+from src.genesis.helpers.field_enums import DistDelegatorClaims
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
 from tests.helpers.regexes import block_id_regex, msg_id_regex, tx_id_regex
@@ -39,17 +39,17 @@ class TestDelegation(EntityTest):
         time.sleep(5)
 
     def test_claim_rewards(self):
-        row = self.db_cursor.execute(DistDelegatorClaimFields.select_query()).fetchone()
+        row = self.db_cursor.execute(DistDelegatorClaims.select_query()).fetchone()
         self.assertIsNotNone(
             row, "\nDBError: table is empty - maybe indexer did not find an entry?"
         )
         self.assertEqual(
-            row[DistDelegatorClaimFields.delegator_address.value],
+            row[DistDelegatorClaims.delegator_address.value],
             self.validator_address,
             "\nDBError: delegation address does not match",
         )
         self.assertEqual(
-            row[DistDelegatorClaimFields.validator_address.value],
+            row[DistDelegatorClaims.validator_address.value],
             self.validator_operator_address,
             "\nDBError: delegation address does not match",
         )

@@ -4,12 +4,7 @@ import unittest
 
 from gql import gql
 
-from src.genesis.helpers.field_enums import (
-    BlockFields,
-    EventFields,
-    MsgFields,
-    TxFields,
-)
+from src.genesis.helpers.field_enums import Blocks, Events, Messages, Transactions
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
 from tests.helpers.regexes import (
@@ -58,7 +53,7 @@ class TestNativePrimitives(EntityTest):
         time.sleep(5)
 
     def test_blocks(self):
-        blocks = self.db_cursor.execute(BlockFields.select_query()).fetchall()
+        blocks = self.db_cursor.execute(Blocks.select_query()).fetchall()
         self.assertNotEqual(
             blocks,
             [],
@@ -69,13 +64,13 @@ class TestNativePrimitives(EntityTest):
         for block in blocks:
             # NB: continually increments while test run
             self.assertGreaterEqual(len(blocks), 2)
-            self.assertRegex(block[BlockFields.id.value], block_id_regex)
+            self.assertRegex(block[Blocks.id.value], block_id_regex)
             # TODO: expect proper chainId
-            self.assertNotEqual(block[BlockFields.chain_id.value], "")
-            self.assertTrue(block[BlockFields.height.value] > 0)
+            self.assertNotEqual(block[Blocks.chain_id.value], "")
+            self.assertTrue(block[Blocks.height.value] > 0)
             # TODO: assert timestamp within last 5 min
             # TODO: timestamp is a number
-            self.assertNotEqual(block[BlockFields.timestamp.value], "")
+            self.assertNotEqual(block[Blocks.timestamp.value], "")
 
     def test_blocks_query(self):
         query = gql(
@@ -106,26 +101,25 @@ class TestNativePrimitives(EntityTest):
             self.assertNotEqual(block["timestamp"], "")
 
     def test_transactions(self):
-        txs = self.db_cursor.execute(TxFields.select_query()).fetchall()
+        txs = self.db_cursor.execute(Transactions.select_query()).fetchall()
         self.assertEqual(len(txs), self.expected_txs_len)
         for tx in txs:
-            self.assertRegex(tx[TxFields.id.value], tx_id_regex)
-            self.assertTrue(len(tx[TxFields.block_id.value]) == 64)
-            self.assertGreater(tx[TxFields.gas_used.value], 0)
-            self.assertGreater(tx[TxFields.gas_wanted.value], 0)
-            tx_signer_address = tx[TxFields.signer_address.value]
+            self.assertTrue(len(tx[Transactions.block_id.value]) == 64)
+            self.assertGreater(tx[Transactions.gas_used.value], 0)
+            self.assertGreater(tx[Transactions.gas_wanted.value], 0)
+            tx_signer_address = tx[Transactions.signer_address.value]
             self.assertTrue(
                 tx_signer_address == self.validator_address
                 or tx_signer_address == self.delegator_address
             )
 
-            fees = tx[TxFields.fees.value]
+            fees = tx[Transactions.fees.value]
             self.assertEqual(len(fees), 1)
             self.assertEqual(fees[0]["denom"], self.denom)
             self.assertGreater(int(fees[0]["amount"]), 0)
-            self.assertEqual(tx[TxFields.memo.value], "")
-            self.assertEqual(tx[TxFields.status.value], "Success")
-            self.assertNotEqual(tx[TxFields.log.value], "")
+            self.assertEqual(tx[Transactions.memo.value], "")
+            self.assertEqual(tx[Transactions.status.value], "Success")
+            self.assertNotEqual(tx[Transactions.log.value], "")
 
     def test_transactions_query(self):
         query = gql(
@@ -165,14 +159,14 @@ class TestNativePrimitives(EntityTest):
             # TODO: fees
 
     def test_messages(self):
-        msgs = self.db_cursor.execute(MsgFields.select_query()).fetchall()
+        msgs = self.db_cursor.execute(Messages.select_query()).fetchall()
         self.assertEqual(len(msgs), self.expected_msgs_len)
         for msg in msgs:
-            self.assertRegex(msg[MsgFields.id.value], msg_id_regex)
-            self.assertRegex(msg[MsgFields.transaction_id.value], tx_id_regex)
-            self.assertNotEqual(msg[MsgFields.block_id.value], "")
-            self.assertEqual(msg[MsgFields.type_url.value], self.expected_msg_type_url)
-            self.assertNotEqual(msg[MsgFields.json.value], "")
+            self.assertRegex(msg[Messages.id.value], msg_id_regex)
+            self.assertRegex(msg[Messages.transaction_id.value], tx_id_regex)
+            self.assertNotEqual(msg[Messages.block_id.value], "")
+            self.assertEqual(msg[Messages.type_url.value], self.expected_msg_type_url)
+            self.assertNotEqual(msg[Messages.json.value], "")
 
     def test_messages_query(self):
         query_all = gql(
@@ -235,13 +229,13 @@ class TestNativePrimitives(EntityTest):
                 self.assertEqual(msg["transaction"]["signerAddress"], address)
 
     def test_events(self):
-        events = self.db_cursor.execute(EventFields.select_query()).fetchall()
+        events = self.db_cursor.execute(Events.select_query()).fetchall()
         self.assertEqual(len(events), self.expected_events_len)
         for event in events:
-            self.assertRegex(event[EventFields.id.value], event_id_regex)
-            self.assertRegex(event[EventFields.transaction_id.value], tx_id_regex)
-            self.assertNotEqual(event[EventFields.block_id.value], "")
-            self.assertNotEqual(event[EventFields.type.value], "")
+            self.assertRegex(event[Events.id.value], event_id_regex)
+            self.assertRegex(event[Events.transaction_id.value], tx_id_regex)
+            self.assertNotEqual(event[Events.block_id.value], "")
+            self.assertNotEqual(event[Events.type.value], "")
             # TODO: more assertions (?)
 
     def test_primitives_query(self):
