@@ -2,7 +2,7 @@ name: Docker deploy prod
 
 on:
   push:
-    branches: [main]
+    branches: [chore/migrate-on-boot]
 
 jobs:
   ledger-subquery:
