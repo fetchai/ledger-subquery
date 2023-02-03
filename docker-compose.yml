@@ -2,9 +2,7 @@ version: "3"
 
 services:
   postgres:
-    build:
-      context: ./docker/
-      dockerfile: ./plv8.dockerfile
+    image: bryanchriswhite/ledger-subquery-postgres:latest
     ports:
       - 5432:5432
     environment:
