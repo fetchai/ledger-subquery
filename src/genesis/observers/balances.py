@@ -13,7 +13,7 @@ from reactivex.operators import observe_on
 from reactivex.scheduler.scheduler import Scheduler
 
 from src.genesis.db import DBTypes, TableManager
-from src.genesis.helpers.field_enums import NativeBalances
+from src.genesis.helpers.field_enums import GenesisBalances
 from src.genesis.state import Balance
 from src.utils.loggers import get_logger
 
@@ -22,7 +22,7 @@ native_balances_keys_path = ".app_state.bank.balances"
 _logger = get_logger(__name__)
 
 
-class NativeBalancesObserver(Observer):
+class GenesisBalancesObserver(Observer):
     @staticmethod
     def filter_balances(next_: Tuple[str, Balance]) -> bool:
         return next_[0].startswith(native_balances_keys_path)
@@ -50,11 +50,11 @@ class NativeBalancesObserver(Observer):
         )
 
 
-class NativeBalancesManager(TableManager):
-    _observer: NativeBalancesObserver
+class GenesisBalancesManager(TableManager):
+    _observer: GenesisBalancesObserver
     _subscription: DisposableBase
     _db_conn: Connection
-    _table = NativeBalances.get_table()
+    _table = GenesisBalances.get_table()
     _columns = (
         ("id", DBTypes.text),
         ("account_id", DBTypes.text),
@@ -70,7 +70,7 @@ class NativeBalancesManager(TableManager):
     def __init__(self, db_conn: Connection, on_completed=None, on_error=None) -> None:
         super().__init__(db_conn)
         self._ensure_table()
-        self._observer = NativeBalancesObserver(
+        self._observer = GenesisBalancesObserver(
             on_next=self.copy_balances, on_completed=on_completed, on_error=on_error
         )
 
@@ -143,7 +143,7 @@ class NativeBalancesManager(TableManager):
                         .amount
                     )
                     res_db_select = db.execute(
-                        NativeBalances.select_where(f"id = '{duplicate_balance_id}'")
+                        GenesisBalances.select_where(f"id = '{duplicate_balance_id}'")
                     ).fetchone()
 
                     assert res_db_select is not None

@@ -3,7 +3,7 @@ import decimal
 import time
 import unittest
 
-from src.genesis.helpers.field_enums import LegacyBridgeSwapFields
+from src.genesis.helpers.field_enums import LegacyBridgeSwaps
 from tests.helpers.contracts import BridgeContract, DefaultBridgeContractConfig
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
@@ -36,27 +36,27 @@ class TestContractSwap(EntityTest):
         time.sleep(5)
 
     def test_contract_swap(self):
-        swap = self.db_cursor.execute(LegacyBridgeSwapFields.select_query()).fetchone()
+        swap = self.db_cursor.execute(LegacyBridgeSwaps.select_query()).fetchone()
         self.assertIsNotNone(
             swap, "\nDBError: table is empty - maybe indexer did not find an entry?"
         )
         self.assertEqual(
-            swap[LegacyBridgeSwapFields.destination.value],
+            swap[LegacyBridgeSwaps.destination.value],
             self.validator_address,
             "\nDBError: swap sender address does not match",
         )
         self.assertEqual(
-            swap[LegacyBridgeSwapFields.contract_id.value],
+            swap[LegacyBridgeSwaps.contract_id.value],
             self._contract.address,
             "\nDBError: contract address does not match",
         )
         self.assertEqual(
-            swap[LegacyBridgeSwapFields.amount.value],
+            swap[LegacyBridgeSwaps.amount.value],
             self.amount,
             "\nDBError: fund amount does not match",
         )
         self.assertEqual(
-            swap[LegacyBridgeSwapFields.denom.value],
+            swap[LegacyBridgeSwaps.denom.value],
             self.denom,
             "\nDBError: fund denomination does not match",
         )
