@@ -37,7 +37,8 @@ RUN chmod +x /usr/local/bin/yq
 WORKDIR /app
 
 # install global dependencies
-RUN npm install -g graphile-migrate
+#RUN npm install -g graphile-migrate
+RUN yarn global add graphile-migrate
 
 # add the dependencies
 ADD ./package.json yarn.lock /app/
