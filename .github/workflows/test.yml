@@ -61,6 +61,11 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Allow 45s for environment to configure properly
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '45s'
+
       - name: Run Python unit tests
         run: pipenv run python -m unittest discover -s ./tests/unit
 
