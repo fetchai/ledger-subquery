@@ -12,6 +12,7 @@ jobs:
     env:
       IMAGE_PROJECT_ID: fetch-ai-images
       NODE_IMAGE_NAME: subquery-node
+      DB_IMAGE_NAME: subquery-postgres
       API_IMAGE_NAME: subquery-api
       GENESIS_IMAGE_NAME: subquery-genesis-processor
       DEPLOYMENT_REPO: fetchai/infra-production-deployment
@@ -53,6 +54,16 @@ jobs:
           push: true
           tags: |
             gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.NODE_IMAGE_NAME }}:${{ steps.vars.outputs.node_tag_name }}
+      
+      # Docker build ; docker push db image
+      - name: Build and push subquery postgres
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./docker/plv8.dockerfile
+          push: true
+          tags: |
+            gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.DB_IMAGE_NAME }}:${{ steps.vars.outputs.node_tag_name }}
 
       - name: Build and push graphql api
         uses: docker/build-push-action@v3
