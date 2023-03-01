@@ -52,4 +52,3 @@ def get_logger(name, name_length=1):
     logger = default_logging_config(logger)
     _loggers[logger_name] = logger
     return logger
-
