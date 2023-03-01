@@ -37,7 +37,7 @@ class ContractsManager():
         genesis_accounts_filtered = self._filter_genesis_contracts(contracts_data, db_contracts)
         with self.table_manager.db_copy() as copy:
             for contract in genesis_accounts_filtered:
-                copy.write_row([self._get_contract_address(contract)])
+                copy.write_row([self._get_contract_address(contract), "Uncertain", None, None])
 
     def _get_contract_data(self, genesis_data: dict) -> List[dict]:
         return genesis_data["app_state"]["wasm"]["contracts"]
