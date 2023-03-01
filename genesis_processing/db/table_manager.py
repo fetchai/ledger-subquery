@@ -1,9 +1,9 @@
-from typing import Any, Generator, Tuple, List
-
-from psycopg import Connection
-from enum import Enum
 import itertools
 from contextlib import contextmanager
+from enum import Enum
+from typing import Any, Generator, List, Tuple
+
+from psycopg import Connection
 
 
 class DBTypes(Enum):
@@ -13,12 +13,14 @@ class DBTypes(Enum):
 
 
 class TableManager:
-
-    def __init__(self, db_conn: Connection,
-                 table: str,
-                 columns: Tuple[Tuple[str, DBTypes], ...],
-                 indexes: Tuple[str, ...],
-                 schema: str = "app"):
+    def __init__(
+        self,
+        db_conn: Connection,
+        table: str,
+        columns: Tuple[Tuple[str, DBTypes], ...],
+        indexes: Tuple[str, ...],
+        schema: str = "app",
+    ):
         self.db_conn = db_conn
         self.table = table
         self.columns = columns
@@ -29,9 +31,11 @@ class TableManager:
         return (name for name, _ in self.columns)
 
     def select_query(self, column_names: List[str]) -> str:
-        res = self.db_conn.execute(f"""
+        res = self.db_conn.execute(
+            f"""
             SELECT {",".join(column_names)} FROM {self.table}
-        """).fetchall()
+        """
+        ).fetchall()
         return list(itertools.chain(*res))
 
     def ensure_table(self):
@@ -82,7 +86,7 @@ class TableManager:
     def db_copy(self):
         with self.db_conn.cursor() as db:
             with db.copy(
-                    f'COPY {self.table} ({",".join(self.get_column_names())}) FROM STDIN'
+                f'COPY {self.table} ({",".join(self.get_column_names())}) FROM STDIN'
             ) as copy:
                 yield copy
         self.db_conn.commit()
