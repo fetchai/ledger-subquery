@@ -2,7 +2,7 @@ import sys
 import unittest
 from pathlib import Path
 
-from src.genesis.db.table_manager import TableManager, DBTypes
+from src.genesis.db.table_manager import DBTypes, TableManager
 from tests.helpers.clients import TestWithDBConn
 
 src_path = Path(__file__).parent.parent.parent.parent.absolute()

@@ -1,8 +1,8 @@
 from psycopg import Connection
 
 from src.genesis.processing.accounts import AccountsManager
-from  src.genesis.processing.balances import BalanceManager
-from  src.genesis.processing.contracts import ContractsManager
+from src.genesis.processing.balances import BalanceManager
+from src.genesis.processing.contracts import ContractsManager
 
 
 def get_chain_id(genesis_data: dict):

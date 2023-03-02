@@ -1,11 +1,7 @@
-import copy
 import unittest
-from threading import Lock
-from typing import List
 
 from src.genesis.helpers.field_enums import GenesisBalances
 from src.genesis.processing.balances import BalanceManager
-
 from tests.helpers.clients import TestWithDBConn
 from tests.helpers.genesis_data import test_bank_state_balances, test_genesis_data
 
@@ -45,7 +41,7 @@ class TestBalanceManager(TestWithDBConn):
                 balance["coins"] = []
 
                 for row in db.execute(
-                        GenesisBalances.select_where(f"account_id = '{address}'")
+                    GenesisBalances.select_where(f"account_id = '{address}'")
                 ).fetchall():
                     balance["coins"].append(
                         {

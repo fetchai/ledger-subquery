@@ -9,8 +9,9 @@ from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.aiohttp import log as aiohttp_logger
 from psycopg import Connection, Cursor
 
-from .gql_queries import latest_block_timestamp
 from src.genesis.db.table_manager import TableManager
+
+from .gql_queries import latest_block_timestamp
 
 aiohttp_logger.setLevel(logging.WARNING)
 
