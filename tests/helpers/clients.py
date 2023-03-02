@@ -9,9 +9,8 @@ from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.aiohttp import log as aiohttp_logger
 from psycopg import Connection, Cursor
 
-from src.genesis.db import table_exists
-
 from .gql_queries import latest_block_timestamp
+from src.genesis.db.table_manager import TableManager
 
 aiohttp_logger.setLevel(logging.WARNING)
 
@@ -72,14 +71,16 @@ class TestWithDBConn(unittest.TestCase):
 
     @classmethod
     def truncate_tables(cls, tables: Union[str, List[str]], cascade=False):
+        table_manager = TableManager(cls.db_conn, None, None, None)
+
         cascade_str = ""
         if cascade:
             cascade_str = "CASCADE"
 
         if isinstance(tables, List):
-            tables_str = ", ".join([t for t in tables if table_exists(cls.db_conn, t)])
+            tables_str = ", ".join([t for t in tables if table_manager.table_exists(t)])
         else:
-            if not table_exists(cls.db_conn, tables):
+            if not table_manager.table_exists(tables):
                 return
             tables_str = tables
 

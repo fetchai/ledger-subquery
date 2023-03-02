@@ -2,8 +2,8 @@ from typing import List
 
 from psycopg import Connection
 
-from genesis_processing.db.table_manager import DBTypes, TableManager
-from genesis_processing.utils.loggers import get_logger
+from src.genesis.db.table_manager import DBTypes, TableManager
+from src.genesis.utils.loggers import get_logger
 
 _logger = get_logger(__name__)
 
