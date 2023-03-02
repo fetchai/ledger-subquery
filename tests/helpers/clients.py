@@ -72,7 +72,7 @@ class TestWithDBConn(unittest.TestCase):
 
     @classmethod
     def truncate_tables(cls, tables: Union[str, List[str]], cascade=False):
-        table_manager = TableManager(cls.db_conn, None, None, None)
+        table_manager = TableManager(cls.db_conn)
 
         cascade_str = ""
         if cascade:

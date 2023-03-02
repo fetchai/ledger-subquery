@@ -1,7 +1,7 @@
 import itertools
 from contextlib import contextmanager
 from enum import Enum
-from typing import Any, Generator, List, Tuple
+from typing import Any, Generator, List, Optional, Tuple
 
 from psycopg import Connection
 
@@ -16,9 +16,9 @@ class TableManager:
     def __init__(
         self,
         db_conn: Connection,
-        table: str,
-        columns: Tuple[Tuple[str, DBTypes], ...],
-        indexes: Tuple[str, ...],
+        table: Optional[str] = None,
+        columns: Optional[Tuple[Tuple[str, DBTypes], ...]] = None,
+        indexes: Optional[Tuple[str, ...]] = None,
         schema: str = "app",
     ):
         self.db_conn = db_conn
@@ -28,9 +28,10 @@ class TableManager:
         self.schema = schema
 
     def get_column_names(self) -> Generator[str, Any, None]:
+        assert self.columns
         return (name for name, _ in self.columns)
 
-    def select_query(self, column_names: List[str]) -> str:
+    def select_query(self, column_names: List[str]) -> List[str]:
         res = self.db_conn.execute(
             f"""
             SELECT {",".join(column_names)} FROM {self.table}
