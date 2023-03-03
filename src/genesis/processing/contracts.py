@@ -30,7 +30,6 @@ class ContractsManager:
     def process_genesis(self, genesis_data: dict):
         contracts_data = self._get_contract_data(genesis_data)
         db_contracts = self.table_manager.select_query([ID])
-        print(db_contracts)
 
         genesis_accounts_filtered = self._filter_genesis_contracts(
             contracts_data, db_contracts
@@ -45,7 +44,6 @@ class ContractsManager:
         return genesis_data["app_state"]["wasm"]["contracts"]
 
     def _get_contract_address(self, contract: dict) -> str:
-        print("_get_contract_address:\n\n", contract["contract_address"])
         return str(contract["contract_address"])
 
     def _filter_genesis_contracts(
