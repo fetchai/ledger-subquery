@@ -1,11 +1,11 @@
-name: End-to-end tests
+name: Repo Quality
 
 on:
   pull_request:
     branches: [main]
 
 jobs:
-  e2e-tests:
+  checks:
     runs-on: ubuntu-latest
 
     steps:
