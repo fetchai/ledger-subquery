@@ -1,4 +1,5 @@
 import datetime as dt
+import time
 import unittest
 
 from src.genesis.helpers.field_enums import (
@@ -9,10 +10,6 @@ from src.genesis.helpers.field_enums import (
 from tests.helpers.contracts import Cw20Contract
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
-
-from cosmpy.aerial.client import prepare_and_broadcast_basic_transaction
-from cosmpy.aerial.contract.cosmwasm import create_cosmwasm_instantiate_msg
-from cosmpy.aerial.tx import Transaction
 
 
 class TestContractDeploy(EntityTest):
@@ -25,85 +22,53 @@ class TestContractDeploy(EntityTest):
         cls.clean_db({"contracts"})
         cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
         code_id = cls._contract._store()
-        # address = cls._contract._instantiate()
+        address = cls._contract._instantiate()
 
-        instantiate_msg = create_cosmwasm_instantiate_msg(
-            code_id,
-            {'name': 'test coin', 'symbol': 'TEST', 'decimals': 6, 'initial_balances': [
-                {'amount': '3000000000000000000000000', 'address': cls.validator_wallet.address()}],
-                  'mint': {'minter': cls.validator_wallet.address()}},
-            "Test1",
-            cls.validator_wallet.address()
-        )
-
-        instantiate_msg2 = create_cosmwasm_instantiate_msg(
-            code_id,
-            {'name': 'test coin2', 'symbol': 'TEST', 'decimals': 6, 'initial_balances': [
-                {'amount': '3000000000000000000000000', 'address': cls.validator_wallet.address()}],
-                  'mint': {'minter': cls.validator_wallet.address()}},
-            "Test2",
-            cls.validator_wallet.address()
-        )
-        tx = Transaction()
-        tx.add_message(instantiate_msg)
-        tx.add_message(instantiate_msg2)
-
-        tx_done = prepare_and_broadcast_basic_transaction(
-            cls.ledger_client,
-            tx,
-            cls.validator_wallet
-        ).wait_to_complete()
-        print(tx_done.contract_address)
-
-    def test(self):
-        pass
-        #
-        #
-        # """
-        # An initial proposal is created in order to make value assertions. These values are stored within a dictionary
-        # to be recalled for the assertions. However to create enough data for sorting tests, two further contracts are
-        # stored and instantiated afterwards. These two additional contracts are used only for sorting test data, and their
-        # unique addresses and contents are ignored.
-        # """
-        # cls.entities = {
-        #     "storeContractMsg": {
-        #         "query": StoreContractMessages.select_query(),
-        #         "equal": {
-        #             StoreContractMessages.sender.value: cls.validator_address,
-        #             StoreContractMessages.code_id.value: code_id,
-        #             StoreContractMessages.permission.value: None,
-        #         },
-        #         "not_null": {},
-        #     },
-        #     "instantiateMsg": {
-        #         "query": InstantiateContractMessages.select_query(),
-        #         "equal": {
-        #             InstantiateContractMessages.sender.value: cls.validator_address,
-        #             InstantiateContractMessages.code_id.value: code_id,
-        #             InstantiateContractMessages.admin.value: "",
-        #             InstantiateContractMessages.funds.value: [],
-        #         },
-        #         "not_null": {
-        #             InstantiateContractMessages.label.value,
-        #             InstantiateContractMessages.payload.value,
-        #         },
-        #     },
-        #     "contractEntity": {
-        #         "query": Contracts.select_query(),
-        #         "equal": {
-        #             Contracts.interface.value: "CW20",
-        #             Contracts.id.value: address,
-        #         },
-        #         "not_null": {
-        #             Contracts.instantiate_message_id.value,
-        #             Contracts.store_message_id.value,
-        #         },
-        #     },
-        # }
-        # for i in range(2):
-        #     cls._contract._store()
-        #     cls._contract._instantiate()
-        # time.sleep(5)
+        """
+        An initial proposal is created in order to make value assertions. These values are stored within a dictionary
+        to be recalled for the assertions. However to create enough data for sorting tests, two further contracts are
+        stored and instantiated afterwards. These two additional contracts are used only for sorting test data, and their
+        unique addresses and contents are ignored.
+        """
+        cls.entities = {
+            "storeContractMsg": {
+                "query": StoreContractMessages.select_query(),
+                "equal": {
+                    StoreContractMessages.sender.value: cls.validator_address,
+                    StoreContractMessages.code_id.value: code_id,
+                    StoreContractMessages.permission.value: None,
+                },
+                "not_null": {},
+            },
+            "instantiateMsg": {
+                "query": InstantiateContractMessages.select_query(),
+                "equal": {
+                    InstantiateContractMessages.sender.value: cls.validator_address,
+                    InstantiateContractMessages.code_id.value: code_id,
+                    InstantiateContractMessages.admin.value: "",
+                    InstantiateContractMessages.funds.value: [],
+                },
+                "not_null": {
+                    InstantiateContractMessages.label.value,
+                    InstantiateContractMessages.payload.value,
+                },
+            },
+            "contractEntity": {
+                "query": Contracts.select_query(),
+                "equal": {
+                    Contracts.interface.value: "CW20",
+                    Contracts.id.value: address,
+                },
+                "not_null": {
+                    Contracts.instantiate_message_id.value,
+                    Contracts.store_message_id.value,
+                },
+            },
+        }
+        for i in range(2):
+            cls._contract._store()
+            cls._contract._instantiate()
+        time.sleep(5)
 
     def test_execute_transfer(self):
         for entity in ["storeContractMsg", "instantiateMsg", "contractEntity"]:
