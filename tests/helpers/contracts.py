@@ -117,8 +117,7 @@ class RecursiveContract(LedgerContract):
             "Jonathansumner", "cw-recursive", "recursive_contract.wasm"
         )
         print(contract_path)
-        super().__init__(contract_path,
-                         client)
+        super().__init__(contract_path, client)
 
     def _store(self) -> int:
         assert self.admin is not None
@@ -126,13 +125,7 @@ class RecursiveContract(LedgerContract):
 
     def _instantiate(self, code_id, depth) -> Address:
         assert self.admin is not None
-        return self.instantiate(
-            {
-                "code_id": code_id,
-                "depth": depth
-            },
-            self.admin
-        )
+        return self.instantiate({"code_id": code_id, "depth": depth}, self.admin)
 
 
 class Cw20Contract(LedgerContract):
@@ -195,10 +188,10 @@ class BridgeContract(LedgerContract):
 
 class AlmanacContract(LedgerContract):
     def __init__(
-            self,
-            client: LedgerClient,
-            admin: Wallet,
-            cfg: AlmanacContractConfig = DefaultAlmanacContractConfig,
+        self,
+        client: LedgerClient,
+        admin: Wallet,
+        cfg: AlmanacContractConfig = DefaultAlmanacContractConfig,
     ):
         self.cfg = cfg
         self.admin = admin

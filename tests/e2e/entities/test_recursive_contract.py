@@ -27,7 +27,9 @@ class TestContractDeploy(EntityTest):
         time.sleep(5)
 
     def test_db_instantiation_and_contracts(self):
-        instantiate_msg = self.db_cursor.execute(InstantiateContractMessages.select_query()).fetchall()
+        instantiate_msg = self.db_cursor.execute(
+            InstantiateContractMessages.select_query()
+        ).fetchall()
         contracts = self.db_cursor.execute(Contracts.select_query()).fetchall()
 
         self.assertIsNotNone(
@@ -36,13 +38,15 @@ class TestContractDeploy(EntityTest):
         )
 
         self.assertEqual(
-            len(instantiate_msg), self.depth,
-            "\nDBError: number of instantiation_msgs is not equal to recursion depth"
+            len(instantiate_msg),
+            self.depth,
+            "\nDBError: number of instantiation_msgs is not equal to recursion depth",
         )
 
         self.assertEqual(
-            len(contracts), self.depth,
-            "\nDBError: number of contracts is not equal to recursion depth"
+            len(contracts),
+            self.depth,
+            "\nDBError: number of contracts is not equal to recursion depth",
         )
 
     def test_retrieve_instantiate_contract_msg(self):
@@ -71,11 +75,7 @@ class TestContractDeploy(EntityTest):
 
         # query instantiate contract messages, filter by codeId
         filter_by_code_id_equals = filtered_instantiate_contract_message_query(
-            {
-                "codeId": {
-                    "equalTo": self.code_id
-                }
-            }
+            {"codeId": {"equalTo": self.code_id}}
         )
 
         instantiation_msgs = filter_by_code_id_equals
@@ -83,8 +83,9 @@ class TestContractDeploy(EntityTest):
         instantiation_msgs_list = result["instantiateContractMessages"]["nodes"]
 
         self.assertEqual(
-            len(instantiation_msgs_list), self.depth,
-            "\nGQLError: number of instantiation_msgs is not equal to recursion depth"
+            len(instantiation_msgs_list),
+            self.depth,
+            "\nGQLError: number of instantiation_msgs is not equal to recursion depth",
         )
 
     def test_retrieve_contract(self):
@@ -108,7 +109,7 @@ class TestContractDeploy(EntityTest):
         }
 
         def filtered_contract_query(
-                _filter, order="CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_ASC"
+            _filter, order="CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_ASC"
         ):
             return filtered_test_query(
                 "contracts", _filter, contract_nodes, _order=order
@@ -119,10 +120,10 @@ class TestContractDeploy(EntityTest):
         contracts_list = result["contracts"]["nodes"]
 
         self.assertEqual(
-            len(contracts_list), self.depth,
-            "\nGQLError: number of contracts is not equal to recursion depth"
+            len(contracts_list),
+            self.depth,
+            "\nGQLError: number of contracts is not equal to recursion depth",
         )
-
 
 
 if __name__ == "__main__":
