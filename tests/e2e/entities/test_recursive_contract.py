@@ -1,10 +1,7 @@
 import time
 import unittest
 
-from src.genesis.helpers.field_enums import (
-    Contracts,
-    InstantiateContractMessages,
-)
+from src.genesis.helpers.field_enums import Contracts, InstantiateContractMessages
 from tests.helpers.contracts import RecursiveContract
 from tests.helpers.entity_test import EntityTest
 from tests.helpers.graphql import filtered_test_query
