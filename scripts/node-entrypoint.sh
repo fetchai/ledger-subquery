@@ -34,5 +34,14 @@ fi
 # catch-up migrations
 graphile-migrate migrate
 
+# Add btree_gist extension to support historical mode - after the db reset from `graphile-migrate reset --erase`
+psql -v ON_ERROR_STOP=1 \
+        -h $DB_HOST \
+        -U $DB_USER \
+        -p $DB_PORT \
+        -d $DB_DATABASE <<EOF
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+EOF
+
 # run the main node
 exec /sbin/tini -- /usr/local/lib/node_modules/@subql/node-cosmos/bin/run "$@"
