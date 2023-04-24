@@ -37,8 +37,6 @@ services:
       DATABASE_URL: "postgres://subquery:subquery@postgres/subquery"
       SHADOW_DATABASE_URL: "postgres://subquery:subquery@postgres/subquery_shadow"
       ROOT_DATABASE_URL: "postgres://subquery:subquery@postgres/postgres"
-    volumes:
-      - ./docker/node-cosmos/package.json:/usr/local/lib/node_modules/@subql/node-cosmos/package.json
     command:
       - -f=/app
       - --db-schema=app
@@ -67,8 +65,6 @@ services:
       DB_DATABASE: "subquery"
       DB_HOST: postgres
       DB_PORT: 5432
-    volumes:
-      - ./subql/packages/query/package.json:/app/package.json
     entrypoint: ["/sbin/tini", "--", "yarn", "start:prod"]
     command:
       - --name=app
