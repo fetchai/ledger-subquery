@@ -41,6 +41,7 @@ services:
       - -f=/app
       - --db-schema=app
       - --batch-size=1
+      - --disable-historical=false
     healthcheck:
       test: ["CMD", "curl", "-f", "http://subquery-node:3000/ready"]
       interval: 3s
@@ -63,7 +64,6 @@ services:
       DB_DATABASE: "subquery"
       DB_HOST: postgres
       DB_PORT: 5432
-    entrypoint: ["/sbin/tini", "--", "yarn", "start:prod"]
     command:
       - --name=app
       - --playground
