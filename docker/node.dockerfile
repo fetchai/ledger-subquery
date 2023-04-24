@@ -10,16 +10,12 @@ RUN chmod +x /usr/local/bin/yq
 
 WORKDIR /app
 
-# install global dependencies
-RUN npm install -g graphile-migrate
-
 # add the dependencies
 ADD ./package.json yarn.lock /app/
 RUN yarn install --frozen-lockfile --prod
 
 COPY ./.gmrc /app/.gmrc
 
-ADD ./migrations /app/migrations
 ADD ./proto /app/proto
 ADD ./project.yaml schema.graphql /app/
 ADD ./scripts/node-entrypoint.sh /entrypoint.sh

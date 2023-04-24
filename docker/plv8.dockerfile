@@ -17,14 +17,10 @@ COPY --from=builder /usr/share/postgresql/14/extension/plls* /usr/share/postgres
 COPY --from=builder /usr/share/postgresql/14/extension/plcoffee* /usr/share/postgresql/14/extension/
 COPY --from=builder /usr/lib/postgresql/14/lib/bitcode/plv8* /usr/lib/postgresql/14/bitcode/
 
-
 RUN mkdir -p /var/log/postgres \
   && touch /var/log/postgres/log /var/log/postgres/log.csv \
   && chown -R postgres /var/log/postgres
 
 USER postgres
-
-# Copy in the load-extensions script to support historical mode
-#COPY /scripts/load-extensions.sh /docker-entrypoint-initdb.d/
 
 RUN ln -fs /dev/stderr /var/log/postgres/log

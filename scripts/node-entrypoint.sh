@@ -17,24 +17,8 @@ if [[ ! -z "${NETWORK_ENDPOINT}" ]]; then
     yq -i '.network.endpoint = strenv(NETWORK_ENDPOINT)' project.yaml
 fi
 
-export PGPASSWORD=$DB_PASS
-has_migrations=$(psql -h $DB_HOST \
-                      -U $DB_USER \
-                      -p $DB_PORT \
-                      -c "set schema 'graphile_migrate';" -c "\dt" $DB_DATABASE |
-                 grep "migrations" |
-                 wc -l)
-echo "has_migrations: $has_migrations"
-
-
-if [[ "$has_migrations" == "0" ]]; then
-  graphile-migrate reset --erase
-fi
-
-# catch-up migrations
-graphile-migrate migrate
-
 # Add btree_gist extension to support historical mode - after the db reset from `graphile-migrate reset --erase`
+export PGPASSWORD=$DB_PASS
 psql -v ON_ERROR_STOP=1 \
         -h $DB_HOST \
         -U $DB_USER \

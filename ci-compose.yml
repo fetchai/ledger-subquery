@@ -48,9 +48,7 @@ services:
       retries: 10
 
   graphql-engine:
-    build:
-      context: .
-      dockerfile: ./docker/api.dockerfile
+    image: onfinality/subql-query:latest
     ports:
       - 3000:3000
     depends_on:
