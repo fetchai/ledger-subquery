@@ -45,7 +45,7 @@ services:
       - -f=/app
       - --db-schema=app
       - --batch-size=1
-      - --disable-historical=false
+      - --disable-historical=true
 #      - force-clean
 #      - --debug
     healthcheck:
