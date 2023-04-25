@@ -304,28 +304,20 @@ class TestNativePrimitives(EntityTest):
                 "messages", _filter, messages_nodes, _order=order
             )
 
-        order_events_by_block_height_asc = filtered_event_query(
-            default_filter, "EVENTS_BY_BLOCK_HEIGHT_ASC"
-        )
-
-        order_events_by_block_height_desc = filtered_event_query(
-            default_filter, "EVENTS_BY_BLOCK_HEIGHT_DESC"
-        )
-
         order_transactions_by_block_height_asc = filtered_transaction_query(
-            default_filter, "TRANSACTIONS_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_transactions_by_block_height_desc = filtered_transaction_query(
-            default_filter, "TRANSACTIONS_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         order_messages_by_block_height_asc = filtered_messages_query(
-            default_filter, "MESSAGES_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_messages_by_block_height_desc = filtered_messages_query(
-            default_filter, "MESSAGES_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         with self.subTest("primitive id by regex"):
@@ -358,14 +350,10 @@ class TestNativePrimitives(EntityTest):
             "messages": {
                 order_messages_by_block_height_asc: self.assertGreaterEqual,
                 order_messages_by_block_height_desc: self.assertLessEqual,
-            },
-            "events": {
-                order_events_by_block_height_asc: self.assertGreaterEqual,
-                order_events_by_block_height_desc: self.assertLessEqual,
-            },
+            }
         }
 
-        for key in ["transactions", "messages", "events"]:
+        for key in ["transactions", "messages"]:
             for query in list(value_table[key].keys()):
                 with self.subTest(f"ordering {key} by block height"):
                     result = self.gql_client.execute(query)

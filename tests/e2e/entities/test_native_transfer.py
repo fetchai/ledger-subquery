@@ -91,11 +91,11 @@ class TestNativeTransfer(EntityTest):
             )
 
         order_by_block_height_asc = filtered_native_transfer_query(
-            default_filter, "NATIVE_TRANSFERS_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_by_block_height_desc = filtered_native_transfer_query(
-            default_filter, "NATIVE_TRANSFERS_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         # query native transactions, query related block and filter by timestamp, returning all within last five minutes

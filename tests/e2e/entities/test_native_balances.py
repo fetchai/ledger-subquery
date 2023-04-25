@@ -100,11 +100,11 @@ class TestGenesisBalances(EntityTest):
             )
 
         order_by_block_height_desc = filtered_native_balance_query(
-            default_filter, "NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         order_by_block_height_asc = filtered_native_balance_query(
-            default_filter, "NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         result = self.gql_client.execute(query)

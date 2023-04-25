@@ -98,11 +98,11 @@ class TestContractSwap(EntityTest):
             )
 
         order_by_block_height_asc = filtered_legacy_bridge_swap_query(
-            default_filter, "LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_by_block_height_desc = filtered_legacy_bridge_swap_query(
-            default_filter, "LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         # query legacy bridge swaps, query related block and filter by timestamp, returning all within last five minutes
