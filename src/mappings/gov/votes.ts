@@ -11,6 +11,7 @@ async function _handleGovProposalVote(event: CosmosEvent): Promise<void> {
   const msg: CosmosMessage<GovProposalVoteMsg> = event.msg;
   logger.info(`[handleGovProposalVote] (tx ${msg.tx.hash}): indexing GovProposalVote ${messageId(msg)}`);
   logger.debug(`[handleGovProposalVote] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
+  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
 
   const id = messageId(msg);
   const option = msg?.msg?.decodedMsg?.option;
@@ -26,6 +27,7 @@ async function _handleGovProposalVote(event: CosmosEvent): Promise<void> {
     proposalId: proposalId,
     voterAddress: voter,
     option: Object.values(GovProposalVoteOption)[option],
+    timeline,
     messageId: id,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id,

@@ -10,11 +10,13 @@ import {parseCoins} from "../../cosmjs/utils";
 
 export async function saveNativeBalanceEvent(id: string, address: string, amount: bigint, denom: string, event: CosmosEvent) {
   await checkBalancesAccount(address, event.block.block.header.chainId);
+  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
   const nativeBalanceChangeEntity = NativeBalanceChange.create({
     id,
     balanceOffset: amount.valueOf(),
     denom,
     accountId: address,
+    timeline,
     eventId: `${messageId(event)}-${event.idx}`,
     blockId: event.block.block.id,
     transactionId: event.tx.hash,
