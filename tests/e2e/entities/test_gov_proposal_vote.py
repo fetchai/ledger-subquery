@@ -177,7 +177,7 @@ class TestGovernance(EntityTest):
                 "\nGQLError: voter option does not match",
             )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,

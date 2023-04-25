@@ -21,7 +21,7 @@ class TestContractDeploy(EntityTest):
         super().setUpClass()
         cls.clean_db({"contracts"})
         cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
-        code_id = cls._contract._store()
+        cls._contract._store()
         address = cls._contract._instantiate()
         """
         An initial proposal is created in order to make value assertions. These values are stored within a dictionary
@@ -62,7 +62,7 @@ class TestContractDeploy(EntityTest):
                 "not_null": {
                     Contracts.instantiate_message_id.value,
                     Contracts.store_message_id.value,
-                    Contracts.code_id.value
+                    Contracts.code_id.value,
                 },
             },
         }
@@ -145,14 +145,10 @@ class TestContractDeploy(EntityTest):
 
         # query store contract messages, filter by codeId
         filter_by_code_id_equals = filtered_store_contract_message_query(
-            {
-                "codeId": {
-                    "isNull": False
-                }
-            }
+            {"codeId": {"isNull": False}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by sender equals", filter_by_sender_equals),
             ("by permission equals", filter_by_permission_equals),
@@ -181,7 +177,9 @@ class TestContractDeploy(EntityTest):
                     None,
                     "\nGQLError: contract permission does not match",
                 )
-                self.assertIsNotNone(int(transfer[0]["codeId"]), "\nGQLError: code_id is empty")
+                self.assertIsNotNone(
+                    int(transfer[0]["codeId"]), "\nGQLError: code_id is empty"
+                )
 
     def test_retrieve_instantiate_contract_msg(self):
         latest_block_timestamp = self.get_latest_block_timestamp()
@@ -238,11 +236,7 @@ class TestContractDeploy(EntityTest):
 
         # query instantiate contract messages, filter by codeId
         filter_by_code_id_equals = filtered_instantiate_contract_message_query(
-            {
-                "codeId": {
-                    "isNull": False
-                }
-            }
+            {"codeId": {"isNull": False}}
         )
 
         # query instantiate contract messages, filter by label
@@ -260,7 +254,7 @@ class TestContractDeploy(EntityTest):
             {"funds": {"equalTo": []}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by sender equals", filter_by_sender_equals),
             ("by admin equals", filter_by_admin_equals),
@@ -330,20 +324,14 @@ class TestContractDeploy(EntityTest):
         separate the initial contract from the dummy contracts used for sorting
         """
 
-        def filtered_contract_query(
-            _filter, order="CODE_ID_ASC"
-        ):
+        def filtered_contract_query(_filter, order="CODE_ID_ASC"):
             return filtered_test_query(
                 "contracts", _filter, contract_nodes, _order=order
             )
 
-        order_by_code_id_asc = filtered_contract_query(
-            default_filter, "CODE_ID_ASC"
-        )
+        order_by_code_id_asc = filtered_contract_query(default_filter, "CODE_ID_ASC")
 
-        order_by_code_id_desc = filtered_contract_query(
-            default_filter, "CODE_ID_DESC"
-        )
+        order_by_code_id_desc = filtered_contract_query(default_filter, "CODE_ID_DESC")
 
         # query contract, query related block and filter by timestamp, returning all within last five minutes
         filter_by_block_timestamp_range = filtered_contract_query(
@@ -375,7 +363,7 @@ class TestContractDeploy(EntityTest):
             {"interface": {"isNull": False}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by id equals", filter_by_id_equals),
             ("by interface equals", filter_by_interface_equals),
@@ -401,8 +389,10 @@ class TestContractDeploy(EntityTest):
                     "\nGQLError: contract interface prediction is null",
                 )
 
-        with self.subTest(f"order contracts instances by code ID ascending"):
-            result = self.gql_client.execute(order_by_code_id_asc)  # use query iterable from above
+        with self.subTest("order contracts instances by code ID ascending"):
+            result = self.gql_client.execute(
+                order_by_code_id_asc
+            )  # use query iterable from above
             contracts = result["contracts"]["nodes"]
             last = contracts[0]["codeId"]  # use relevant entity from above
             for entry in contracts:
@@ -414,7 +404,7 @@ class TestContractDeploy(EntityTest):
                 )
                 last = cur
 
-        with self.subTest(f"order contracts instances by code ID descending"):
+        with self.subTest("order contracts instances by code ID descending"):
             result = self.gql_client.execute(order_by_code_id_desc)
             contracts = result["contracts"]["nodes"]
             last = contracts[0]["codeId"]

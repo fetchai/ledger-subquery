@@ -350,7 +350,7 @@ class TestNativePrimitives(EntityTest):
             "messages": {
                 order_messages_by_block_height_asc: self.assertGreaterEqual,
                 order_messages_by_block_height_desc: self.assertLessEqual,
-            }
+            },
         }
 
         for key in ["transactions", "messages"]:

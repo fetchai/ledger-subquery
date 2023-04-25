@@ -189,7 +189,7 @@ class TestCw20BalanceChange(EntityTest):
                 }
             )
 
-            for (name, query) in [
+            for name, query in [
                 ("by block timestamp range", filter_by_block_timestamp_range),
                 ("by balance offset", filter_by_balance_offset),
                 ("by account id equals", filter_by_account_id),
@@ -225,7 +225,7 @@ class TestCw20BalanceChange(EntityTest):
                             "\nGQLError: contract address does not match",
                         )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,

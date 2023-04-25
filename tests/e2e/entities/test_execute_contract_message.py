@@ -158,7 +158,7 @@ class TestContractExecution(EntityTest):
                 "\nGQLError: fund denomination does not match",
             )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,

@@ -115,7 +115,7 @@ class TestDelegation(EntityTest):
             {"delegatorAddress": {"equalTo": str(self.validator_address)}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by validator equals", filter_by_validator_equals),
             ("by delegator equals", filter_by_delegator_equals),
@@ -148,7 +148,7 @@ class TestDelegation(EntityTest):
                     claims[0]["denom"], re.compile("^[\w/]{2,127}$")  # noqa: W605
                 )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,
