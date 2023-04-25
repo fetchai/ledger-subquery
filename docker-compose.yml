@@ -55,14 +55,16 @@ services:
       retries: 10
 
   graphql-engine:
-    image: onfinality/subql-query:latest
+    build:
+      context: .
+      dockerfile: ./docker/api.dockerfile
     ports:
       - 3000:3000
     depends_on:
       "postgres":
         condition: service_healthy
       "subquery-node":
-        condition: service_healthy
+        condition: service_started
     restart: always
     environment:
       DB_USER: "subquery"
@@ -70,6 +72,7 @@ services:
       DB_DATABASE: "subquery"
       DB_HOST: postgres
       DB_PORT: 5432
+      STARTUP_DELAY: 2s
     command:
       - --name=app
       - --playground
