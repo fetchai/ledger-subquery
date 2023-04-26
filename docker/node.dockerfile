@@ -16,19 +16,11 @@ RUN yarn codegen && yarn build
 WORKDIR /app/subql
 RUN yarn install && yarn build
 
-FROM onfinality/subql-node-cosmos:v0.2.0
+FROM onfinality/subql-node-cosmos:v1.19.1
 
 # Add system dependencies
 RUN apk update
 RUN apk add postgresql14-client
-
-# NB: add SigNoz / OpenTelemetry dependencies
-WORKDIR /usr/local/lib/node_modules/@subql/node-cosmos
-RUN yarn add "@grpc/grpc-js" \
-             "@opentelemetry/api" \
-             "@opentelemetry/auto-instrumentations-node" \
-             "@opentelemetry/exporter-trace-otlp-grpc" \
-             "@opentelemetry/sdk-node"
 
 # add extra tools that are required
 ADD https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_amd64 /usr/local/bin/yq
@@ -43,10 +35,8 @@ RUN npm install -g graphile-migrate
 ADD ./package.json yarn.lock /app/
 RUN yarn install --frozen-lockfile --prod
 
-# NB: replace built node-cosmos run module
-COPY ./docker/node-cosmos /usr/local/lib/node_modules/@subql/node-cosmos
+# copy graphile-migrate envs
 COPY ./.gmrc /app/.gmrc
-COPY --from=builder /app/subql/packages/common /usr/local/lib/node_modules/@subql/node-cosmos/node_modules/@subql/common
 
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/migrations /app/migrations
