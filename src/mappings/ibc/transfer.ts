@@ -10,6 +10,7 @@ async function _handleIBCTransfer(event: CosmosEvent): Promise<void> {
   const msg = event.msg;
   logger.info(`[handleIBCTransfer] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`);
   logger.debug(`[handleIBCTransfer] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
+  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
 
   const decodedMsg = msg.msg.decodedMsg;
   const sourcePort = decodedMsg.sourcePort;
@@ -33,6 +34,7 @@ async function _handleIBCTransfer(event: CosmosEvent): Promise<void> {
     denom: tokenDenom,
     sourcePort,
     sourceChannel,
+    timeline,
     eventId: `${messageId(event)}-${event.idx}`,
     messageId: id,
     transactionId: msg.tx.hash,

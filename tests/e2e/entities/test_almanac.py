@@ -62,7 +62,7 @@ class TestAlmanac(EntityTest):
         cls._contract = AlmanacContract(cls.ledger_client, cls.validator_wallet)
 
         # NB: broadcast multiple registrations
-        for (i, expected_record) in enumerate(cls.expected_records):
+        for i, expected_record in enumerate(cls.expected_records):
             # Create agent identity
             identity = Identity.from_seed("alice recovery password", i)
             agent_address = str(identity.address)
@@ -117,7 +117,7 @@ class TestAlmanac(EntityTest):
         # NB: sort by expiry height so that indexes match
         # their respective scenario.expected index
         list.sort(registrations, key=sql_by_expiry_height)
-        for (i, registration) in enumerate(registrations):
+        for i, registration in enumerate(registrations):
             self.assertEqual(
                 self.expected_registrations[i]["agentId"],
                 registration[AlmanacRegistrations.agent_id.value],
@@ -238,7 +238,7 @@ class TestAlmanac(EntityTest):
                 list.sort(registrations, key=gql_by_expiry_height)
                 self.assertEqual(len(scenario.expected), len(registrations))
 
-                for (i, registration) in enumerate(registrations):
+                for i, registration in enumerate(registrations):
                     self.assertRegex(registration["id"], msg_id_regex)
                     self.assertEqual(
                         scenario.expected[i]["agentId"], registration["agentId"]

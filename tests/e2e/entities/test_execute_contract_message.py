@@ -102,12 +102,12 @@ class TestContractExecution(EntityTest):
 
         order_by_block_height_asc = filtered_execute_contract_messages_query(
             {"block": {"height": {"greaterThanOrEqualTo": "0"}}},
-            "EXECUTE_CONTRACT_MESSAGES_BY_BLOCK_HEIGHT_ASC",
+            "TIMELINE_ASC",
         )
 
         order_by_block_height_desc = filtered_execute_contract_messages_query(
             {"block": {"height": {"greaterThanOrEqualTo": "0"}}},
-            "EXECUTE_CONTRACT_MESSAGES_BY_BLOCK_HEIGHT_DESC",
+            "TIMELINE_DESC",
         )
 
         # query execute contract messages, query related block and filter by timestamp, returning all within last five minutes
@@ -158,7 +158,7 @@ class TestContractExecution(EntityTest):
                 "\nGQLError: fund denomination does not match",
             )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,

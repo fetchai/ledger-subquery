@@ -93,11 +93,11 @@ class TestCw20Transfer(EntityTest):
             )
 
         order_by_block_height_asc = filtered_cw20_transfer_query(
-            default_filter, "CW20_TRANSFERS_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_by_block_height_desc = filtered_cw20_transfer_query(
-            default_filter, "CW20_TRANSFERS_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         # query Cw20 transfers, query related block and filter by timestamp, returning all within last five minutes
@@ -132,7 +132,7 @@ class TestCw20Transfer(EntityTest):
             {"amount": {"greaterThan": "1"}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by amount above", filter_by_amount_above),
             ("by to_address equals", filter_by_to_address_equals),
@@ -171,7 +171,7 @@ class TestCw20Transfer(EntityTest):
                     "\nGQLError: contract address does not match",
                 )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,

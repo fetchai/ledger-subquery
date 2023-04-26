@@ -35,6 +35,7 @@ async function _handleExecuteContractEvent(event: CosmosEvent): Promise<void> {
   const msg: CosmosMessage<ExecuteContractMsg> = event.msg;
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`);
   logger.debug(`[handleExecuteContractMessage] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
+  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
 
   const id = messageId(msg);
   const funds = msg?.msg?.decodedMsg?.funds, contractId = msg?.msg?.decodedMsg?.contract;
@@ -50,6 +51,7 @@ async function _handleExecuteContractEvent(event: CosmosEvent): Promise<void> {
     method,
     contractId,
     funds,
+    timeline,
     messageId: id,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id
@@ -64,6 +66,7 @@ async function _handleContractStoreEvent(event: CosmosEvent): Promise<void> {
   logger.info(`[handleContractStoreEvent] (tx ${event.msg.tx.hash}): indexing event ${messageId(event.msg)}`);
   logger.debug(`[handleContractStoreEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`);
   logger.debug(`[handleContractStoreEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`);
+  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
 
   const id = messageId(event.msg);
   const sender = event.msg?.msg?.decodedMsg?.sender;
@@ -83,6 +86,7 @@ async function _handleContractStoreEvent(event: CosmosEvent): Promise<void> {
     sender,
     permission,
     codeId,
+    timeline,
     messageId: id,
     transactionId: event.msg.tx.hash,
     blockId: event.msg.block.block.id,
@@ -94,6 +98,7 @@ async function _handleContractInstantiateEvent(event: CosmosEvent): Promise<void
   logger.info(`[handleContractInstantiateEvent] (tx ${event.msg.tx.hash}): indexing event ${messageId(event.msg)}`);
   logger.debug(`[handleContractInstantiateEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`);
   logger.debug(`[handleContractInstantiateEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`);
+  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
 
   const id = messageId(event.msg);
   const msg_decoded = event.msg?.msg?.decodedMsg;
@@ -117,6 +122,7 @@ async function _handleContractInstantiateEvent(event: CosmosEvent): Promise<void
     label,
     payload,
     funds,
+    timeline,
     messageId: id,
     transactionId: event.msg.tx.hash,
     blockId: event.msg.block.block.id,
@@ -139,7 +145,8 @@ async function saveContractEvent(instantiateMsg: InstantiateContractMessage, con
     id: contract_address,
     interface: getJaccardResult(JSON.parse(instantiateMsg.payload)),
     storeMessageId: storeCodeMsg.id,
-    instantiateMessageId: instantiateMsg.id
+    instantiateMessageId: instantiateMsg.id,
+    codeId: storeCodeMsg.codeId
   });
   await contract.save();
 }

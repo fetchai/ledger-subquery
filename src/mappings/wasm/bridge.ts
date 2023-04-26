@@ -12,6 +12,7 @@ async function _handleLegacyBridgeSwap(event: CosmosEvent): Promise<void> {
   const id = messageId(msg);
   logger.info(`[handleLegacyBridgeSwap] (tx ${msg.tx.hash}): indexing LegacyBridgeSwap ${id}`);
   logger.debug(`[handleLegacyBridgeSwap] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
+  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
 
   const contractId = msg?.msg?.decodedMsg?.contract;
   const swapMsg = msg?.msg?.decodedMsg?.msg;
@@ -35,6 +36,7 @@ async function _handleLegacyBridgeSwap(event: CosmosEvent): Promise<void> {
     amount: BigInt(amount),
     denom,
     executeContractMessageId: id,
+    timeline,
     messageId: id,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id,

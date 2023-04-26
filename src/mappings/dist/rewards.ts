@@ -20,6 +20,7 @@ async function _handleDistDelegatorClaim(event: CosmosEvent): Promise<void> {
   const msg: CosmosMessage<DistDelegatorClaimMsg> = event.msg;
   logger.info(`[handleDistDelegatorClaim] (tx ${msg.tx.hash}): indexing DistDelegatorClaim ${messageId(msg)}`);
   logger.debug(`[handleDistDelegatorClaim] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
+  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
 
   const id = messageId(msg);
   const delegatorAddress = msg?.msg?.decodedMsg?.delegatorAddress;
@@ -35,6 +36,7 @@ async function _handleDistDelegatorClaim(event: CosmosEvent): Promise<void> {
     delegatorAddress,
     validatorAddress,
     messageId: id,
+    timeline,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id,
     amount: BigInt(-1),

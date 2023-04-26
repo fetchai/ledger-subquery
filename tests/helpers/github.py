@@ -14,7 +14,6 @@ def download_github_release_asset(
     *,
     version: Optional[str] = "latest",
 ):
-
     auth = None
     if token is not None:
         auth = (token, "")
