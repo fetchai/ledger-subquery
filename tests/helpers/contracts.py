@@ -107,6 +107,27 @@ class DeployTestContract(LedgerContract):
         )
 
 
+class RecursiveContract(LedgerContract):
+    admin: Wallet = None
+    gas_limit: int = 3000000
+
+    def __init__(self, client: LedgerClient, admin: Wallet):
+        self.admin = admin
+        contract_path = ensure_contract(
+            "Jonathansumner", "cw-recursive", "recursive_contract.wasm"
+        )
+        print(contract_path)
+        super().__init__(contract_path, client)
+
+    def _store(self) -> int:
+        assert self.admin is not None
+        return self.store(self.admin, self.gas_limit)
+
+    def _instantiate(self, code_id, depth) -> Address:
+        assert self.admin is not None
+        return self.instantiate({"code_id": code_id, "depth": depth}, self.admin)
+
+
 class Cw20Contract(LedgerContract):
     admin: Wallet = None
     gas_limit: int = 3000000

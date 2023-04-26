@@ -23,6 +23,7 @@ class TestContractDeploy(EntityTest):
         cls._contract = Cw20Contract(cls.ledger_client, cls.validator_wallet)
         code_id = cls._contract._store()
         address = cls._contract._instantiate()
+
         """
         An initial proposal is created in order to make value assertions. These values are stored within a dictionary
         to be recalled for the assertions. However to create enough data for sorting tests, two further contracts are
