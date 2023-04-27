@@ -1,6 +1,6 @@
 import os
-import requests
 
+import requests
 from tqdm import tqdm
 
 
@@ -8,7 +8,7 @@ def ensure_contract(
     filename: str,
     bucket_address: str = "https://storage.googleapis.com/fetch-ai-mainnet-artifacts/",
 ) -> str:
-    base_path = f".contract"
+    base_path = ".contract"
     contract_name = os.path.splitext(filename)[0]
     contract_path = f"{base_path}/{filename}"
     if not os.path.exists(base_path):
