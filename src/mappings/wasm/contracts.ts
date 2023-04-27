@@ -3,6 +3,7 @@ import {ExecuteContractMsg} from "../types";
 import {
   attemptHandling,
   getJaccardResult,
+  getTimeline,
   messageId,
   unprocessedEventHandler
 } from "../utils";
@@ -35,7 +36,7 @@ async function _handleExecuteContractEvent(event: CosmosEvent): Promise<void> {
   const msg: CosmosMessage<ExecuteContractMsg> = event.msg;
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`);
   logger.debug(`[handleExecuteContractMessage] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
-  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
+  const timeline = getTimeline(event);
 
   const id = messageId(msg);
   const funds = msg?.msg?.decodedMsg?.funds, contractId = msg?.msg?.decodedMsg?.contract;
@@ -66,7 +67,7 @@ async function _handleContractStoreEvent(event: CosmosEvent): Promise<void> {
   logger.info(`[handleContractStoreEvent] (tx ${event.msg.tx.hash}): indexing event ${messageId(event.msg)}`);
   logger.debug(`[handleContractStoreEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`);
   logger.debug(`[handleContractStoreEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`);
-  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
+  const timeline = getTimeline(event);
 
   const id = messageId(event.msg);
   const sender = event.msg?.msg?.decodedMsg?.sender;
@@ -98,7 +99,7 @@ async function _handleContractInstantiateEvent(event: CosmosEvent): Promise<void
   logger.info(`[handleContractInstantiateEvent] (tx ${event.msg.tx.hash}): indexing event ${messageId(event.msg)}`);
   logger.debug(`[handleContractInstantiateEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`);
   logger.debug(`[handleContractInstantiateEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`);
-  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
+  const timeline = getTimeline(event);
 
   const id = messageId(event.msg);
   const msg_decoded = event.msg?.msg?.decodedMsg;
