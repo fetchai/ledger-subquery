@@ -13,6 +13,7 @@ python-dateutil = "*"
 dataclasses-json = "*"
 reactivex = "*"
 click = "*"
+tqdm = "*"
 
 [dev-packages]
 pytest = "*"
