@@ -132,7 +132,7 @@ class TestCw20Transfer(EntityTest):
             {"amount": {"greaterThan": "1"}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by amount above", filter_by_amount_above),
             ("by to_address equals", filter_by_to_address_equals),
@@ -171,7 +171,7 @@ class TestCw20Transfer(EntityTest):
                     "\nGQLError: contract address does not match",
                 )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,

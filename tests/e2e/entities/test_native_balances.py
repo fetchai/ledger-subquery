@@ -122,7 +122,7 @@ class TestGenesisBalances(EntityTest):
         self.assertEqual(validator_balance, -7000000000000092000)
         self.assertEqual(delegator_balance, 6999999999999908000)
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,

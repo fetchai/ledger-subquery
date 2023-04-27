@@ -153,7 +153,7 @@ class TestContractDeploy(EntityTest):
             }
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by sender equals", filter_by_sender_equals),
             ("by permission equals", filter_by_permission_equals),
@@ -269,7 +269,7 @@ class TestContractDeploy(EntityTest):
             {"funds": {"equalTo": []}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by sender equals", filter_by_sender_equals),
             ("by admin equals", filter_by_admin_equals),
@@ -403,7 +403,7 @@ class TestContractDeploy(EntityTest):
             {"interface": {"isNull": False}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by id equals", filter_by_id_equals),
             ("by interface equals", filter_by_interface_equals),
