@@ -165,7 +165,7 @@ class AlmanacContract(LedgerContract):
     ):
         self.cfg = cfg
         self.admin = admin
-        contract_path = ensure_contract("contract-agent-almanac.wasm")
+        contract_path = ensure_contract("contract_agent_almanac.wasm")
         super().__init__(contract_path, client)
 
         self.deploy(self.cfg.to_dict(), admin, store_gas_limit=3000000)  # type: ignore
