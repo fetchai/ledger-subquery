@@ -12,6 +12,7 @@ import {parseCoins} from "../../cosmjs/utils";
 export async function saveNativeBalanceEvent(id: string, address: string, amount: bigint, denom: string, event: CosmosEvent) {
   await checkBalancesAccount(address, event.block.block.header.chainId);
   const timeline = getTimeline(event);
+  
   const nativeBalanceChangeEntity = NativeBalanceChange.create({
     id,
     balanceOffset: amount.valueOf(),
