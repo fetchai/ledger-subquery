@@ -127,29 +127,14 @@ async function _handleContractInstantiateEvent(event: CosmosEvent): Promise<void
       label,
       payload,
       funds,
-      messageId: messageId(event.msg),
+      timeline,
+      messageId: id,
       transactionId: event.msg.tx.hash,
       blockId: event.msg.block.block.id,
     });
     await instantiateMsg.save();
     await saveContractEvent(instantiateMsg, contract_address, event);
   }
-
-  const instantiateMsg = InstantiateContractMessage.create({
-    id,
-    sender,
-    admin,
-    codeId,
-    label,
-    payload,
-    funds,
-    timeline,
-    messageId: id,
-    transactionId: event.msg.tx.hash,
-    blockId: event.msg.block.block.id,
-  });
-  await instantiateMsg.save();
-  await saveContractEvent(instantiateMsg, contract_address, event);
 }
 
 async function saveContractEvent(instantiateMsg: InstantiateContractMessage, contract_address: string, event: CosmosEvent) {
