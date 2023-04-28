@@ -26,6 +26,17 @@ export async function checkBalancesAccount(address: string, chainId: string) {
   }
 }
 
+export function getTimeline(entity: CosmosMessage|CosmosEvent): bigint {
+  const K2 = 100, K1 = K2 * 1000;
+  const txIndex = entity.tx.idx;
+  const blockHeight = entity.block.block.header.height;
+  // check if entity is Event or Message, and set msgIndex appropriately
+  const msgIndex = (<CosmosEvent>entity).msg?.idx === undefined ?
+    (<CosmosMessage>entity).idx : (<CosmosEvent>entity).msg.idx;
+  const timeline = (K1 * blockHeight) + (K2 * txIndex) + msgIndex;
+  return BigInt(timeline);
+}
+
 export function getJaccardResult(payload: object): Interface {
   let prediction = Structure, prediction_coefficient = 0.5;   // prediction coefficient can be set as a minimum threshold for the certainty of an output
   let diff = 0, match = 0, coefficient = 0;                   // where coefficient of 1 is a perfect property key match, 2 is a perfect match of property and type

@@ -3,6 +3,7 @@ import {NativeBalanceChange, Transaction} from "../../types";
 import {
   attemptHandling,
   checkBalancesAccount,
+  getTimeline,
   messageId,
   unprocessedEventHandler
 } from "../utils";
@@ -10,7 +11,8 @@ import {parseCoins} from "../../cosmjs/utils";
 
 export async function saveNativeBalanceEvent(id: string, address: string, amount: bigint, denom: string, event: CosmosEvent) {
   await checkBalancesAccount(address, event.block.block.header.chainId);
-  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
+  const timeline = getTimeline(event);
+  
   const nativeBalanceChangeEntity = NativeBalanceChange.create({
     id,
     balanceOffset: amount.valueOf(),

@@ -1,6 +1,6 @@
 import {CosmosEvent, CosmosMessage} from "@subql/types-cosmos";
 import {DistDelegatorClaimMsg} from "../types";
-import {attemptHandling, messageId, unprocessedEventHandler} from "../utils";
+import {attemptHandling, getTimeline, messageId, unprocessedEventHandler} from "../utils";
 import {DistDelegatorClaim} from "../../types";
 import {parseCoins} from "../../cosmjs/utils";
 
@@ -20,7 +20,7 @@ async function _handleDistDelegatorClaim(event: CosmosEvent): Promise<void> {
   const msg: CosmosMessage<DistDelegatorClaimMsg> = event.msg;
   logger.info(`[handleDistDelegatorClaim] (tx ${msg.tx.hash}): indexing DistDelegatorClaim ${messageId(msg)}`);
   logger.debug(`[handleDistDelegatorClaim] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
-  const timeline = BigInt((event.block.block.header.height * 1000000) + (event.msg.idx * 10000) + (event.tx.idx * 1000));
+  const timeline = getTimeline(event);
 
   const id = messageId(msg);
   const delegatorAddress = msg?.msg?.decodedMsg?.delegatorAddress;
