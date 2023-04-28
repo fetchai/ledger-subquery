@@ -117,7 +117,6 @@ class RecursiveContract(LedgerContract):
         contract_path = ensure_contract(
             "Jonathansumner", "cw-recursive", "recursive_contract.wasm"
         )
-        print(contract_path)
         super().__init__(contract_path, client)
 
     def _store(self) -> int:

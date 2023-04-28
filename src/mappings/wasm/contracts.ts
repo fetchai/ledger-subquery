@@ -128,7 +128,7 @@ async function _handleContractInstantiateEvent(event: CosmosEvent): Promise<void
       payload,
       funds,
       timeline,
-      messageId: id,
+      messageId: messageId(event.msg),
       transactionId: event.msg.tx.hash,
       blockId: event.msg.block.block.id,
     });
