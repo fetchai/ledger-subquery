@@ -1,7 +1,7 @@
 import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction} from "@subql/types-cosmos";
 import {Account, Interface, UnprocessedEntity} from "../types";
 import {createHash} from "crypto";
-import {Attribute} from "@cosmjs/stargate/build/logs";
+import {Attribute} from "@cosmjs/stargate";
 
 export type Primitive = CosmosEvent | CosmosMessage | CosmosTransaction | CosmosBlock;
 
