@@ -19,15 +19,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: recursive
 
       - name: Get image tag
         id: vars
         shell: bash
         run: |
           echo "::set-output name=node_tag_name::$(git rev-parse --short HEAD)"
-          echo "::set-output name=api_tag_name::$(cd ./subql && git rev-parse --short HEAD)"
+          echo "::set-output name=api_tag_name::$(git rev-parse --short HEAD)"
 
       # Authenticate to GCP
       - id: 'auth'

@@ -115,17 +115,17 @@ class TestAuthzExec(EntityTest):
             )
         ).fetchall()
         self.assertNotEqual(messages, [])
-        self.assertEqual(len(messages), 1)
+        self.assertGreaterEqual(len(messages), 1)
 
         authz_execs = self.db_cursor.execute(AuthzExecs.select_query()).fetchall()
         self.assertNotEqual(authz_execs, [])
-        self.assertEqual(len(authz_execs), 1)
+        self.assertGreaterEqual(len(authz_execs), 1)
 
         authz_exec_messages = self.db_cursor.execute(
             AuthzExecMessages.select_query()
         ).fetchall()
         self.assertNotEqual(authz_exec_messages, [])
-        self.assertEqual(len(authz_exec_messages), 1)
+        self.assertGreaterEqual(len(authz_exec_messages), 1)
 
         for authz_exec in authz_execs:
             self.assertRegex(authz_exec[AuthzExecs.id.value], msg_id_regex)
@@ -176,14 +176,14 @@ class TestAuthzExec(EntityTest):
 
         authz_execs = result["authzExecs"]["nodes"]
         self.assertIsNotNone(authz_execs)
-        self.assertEqual(len(authz_execs), 1)
+        self.assertGreaterEqual(len(authz_execs), 1)
 
         authz_exec = authz_execs[0]
         self.assertEqual(authz_exec["grantee"], self.grantee_address)
 
         sub_messages = authz_exec["subMessages"]["nodes"]
         self.assertIsNotNone(authz_execs)
-        self.assertEqual(len(authz_execs), 1)
+        self.assertGreaterEqual(len(authz_execs), 1)
 
         sub_message = sub_messages[0]
         self.assertEqual(

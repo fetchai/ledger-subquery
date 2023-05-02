@@ -1,6 +1,6 @@
 import {CosmosEvent, CosmosMessage} from "@subql/types-cosmos";
 import {NativeTransferMsg} from "../types";
-import {attemptHandling, messageId, unprocessedEventHandler} from "../utils";
+import {attemptHandling, getTimeline, messageId, unprocessedEventHandler} from "../utils";
 import {NativeTransfer} from "../../types";
 
 export async function handleNativeTransfer(event: CosmosEvent): Promise<void> {
@@ -11,6 +11,7 @@ async function _handleNativeTransfer(event: CosmosEvent): Promise<void> {
   const msg: CosmosMessage<NativeTransferMsg> = event.msg;
   logger.info(`[handleNativeTransfer] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`);
   logger.debug(`[handleNativeTransfer] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
+  const timeline = getTimeline(event);
 
   const fromAddress = msg.msg?.decodedMsg?.fromAddress;
   const toAddress = msg.msg?.decodedMsg?.toAddress;
@@ -30,6 +31,7 @@ async function _handleNativeTransfer(event: CosmosEvent): Promise<void> {
     fromAddress,
     amounts,
     denom,
+    timeline,
     messageId: id,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id

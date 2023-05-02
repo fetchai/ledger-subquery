@@ -98,11 +98,11 @@ class TestContractSwap(EntityTest):
             )
 
         order_by_block_height_asc = filtered_legacy_bridge_swap_query(
-            default_filter, "LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_by_block_height_desc = filtered_legacy_bridge_swap_query(
-            default_filter, "LEGACY_BRIDGE_SWAPS_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         # query legacy bridge swaps, query related block and filter by timestamp, returning all within last five minutes
@@ -132,7 +132,7 @@ class TestContractSwap(EntityTest):
             {"amount": {"greaterThan": "1"}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by amount above", filter_by_amount_above),
             ("by destination equals", filter_by_destination_equals),
@@ -170,7 +170,7 @@ class TestContractSwap(EntityTest):
                     "\nGQLError: contract address does not match",
                 )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,

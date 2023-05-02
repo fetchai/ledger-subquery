@@ -37,6 +37,7 @@ type Transaction @entity {
   memo: String
   status: TxStatus!
   log: String!
+  timeline: BigInt! @index
   timeoutHeight: BigInt @index
   # NB: only the first signer!
   signerAddress: String @index
@@ -47,6 +48,7 @@ type Message @entity {
   id: ID!
   typeUrl: String! @index
   json: String!
+  timeline: BigInt! @index
   transaction: Transaction!
   block: Block!
 }
@@ -65,6 +67,7 @@ type ExecuteContractMessage @entity {
   contract: Contract!
   method: String! @index
   funds: [Coin]!
+  timeline: BigInt! @index # block height * 1000000 + message_idx * 10000 + transaction_idx * 1000
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -75,6 +78,7 @@ type GovProposalVote @entity {
   proposalId: String! @index
   voterAddress: String! @index
   option: GovProposalVoteOption!
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -86,6 +90,7 @@ type DistDelegatorClaim @entity {
   id: ID!
   delegatorAddress: String!
   validatorAddress: String!
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -101,6 +106,7 @@ type Contract @entity {
   interface: Interface!
   storeMessage: StoreContractMessage
   instantiateMessage: InstantiateContractMessage
+  codeId: Int!
 }
 
 type LegacyBridgeSwap @entity {
@@ -110,6 +116,7 @@ type LegacyBridgeSwap @entity {
   amount: BigInt!
   denom: String!
   executeContractMessage: ExecuteContractMessage!
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -126,6 +133,7 @@ type NativeTransfer @entity {
   fromAddress: String! @index
   amounts: [Coin]!
   denom: String! @index
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -137,6 +145,7 @@ type Cw20Transfer @entity {
   fromAddress: String! @index
   contract: Contract!
   amount: BigInt!
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -162,6 +171,7 @@ type AuthzExec @entity {
   id: ID!
   grantee: String! @index
   subMessages: [AuthzExecMessage]! @derivedFrom(field: "authzExec")
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -218,6 +228,7 @@ type NativeBalanceChange @entity {
   balanceOffset: BigInt!
   denom: String! @index
   account: Account!
+  timeline: BigInt! @index
   event: Event!
   transaction: Transaction!
   block: Block!
@@ -229,9 +240,10 @@ type IbcTransfer @entity {
   fromAddress: String! @index
   amount: Coin!
   denom: String! @index
-  sourceChannel: String! @index
-  sourcePort: String! @index
+  sourceChannel: String!
+  sourcePort: String!
   event: Event!
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -244,6 +256,7 @@ type Cw20BalanceChange @entity {
   account: Account!
   executeContractMessage: ExecuteContractMessage!
   event: Event!
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -280,6 +293,7 @@ type StoreContractMessage @entity {
   permission: AccessType
   contracts: [Contract] @derivedFrom(field: "storeMessage")
   codeId: Int! @index
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!
@@ -293,6 +307,7 @@ type InstantiateContractMessage @entity {
   label: String!
   payload: String!
   funds: [Coin]
+  timeline: BigInt! @index
   message: Message!
   transaction: Transaction!
   block: Block!

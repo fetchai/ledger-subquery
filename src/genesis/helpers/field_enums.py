@@ -120,6 +120,7 @@ class Contracts(NamedFields):
     interface = 1
     store_message_id = 2
     instantiate_message_id = 3
+    code_id = 4
 
 
 class Cw20Transfers(NamedFields):

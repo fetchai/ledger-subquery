@@ -91,11 +91,11 @@ class TestNativeTransfer(EntityTest):
             )
 
         order_by_block_height_asc = filtered_native_transfer_query(
-            default_filter, "NATIVE_TRANSFERS_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_by_block_height_desc = filtered_native_transfer_query(
-            default_filter, "NATIVE_TRANSFERS_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         # query native transactions, query related block and filter by timestamp, returning all within last five minutes
@@ -125,7 +125,7 @@ class TestNativeTransfer(EntityTest):
             {"denom": {"equalTo": self.denom}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by toAddress equals", filter_by_to_address_equals),
             ("by fromAddress equals", filter_by_from_address_equals),
@@ -173,7 +173,7 @@ class TestNativeTransfer(EntityTest):
                     "\nGQLError: from address does not match",
                 )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,
