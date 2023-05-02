@@ -83,7 +83,8 @@ def ensure_contract(
 class DeployTestContract(LedgerContract):
     def __init__(self, client: LedgerClient, admin: Wallet):
         """Using a slightly older version of CW20 contract as a test contract - as this will still be classified as the
-        CW20 interface, but is different enough to allow a unique store_code message during testing."""
+        CW20 interface, but is different enough to allow a unique store_code message during testing.
+        """
         contract_path = ensure_contract(
             "CosmWasm", "cw-plus", "cw20_base.wasm", version="v0.14.0"
         )
@@ -105,6 +106,26 @@ class DeployTestContract(LedgerContract):
             admin,
             store_gas_limit=3000000,
         )
+
+
+class RecursiveContract(LedgerContract):
+    admin: Wallet = None
+    gas_limit: int = 3000000
+
+    def __init__(self, client: LedgerClient, admin: Wallet):
+        self.admin = admin
+        contract_path = ensure_contract(
+            "Jonathansumner", "cw-recursive", "recursive_contract.wasm"
+        )
+        super().__init__(contract_path, client)
+
+    def _store(self) -> int:
+        assert self.admin is not None
+        return self.store(self.admin, self.gas_limit)
+
+    def _instantiate(self, code_id, depth) -> Address:
+        assert self.admin is not None
+        return self.instantiate({"code_id": code_id, "depth": depth}, self.admin)
 
 
 class Cw20Contract(LedgerContract):

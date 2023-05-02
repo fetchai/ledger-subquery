@@ -2,6 +2,7 @@ import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction} from "@subql
 import {Block, Event, EventAttribute, Message, Transaction, TxStatus} from "../types";
 import {
   attemptHandling,
+  getTimeline,
   messageId,
   primitivesFromMsg,
   primitivesFromTx,
@@ -57,6 +58,8 @@ async function _handleTransaction(tx: CosmosTransaction): Promise<void> {
     }
   }
 
+
+  const timeline = BigInt((tx.block.block.header.height * 100000) + tx.idx);
   const pubKey: Uint8Array | undefined = tx.decodedTx.authInfo.signerInfos[0]?.publicKey?.value;
   let signerAddress;
   if (typeof (pubKey) !== "undefined") {
@@ -76,6 +79,7 @@ async function _handleTransaction(tx: CosmosTransaction): Promise<void> {
 
   const txEntity = Transaction.create({
     id: tx.hash,
+    timeline,
     blockId: tx.block.block.id,
     gasUsed: BigInt(Math.trunc(tx.tx.gasUsed)),
     gasWanted: BigInt(Math.trunc(tx.tx.gasWanted)),
@@ -93,12 +97,15 @@ async function _handleTransaction(tx: CosmosTransaction): Promise<void> {
 async function _handleMessage(msg: CosmosMessage): Promise<void> {
   logger.info(`[handleMessage] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`);
   logger.debug(`[handleMessage] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
+  const timeline = getTimeline(msg);
+  
   delete msg.msg?.decodedMsg?.wasmByteCode;
   const json = JSON.stringify(msg.msg.decodedMsg);
   const msgEntity = Message.create({
     id: messageId(msg),
     typeUrl: msg.msg.typeUrl,
     json,
+    timeline,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id,
   });

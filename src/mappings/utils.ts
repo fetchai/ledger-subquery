@@ -1,7 +1,7 @@
 import {CosmosBlock, CosmosEvent, CosmosMessage, CosmosTransaction} from "@subql/types-cosmos";
 import {Account, Interface, UnprocessedEntity} from "../types";
 import {createHash} from "crypto";
-import {Attribute} from "@cosmjs/stargate/build/logs";
+import {Attribute} from "@cosmjs/stargate";
 
 export type Primitive = CosmosEvent | CosmosMessage | CosmosTransaction | CosmosBlock;
 
@@ -24,6 +24,17 @@ export async function checkBalancesAccount(address: string, chainId: string) {
     accountEntity = Account.create({id: address, chainId});
     await accountEntity.save();
   }
+}
+
+export function getTimeline(entity: CosmosMessage|CosmosEvent): bigint {
+  const K2 = 100, K1 = K2 * 1000;
+  const txIndex = entity.tx.idx;
+  const blockHeight = entity.block.block.header.height;
+  // check if entity is Event or Message, and set msgIndex appropriately
+  const msgIndex = (<CosmosEvent>entity).msg?.idx === undefined ?
+    (<CosmosMessage>entity).idx : (<CosmosEvent>entity).msg.idx;
+  const timeline = (K1 * blockHeight) + (K2 * txIndex) + msgIndex;
+  return BigInt(timeline);
 }
 
 export function getJaccardResult(payload: object): Interface {

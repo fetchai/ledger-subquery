@@ -5,11 +5,14 @@ import {
   checkBalancesAccount,
   unprocessedEventHandler,
   messageId,
+  getTimeline,
 } from "../utils";
 
 export async function saveCw20BalanceEvent(id: string, address: string, amount: bigint, contractId: string, event: CosmosEvent) {
   await checkBalancesAccount(address, event.block.block.header.chainId);
   const msgId = messageId(event.msg);
+  const timeline = getTimeline(event);
+
   const Cw20BalanceChangeEntity = Cw20BalanceChange.create({
     id,
     balanceOffset: amount.valueOf(),
@@ -17,6 +20,7 @@ export async function saveCw20BalanceEvent(id: string, address: string, amount: 
     accountId: address,
     eventId: `${messageId(event)}-${event.idx}`,
     executeContractMessageId: msgId,
+    timeline,
     messageId: msgId,
     blockId: event.block.block.id,
     transactionId: event.tx.hash,
@@ -44,6 +48,7 @@ async function _handleCw20Transfer(event: CosmosEvent): Promise<void> { // TODO:
   const id = messageId(event.msg);
   logger.info(`[handleCw20Transfer] (tx ${event.tx.hash}): indexing Cw20Transfer ${id}`);
   logger.debug(`[handleCw20Transfer] (event.msg.msg): ${JSON.stringify(event.msg.msg, null, 2)}`);
+  const timeline = getTimeline(event);
 
   const msg = event.msg?.msg?.decodedMsg;
   const contractId = msg?.contract, fromAddress = msg?.sender;
@@ -62,6 +67,7 @@ async function _handleCw20Transfer(event: CosmosEvent): Promise<void> { // TODO:
     fromAddress,
     contractId,
     amount,
+    timeline,
     messageId: id,
     transactionId: event.tx.hash,
     blockId: event.block.block.id

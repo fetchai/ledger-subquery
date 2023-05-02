@@ -1,4 +1,4 @@
-import {attemptHandling, messageId, unprocessedEventHandler} from "../utils";
+import {attemptHandling, getTimeline, messageId, unprocessedEventHandler} from "../utils";
 import {AuthzExecMsg} from "../types";
 import {CosmosMessage} from "@subql/types-cosmos";
 
@@ -12,6 +12,7 @@ export async function handleAuthzExec(msg: CosmosMessage<AuthzExecMsg>): Promise
 async function _handleAuthzExec(msg: CosmosMessage<AuthzExecMsg>): Promise<void> {
   logger.info(`[handleAuthzExec] (tx ${msg.tx.hash}): indexing message ${msg.idx + 1} / ${msg.tx.decodedTx.body.messages.length}`);
   logger.debug(`[handleAuthzExec] (msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
+  const timeline = getTimeline(msg);
 
   /* NB: Intentionally NOT checking for tx success status to be consistent with
      the behavior of `handleMessage` (i.e. messages in failed txs will be indexed)
@@ -26,6 +27,7 @@ async function _handleAuthzExec(msg: CosmosMessage<AuthzExecMsg>): Promise<void>
   await Message.create({
     id: authzExecId,
     typeUrl,
+    timeline,
     json: JSON.stringify(msg.msg.decodedMsg),
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id,
@@ -34,6 +36,7 @@ async function _handleAuthzExec(msg: CosmosMessage<AuthzExecMsg>): Promise<void>
   await AuthzExec.create({
     id: authzExecId,
     grantee,
+    timeline,
     messageId: authzExecId,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id,
@@ -54,6 +57,7 @@ async function _handleAuthzExec(msg: CosmosMessage<AuthzExecMsg>): Promise<void>
           id: subMsgId,
           typeUrl,
           json: JSON.stringify(decodedMsg),
+          timeline,
           transactionId: msg.tx.hash,
           blockId: msg.block.block.id,
         }).save();

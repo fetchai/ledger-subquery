@@ -86,11 +86,11 @@ class TestDelegation(EntityTest):
         default_filter = {"block": {"height": {"greaterThanOrEqualTo": "0"}}}
 
         order_by_block_height_asc = filtered_dist_delegate_claim_query(
-            default_filter, "DIST_DELEGATOR_CLAIMS_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_by_block_height_desc = filtered_dist_delegate_claim_query(
-            default_filter, "DIST_DELEGATOR_CLAIMS_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         # query governance votes, query related block and filter by timestamp, returning all within last five minutes
@@ -115,7 +115,7 @@ class TestDelegation(EntityTest):
             {"delegatorAddress": {"equalTo": str(self.validator_address)}}
         )
 
-        for (name, query) in [
+        for name, query in [
             ("by block timestamp range", filter_by_block_timestamp_range),
             ("by validator equals", filter_by_validator_equals),
             ("by delegator equals", filter_by_delegator_equals),
@@ -148,7 +148,7 @@ class TestDelegation(EntityTest):
                     claims[0]["denom"], re.compile("^[\w/]{2,127}$")  # noqa: W605
                 )
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,

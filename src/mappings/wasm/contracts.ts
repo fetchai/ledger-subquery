@@ -3,6 +3,7 @@ import {ExecuteContractMsg} from "../types";
 import {
   attemptHandling,
   getJaccardResult,
+  getTimeline,
   messageId,
   unprocessedEventHandler
 } from "../utils";
@@ -32,9 +33,12 @@ export async function handleContractInstantiateEvent(event: CosmosEvent): Promis
 }
 
 async function _handleExecuteContractEvent(event: CosmosEvent): Promise<void> {
+  // logger.fatal(`${JSON.stringify(event.event.type, null, 2)}\n\n${JSON.stringify(event.event.attributes, null, 2)}\n\n`);
+  logger.fatal(`\n\n${JSON.stringify(event.msg.msg.decodedMsg, null, 2)}\n\n`);
   const msg: CosmosMessage<ExecuteContractMsg> = event.msg;
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`);
   logger.debug(`[handleExecuteContractMessage] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
+  const timeline = getTimeline(event);
 
   const id = messageId(msg);
   const funds = msg?.msg?.decodedMsg?.funds, contractId = msg?.msg?.decodedMsg?.contract;
@@ -50,6 +54,7 @@ async function _handleExecuteContractEvent(event: CosmosEvent): Promise<void> {
     method,
     contractId,
     funds,
+    timeline,
     messageId: id,
     transactionId: msg.tx.hash,
     blockId: msg.block.block.id
@@ -64,6 +69,7 @@ async function _handleContractStoreEvent(event: CosmosEvent): Promise<void> {
   logger.info(`[handleContractStoreEvent] (tx ${event.msg.tx.hash}): indexing event ${messageId(event.msg)}`);
   logger.debug(`[handleContractStoreEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`);
   logger.debug(`[handleContractStoreEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`);
+  const timeline = getTimeline(event);
 
   const id = messageId(event.msg);
   const sender = event.msg?.msg?.decodedMsg?.sender;
@@ -83,6 +89,7 @@ async function _handleContractStoreEvent(event: CosmosEvent): Promise<void> {
     sender,
     permission,
     codeId,
+    timeline,
     messageId: id,
     transactionId: event.msg.tx.hash,
     blockId: event.msg.block.block.id,
@@ -94,35 +101,40 @@ async function _handleContractInstantiateEvent(event: CosmosEvent): Promise<void
   logger.info(`[handleContractInstantiateEvent] (tx ${event.msg.tx.hash}): indexing event ${messageId(event.msg)}`);
   logger.debug(`[handleContractInstantiateEvent] (event.event): ${JSON.stringify(event.event, null, 2)}`);
   logger.debug(`[handleContractInstantiateEvent] (event.log): ${JSON.stringify(event.log, null, 2)}`);
+  const timeline = getTimeline(event);
 
-  const id = messageId(event.msg);
   const msg_decoded = event.msg?.msg?.decodedMsg;
   const sender = msg_decoded?.sender, admin = msg_decoded?.admin, label = msg_decoded?.label;
   const payload = JSON.stringify(msg_decoded?.msg, null), funds = msg_decoded?.funds;
+  const code_ids = event.event.attributes.filter((e) => e.key === "code_id");
+  const contract_addresses = event.event.attributes.filter((e) => e.key === "_contract_address");
 
-  const code_attr = event.event.attributes.find((e) => e.key === "code_id");
-  const address_attr = event.event.attributes.find((e) => e.key === "_contract_address");
-  const codeId = Number(code_attr?.value), contract_address = address_attr?.value;
+  for (const [i, e] of Object.entries(code_ids)) {
+    const codeId = Number(e.value);
+    const id = `${messageId(event.msg)}-${i}`;
+    const contract_address = Object.entries(contract_addresses)[i][1].value;
 
-  if (!sender || !codeId || !label || !payload || !codeId || !contract_address) {
-    logger.warn(`[handleContractInstantiateEvent] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`);
-    return;
+    if (!sender || !label || !payload || !codeId || !contract_address) {
+      logger.warn(`[handleContractInstantiateEvent] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`);
+      return;
+    }
+
+    const instantiateMsg = InstantiateContractMessage.create({
+      id,
+      sender,
+      admin,
+      codeId,
+      label,
+      payload,
+      funds,
+      timeline,
+      messageId: messageId(event.msg),
+      transactionId: event.msg.tx.hash,
+      blockId: event.msg.block.block.id,
+    });
+    await instantiateMsg.save();
+    await saveContractEvent(instantiateMsg, contract_address, event);
   }
-
-  const instantiateMsg = InstantiateContractMessage.create({
-    id,
-    sender,
-    admin,
-    codeId,
-    label,
-    payload,
-    funds,
-    messageId: id,
-    transactionId: event.msg.tx.hash,
-    blockId: event.msg.block.block.id,
-  });
-  await instantiateMsg.save();
-  await saveContractEvent(instantiateMsg, contract_address, event);
 }
 
 async function saveContractEvent(instantiateMsg: InstantiateContractMessage, contract_address: string, event: CosmosEvent) {
@@ -139,7 +151,8 @@ async function saveContractEvent(instantiateMsg: InstantiateContractMessage, con
     id: contract_address,
     interface: getJaccardResult(JSON.parse(instantiateMsg.payload)),
     storeMessageId: storeCodeMsg.id,
-    instantiateMessageId: instantiateMsg.id
+    instantiateMessageId: instantiateMsg.id,
+    codeId: storeCodeMsg.codeId
   });
   await contract.save();
 }

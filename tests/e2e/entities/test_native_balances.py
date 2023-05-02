@@ -100,11 +100,11 @@ class TestGenesisBalances(EntityTest):
             )
 
         order_by_block_height_desc = filtered_native_balance_query(
-            default_filter, "NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         order_by_block_height_asc = filtered_native_balance_query(
-            default_filter, "NATIVE_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         result = self.gql_client.execute(query)
@@ -122,7 +122,7 @@ class TestGenesisBalances(EntityTest):
         self.assertEqual(validator_balance, -7000000000000092000)
         self.assertEqual(delegator_balance, 6999999999999908000)
 
-        for (name, query, orderAssert) in (
+        for name, query, orderAssert in (
             (
                 "order by block height ascending",
                 order_by_block_height_asc,
