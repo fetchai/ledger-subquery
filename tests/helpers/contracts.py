@@ -78,7 +78,6 @@ class RecursiveContract(LedgerContract):
 class DeployTestContract(LedgerContract):
     def __init__(self, client: LedgerClient, admin: Wallet):
         """Using a slightly older version of CW20 contract as a test contract - as this will still be classified as the
-
         CW20 interface, but is different enough to allow a unique store_code message during testing.
         """
         contract_path = ensure_contract("cw20_base.wasm")
