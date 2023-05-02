@@ -32,11 +32,17 @@ test_bank_state: Dict = {
 test_wasm_state_contracts: List[Dict] = [
     {
         "contract_address": "fetch1qxxlalvsdjd07p07y3rc5fu6ll8k4tmetpha8n",
-        "contract_info": {"label": "token-bridge-contract"},
+        "contract_info": {
+            "code_id": "1",
+            "label": "token-bridge-contract"
+        },
     },
     {
         "contract_address": "fetch1pvrwmjuusn9wh34j7y520g8gumuy9xtljwctjp",
-        "contract_info": {"label": "decibel"},
+        "contract_info": {
+            "code_id": "2",
+            "label": "decibel"
+        },
     },
 ]
 
