@@ -37,10 +37,13 @@ services:
       DATABASE_URL: "postgres://subquery:subquery@postgres/subquery"
       SHADOW_DATABASE_URL: "postgres://subquery:subquery@postgres/subquery_shadow"
       ROOT_DATABASE_URL: "postgres://subquery:subquery@postgres/postgres"
+    volumes:
+      - ./:/app
     command:
       - -f=/app
       - --db-schema=app
       - --batch-size=1
+      - --disable-historical=true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://subquery-node:3000/ready"]
       interval: 3s
@@ -65,9 +68,7 @@ services:
       DB_DATABASE: "subquery"
       DB_HOST: postgres
       DB_PORT: 5432
-    volumes:
-      - ./subql/packages/query/package.json:/app/package.json
-    entrypoint: ["/sbin/tini", "--", "yarn", "start:prod"]
+      STARTUP_DELAY: 2s
     command:
       - --name=app
       - --playground
