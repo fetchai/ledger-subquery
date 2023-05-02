@@ -23,20 +23,14 @@ class TestContractsManager(TestWithDBConn, TestWithGQLClient):
         cls.truncate_tables("contracts", cascade=True)
 
         cls.test_manager = ContractsManager(cls.db_conn)
-        cls.test_manager.process_genesis(
-            test_genesis_data
-        )
+        cls.test_manager.process_genesis(test_genesis_data)
 
     def test_sql_retrieval(self):
         actual_contracts: List[dict] = []
 
         with self.db_conn.cursor() as db:
             for row in db.execute(Contracts.select_query()).fetchall():
-                actual_contracts.append(
-                    {
-                        "id": row[Contracts.id.value]
-                    }
-                )
+                actual_contracts.append({"id": row[Contracts.id.value]})
 
         self.assertListEqual(self.expected_contracts, actual_contracts)
 
@@ -58,9 +52,7 @@ class TestContractsManager(TestWithDBConn, TestWithGQLClient):
         )
 
         for node in results["contracts"]["nodes"]:
-            actual_contracts.append(
-                {"id": node.get("id")}
-            )
+            actual_contracts.append({"id": node.get("id")})
 
         actual_contracts.reverse()
         self.assertListEqual(self.expected_contracts, actual_contracts)
