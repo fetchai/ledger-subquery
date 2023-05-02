@@ -86,11 +86,11 @@ class TestDelegation(EntityTest):
         default_filter = {"block": {"height": {"greaterThanOrEqualTo": "0"}}}
 
         order_by_block_height_asc = filtered_dist_delegate_claim_query(
-            default_filter, "DIST_DELEGATOR_CLAIMS_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_by_block_height_desc = filtered_dist_delegate_claim_query(
-            default_filter, "DIST_DELEGATOR_CLAIMS_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         # query governance votes, query related block and filter by timestamp, returning all within last five minutes

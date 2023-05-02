@@ -130,11 +130,11 @@ class TestCw20BalanceChange(EntityTest):
             )
 
         order_by_block_height_asc = filtered_cw20_balance_change_query(
-            default_filter, "CW20_BALANCE_CHANGES_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_by_block_height_desc = filtered_cw20_balance_change_query(
-            default_filter, "CW20_BALANCE_CHANGES_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         # query Cw20 transfers, query related block and filter by timestamp, returning all within last five minutes

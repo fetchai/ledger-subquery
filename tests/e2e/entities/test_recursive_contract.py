@@ -105,9 +105,7 @@ class TestContractDeploy(EntityTest):
             "storeMessage": {"codeId": {"greaterThanOrEqualTo": 0}}
         }
 
-        def filtered_contract_query(
-            _filter, order="CONTRACTS_BY_STORE_CONTRACT_MESSAGES_CODE_ID_ASC"
-        ):
+        def filtered_contract_query(_filter, order="CODE_ID_ASC"):
             return filtered_test_query(
                 "contracts", _filter, contract_nodes, _order=order
             )

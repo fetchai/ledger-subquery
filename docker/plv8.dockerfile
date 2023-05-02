@@ -23,7 +23,4 @@ RUN mkdir -p /var/log/postgres \
 
 USER postgres
 
-# Copy in the load-extensions script to support historical mode
-COPY /scripts/load-extensions.sh /docker-entrypoint-initdb.d/
-
 RUN ln -fs /dev/stderr /var/log/postgres/log

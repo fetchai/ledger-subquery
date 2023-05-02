@@ -124,11 +124,11 @@ class TestGovernance(EntityTest):
             )
 
         order_by_block_height_asc = filtered_gov_proposal_votes_query(
-            default_filter, "GOV_PROPOSAL_VOTES_BY_BLOCK_HEIGHT_ASC"
+            default_filter, "TIMELINE_ASC"
         )
 
         order_by_block_height_desc = filtered_gov_proposal_votes_query(
-            default_filter, "GOV_PROPOSAL_VOTES_BY_BLOCK_HEIGHT_DESC"
+            default_filter, "TIMELINE_DESC"
         )
 
         # query native transactions, query related block and filter by timestamp, returning all within last five minutes
