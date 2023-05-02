@@ -22,7 +22,7 @@ class ContractsManager:
             (INTERFACE, DBTypes.interface),
             (STORE_MESSAGE_ID, DBTypes.text),
             (INSTANTIATE_MESSAGE_ID, DBTypes.text),
-            (CODE_ID, DBTypes.integer)
+            (CODE_ID, DBTypes.integer),
         )
         indexes = (ID,)
 
@@ -39,7 +39,13 @@ class ContractsManager:
         with self.table_manager.db_copy() as copy:
             for contract in genesis_accounts_filtered:
                 copy.write_row(
-                    (self._get_contract_address(contract), "Uncertain", None, None, self._get_contract_code_id(contract))
+                    (
+                        self._get_contract_address(contract),
+                        "Uncertain",
+                        None,
+                        None,
+                        self._get_contract_code_id(contract),
+                    )
                 )
 
     def _get_contract_data(self, genesis_data: dict) -> List[dict]:
