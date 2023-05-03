@@ -9,6 +9,7 @@ from psycopg import Connection
 class DBTypes(Enum):
     text = "text"
     numeric = "numeric"
+    integer = "integer"
     interface = "public.app_enum_0f6c2478ba"
 
 

@@ -11,6 +11,7 @@ ID = "id"
 INTERFACE = "interface"
 STORE_MESSAGE_ID = "store_message_id"
 INSTANTIATE_MESSAGE_ID = "instantiate_message_id"
+CODE_ID = "code_id"
 TABLE_ID = "contracts"
 
 
@@ -21,6 +22,7 @@ class ContractsManager:
             (INTERFACE, DBTypes.interface),
             (STORE_MESSAGE_ID, DBTypes.text),
             (INSTANTIATE_MESSAGE_ID, DBTypes.text),
+            (CODE_ID, DBTypes.integer),
         )
         indexes = (ID,)
 
@@ -37,7 +39,13 @@ class ContractsManager:
         with self.table_manager.db_copy() as copy:
             for contract in genesis_accounts_filtered:
                 copy.write_row(
-                    (self._get_contract_address(contract), "Uncertain", None, None)
+                    (
+                        self._get_contract_address(contract),
+                        "Uncertain",
+                        None,
+                        None,
+                        self._get_contract_code_id(contract),
+                    )
                 )
 
     def _get_contract_data(self, genesis_data: dict) -> List[dict]:
@@ -45,6 +53,9 @@ class ContractsManager:
 
     def _get_contract_address(self, contract: dict) -> str:
         return str(contract["contract_address"])
+
+    def _get_contract_code_id(self, contract: dict) -> str:
+        return str(contract["contract_info"]["code_id"])
 
     def _filter_genesis_contracts(
         self, contracts_data: List[dict], db_contracts: List[str]

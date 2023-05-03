@@ -29,6 +29,26 @@ test_bank_state: Dict = {
     "supply": test_bank_state_supply,
 }
 
+test_wasm_state_contracts: List[Dict] = [
+    {
+        "contract_address": "fetch1qxxlalvsdjd07p07y3rc5fu6ll8k4tmetpha8n",
+        "contract_info": {"code_id": "1", "label": "token-bridge-contract"},
+    },
+    {
+        "contract_address": "fetch1pvrwmjuusn9wh34j7y520g8gumuy9xtljwctjp",
+        "contract_info": {"code_id": "2", "label": "decibel"},
+    },
+]
+
+test_wasm_state: Dict = {
+    "codes": {},
+    "contracts": test_wasm_state_contracts,
+    "gen_msgs": {},
+    "params": {},
+    "sequences": {},
+}
+
+
 test_app_state: Dict = {
     "airdrop": {},
     "auth": {},
@@ -49,7 +69,7 @@ test_app_state: Dict = {
     "transfer": {},
     "upgrade": {},
     "vesting": {},
-    "wasm": {},
+    "wasm": test_wasm_state,
 }
 
 test_genesis_data: Dict = {
