@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass
 from typing import Optional, Union
 
@@ -8,7 +7,7 @@ from cosmpy.aerial.wallet import Wallet
 from cosmpy.crypto.address import Address
 from dataclasses_json import dataclass_json
 
-from tests.helpers.github import download_github_release_asset
+from tests.helpers.contract_retrieve import ensure_contract
 
 
 @dataclass_json
@@ -57,27 +56,23 @@ DefaultAlmanacContractConfig = AlmanacContractConfig(
 )
 
 
-def ensure_contract(
-    owner: str,
-    repo: str,
-    filename: str,
-    token: Optional[str] = None,
-    *,
-    version: Optional[str] = "latest",
-) -> str:
-    contract_path = f".contract/{filename}"
-    if not os.path.exists(".contract"):
-        os.mkdir(".contract")
-    try:
-        temp = open(contract_path, "rb")
-        temp.close()
-    except OSError:
-        with open(contract_path, "wb") as file:
-            download_github_release_asset(
-                owner, repo, filename, file, token, version=version
-            )
-    finally:
-        return contract_path
+class RecursiveContract(LedgerContract):
+    admin: Wallet = None
+    gas_limit: int = 3000000
+
+    def __init__(self, client: LedgerClient, admin: Wallet):
+        self.admin = admin
+        contract_path = ensure_contract("recursive_contract.wasm")
+        print(contract_path)
+        super().__init__(contract_path, client)
+
+    def _store(self) -> int:
+        assert self.admin is not None
+        return self.store(self.admin, self.gas_limit)
+
+    def _instantiate(self, code_id, depth) -> Address:
+        assert self.admin is not None
+        return self.instantiate({"code_id": code_id, "depth": depth}, self.admin)
 
 
 class DeployTestContract(LedgerContract):
@@ -85,9 +80,7 @@ class DeployTestContract(LedgerContract):
         """Using a slightly older version of CW20 contract as a test contract - as this will still be classified as the
         CW20 interface, but is different enough to allow a unique store_code message during testing.
         """
-        contract_path = ensure_contract(
-            "CosmWasm", "cw-plus", "cw20_base.wasm", version="v0.14.0"
-        )
+        contract_path = ensure_contract("cw20_base.wasm")
         super().__init__(contract_path, client)
 
         self.deploy(
@@ -108,35 +101,13 @@ class DeployTestContract(LedgerContract):
         )
 
 
-class RecursiveContract(LedgerContract):
-    admin: Wallet = None
-    gas_limit: int = 3000000
-
-    def __init__(self, client: LedgerClient, admin: Wallet):
-        self.admin = admin
-        contract_path = ensure_contract(
-            "Jonathansumner", "cw-recursive", "recursive_contract.wasm"
-        )
-        super().__init__(contract_path, client)
-
-    def _store(self) -> int:
-        assert self.admin is not None
-        return self.store(self.admin, self.gas_limit)
-
-    def _instantiate(self, code_id, depth) -> Address:
-        assert self.admin is not None
-        return self.instantiate({"code_id": code_id, "depth": depth}, self.admin)
-
-
 class Cw20Contract(LedgerContract):
     admin: Wallet = None
     gas_limit: int = 3000000
 
     def __init__(self, client: LedgerClient, admin: Wallet):
         self.admin = admin
-        contract_path = ensure_contract(
-            "CosmWasm", "cw-plus", "cw20_base.wasm", version="v0.16.0"
-        )
+        contract_path = ensure_contract("cw20_base.wasm")
         super().__init__(contract_path, client)
 
     def _store(self) -> int:
@@ -170,9 +141,7 @@ class BridgeContract(LedgerContract):
     def __init__(self, client: LedgerClient, admin: Wallet, cfg: BridgeContractConfig):
         self.cfg = cfg
         self.admin = admin
-        contract_path = ensure_contract(
-            "fetchai", "fetch-ethereum-bridge-v1", "bridge.wasm"
-        )
+        contract_path = ensure_contract("bridge.wasm")
         # LedgerContract will attempt to discover any existing contract having the same bytecode hash
         # see https://github.com/fetchai/cosmpy/blob/master/cosmpy/aerial/contract/__init__.py#L74
         super().__init__(contract_path, client)
@@ -195,13 +164,7 @@ class AlmanacContract(LedgerContract):
     ):
         self.cfg = cfg
         self.admin = admin
-        token = os.environ.get("GITHUB_AUTHORIZATION_TOKEN")
-        contract_path = ensure_contract(
-            "fetchai",
-            "contract-agent-almanac",
-            "contract_agent_almanac.wasm",
-            token=token,
-        )
+        contract_path = ensure_contract("contract_agent_almanac.wasm")
         super().__init__(contract_path, client)
 
         self.deploy(self.cfg.to_dict(), admin, store_gas_limit=3000000)  # type: ignore
