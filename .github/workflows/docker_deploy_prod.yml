@@ -1,8 +1,6 @@
 name: Docker deploy prod
 
-on:
-  push:
-    branches: [main]
+on: push
 
 jobs:
   ledger-subquery:
@@ -44,14 +42,14 @@ jobs:
           gcloud auth configure-docker -q
 
       # Docker build ; docker push
-      - name: Build and push subquery node
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: ./docker/node.dockerfile
-          push: true
-          tags: |
-            gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.NODE_IMAGE_NAME }}:${{ steps.vars.outputs.node_tag_name }}
+      # - name: Build and push subquery node
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     context: .
+      #     file: ./docker/node.dockerfile
+      #     push: true
+      #     tags: |
+      #       gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.NODE_IMAGE_NAME }}:${{ steps.vars.outputs.node_tag_name }}
       
       # Docker build ; docker push db image
       - name: Build and push subquery postgres
@@ -63,20 +61,20 @@ jobs:
           tags: |
             gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.DB_IMAGE_NAME }}:${{ steps.vars.outputs.node_tag_name }}
 
-      - name: Build and push graphql api
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: ./docker/api.dockerfile
-          push: true
-          tags: |
-            gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.API_IMAGE_NAME }}:${{ steps.vars.outputs.api_tag_name }}
+      # - name: Build and push graphql api
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     context: .
+      #     file: ./docker/api.dockerfile
+      #     push: true
+      #     tags: |
+      #       gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.API_IMAGE_NAME }}:${{ steps.vars.outputs.api_tag_name }}
 
-      - name: Build and push genesis job
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: ./docker/genesis.dockerfile
-          push: true
-          tags: |
-            gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.GENESIS_IMAGE_NAME }}:${{ steps.vars.outputs.node_tag_name }}
+      # - name: Build and push genesis job
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     context: .
+      #     file: ./docker/genesis.dockerfile
+      #     push: true
+      #     tags: |
+      #       gcr.io/${{ env.IMAGE_PROJECT_ID }}/${{ env.GENESIS_IMAGE_NAME }}:${{ steps.vars.outputs.node_tag_name }}
