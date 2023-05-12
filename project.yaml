@@ -33,6 +33,8 @@ dataSources:
           kind: cosmos/BlockHandler
         - handler: handleTransaction
           kind: cosmos/TransactionHandler
+          filter:
+            includeFailedTx: true
         - handler: handleMessage
           kind: cosmos/MessageHandler
         - handler: handleEvent
