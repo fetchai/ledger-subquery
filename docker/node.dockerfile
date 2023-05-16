@@ -1,3 +1,13 @@
+FROM node:16-slim AS builder
+
+RUN apt-get update && apt-get install -y tree
+
+WORKDIR /app
+
+# Copy files & build
+COPY . /app
+RUN yarn codegen && yarn build
+
 FROM onfinality/subql-node-cosmos:v1.19.1
 
 # Add system dependencies
@@ -14,9 +24,11 @@ WORKDIR /app
 ADD ./package.json yarn.lock /app/
 RUN yarn install --frozen-lockfile --prod
 
-COPY ./.gmrc /app/.gmrc
+# include build artefacts in final image
+COPY --from=builder /app/dist /app/dist
 
 ADD ./proto /app/proto
+ADD ./.gmrc /app/.gmrc
 ADD ./project.yaml schema.graphql /app/
 ADD ./scripts/node-entrypoint.sh /entrypoint.sh
 

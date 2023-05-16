@@ -1,0 +1,75 @@
+version: "3"
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: ./docker/plv8.dockerfile
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: "subquery"
+      POSTGRES_PASSWORD: "subquery"
+      POSTGRES_DB: "subquery"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U subquery"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  subquery-node:
+    build:
+      context: .
+      dockerfile: ./docker/node.dockerfile
+    depends_on:
+      "postgres":
+        condition: service_healthy
+      "fetch-node":
+        condition: service_started
+    restart: always
+    environment:
+      DB_USER: "subquery"
+      DB_PASS: "subquery"
+      DB_DATABASE: "subquery"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      START_BLOCK: "1"
+      NETWORK_ENDPOINT: "http://fetch-node:26657"
+      CHAIN_ID: "fetchchain"
+      DATABASE_URL: "postgres://subquery:subquery@postgres/subquery"
+      SHADOW_DATABASE_URL: "postgres://subquery:subquery@postgres/subquery_shadow"
+      ROOT_DATABASE_URL: "postgres://subquery:subquery@postgres/postgres"
+    command:
+      - -f=/app
+      - --db-schema=app
+      - --batch-size=1
+      - --disable-historical=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://subquery-node:3000/ready"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  graphql-engine:
+    build:
+      context: .
+      dockerfile: ./docker/api.dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      "postgres":
+        condition: service_healthy
+      "subquery-node":
+        condition: service_started
+    restart: always
+    environment:
+      DB_USER: "subquery"
+      DB_PASS: "subquery"
+      DB_DATABASE: "subquery"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      STARTUP_DELAY: 2s
+    command:
+      - --name=app
+      - --playground
+      - --indexer=http://subquery-node:3000
