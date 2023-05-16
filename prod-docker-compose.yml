@@ -1,0 +1,115 @@
+version: "3"
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: ./docker/plv8.dockerfile
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: "subquery"
+      POSTGRES_PASSWORD: "subquery"
+      POSTGRES_DB: "subquery"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U subquery"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  subquery-node:
+    build:
+      context: .
+      dockerfile: ./docker/node.dockerfile
+    depends_on:
+      "postgres":
+        condition: service_healthy
+      "fetch-node":
+        condition: service_started
+    restart: always
+    environment:
+      DB_USER: "subquery"
+      DB_PASS: "subquery"
+      DB_DATABASE: "subquery"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      START_BLOCK: "1"
+      NETWORK_ENDPOINT: "http://fetch-node:26657"
+      CHAIN_ID: "fetchchain"
+      DATABASE_URL: "postgres://subquery:subquery@postgres/subquery"
+      SHADOW_DATABASE_URL: "postgres://subquery:subquery@postgres/subquery_shadow"
+      ROOT_DATABASE_URL: "postgres://subquery:subquery@postgres/postgres"
+    command:
+      - -f=/app
+      - --db-schema=app
+      - --batch-size=1
+      - --disable-historical=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://subquery-node:3000/ready"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  graphql-engine:
+    build:
+      context: .
+      dockerfile: ./docker/api.dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      "postgres":
+        condition: service_healthy
+      "subquery-node":
+        condition: service_started
+    restart: always
+    environment:
+      DB_USER: "subquery"
+      DB_PASS: "subquery"
+      DB_DATABASE: "subquery"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      STARTUP_DELAY: 2s
+    command:
+      - --name=app
+      - --playground
+      - --indexer=http://subquery-node:3000
+
+  wasm-node:
+    image: cosmwasm/wasmd:v0.24.0
+    entrypoint: ["sh", "-c", "/scripts/start_cosmos_node.sh"]
+    environment:
+      BINARY: wasmd
+      DENOM: ustake
+      MONIKER: wasmnode
+      CHAIN_ID: wasmchain
+      EXTRA_GENESIS_ACCOUNTS: >
+        wasm132mmds9flytwh4grswde8zmcuwnd9yc4vdftf6:1000000000000000000000000ustake
+        wasm1wurz7uwmvchhc8x0yztc7220hxs9jxdj53m3s0:1000000000000000000000000ustake
+    volumes:
+      - ./scripts/start_cosmos_node.sh:/scripts/start_cosmos_node.sh:ro
+    ports:
+      - 11317:1317
+      - 36657:26657
+      - 19090:9090
+    expose:
+      - 26656
+  hermes:
+    build: ./docker/hermes
+    entrypoint: ["sh", "-c", "/scripts/start_hermes.sh"]
+    depends_on:
+      "wasm-node":
+        condition: service_started
+      "fetch-node":
+        condition: service_started
+    restart: always
+    volumes:
+      - ./docker/hermes/config.toml:/root/.hermes/config.toml:ro
+      - ./scripts/start_hermes.sh:/scripts/start_hermes.sh:ro
+    environment:
+      # fetch108g2rh9e8r65hq69dm9ca76ttmke3utdy983mf
+      FETCH_RELAYER_MNEMONIC: "length panther shoe gun grief river state boy note lunar input chest iron mirror elephant flip ripple scout reflect orchard frame borrow radio total"
+      # wasm132mmds9flytwh4grswde8zmcuwnd9yc4vdftf6
+      WASM_RELAYER_MNEMONIC: "all expect burger grit believe forest match math holiday polar roof soccer thank focus note lion gesture dream bounce pony whip scale group refuse"
+    expose:
+      - 3000 # REST API https://hermes.informal.systems/rest-api.html#endpoints
+      - 3001 # prometheus telemetry
