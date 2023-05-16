@@ -4,6 +4,10 @@ RUN apt-get update && apt-get install -y tree
 
 WORKDIR /app
 
+# Add build dependencies
+ADD ./package.json yarn.lock /app/
+RUN yarn install --frozen-lockfile
+
 # Copy files & build
 COPY . /app
 RUN yarn codegen && yarn build
