@@ -29,6 +29,7 @@ dataSources:
     mapping:
       file: "./dist/index.js"
       handlers:
+# -------- Primitives
         - handler: handleBlock
           kind: cosmos/BlockHandler
         - handler: handleTransaction
@@ -39,50 +40,35 @@ dataSources:
           kind: cosmos/MessageHandler
         - handler: handleEvent
           kind: cosmos/EventHandler
+# -------- Governance
         - handler: handleGovProposalVote
           kind: cosmos/EventHandler
           filter:
             type: "proposal_vote"
             messageFilter:
               type: "/cosmos.gov.v1beta1.MsgVote"
+# -------- Staking
         - handler: handleDistDelegatorClaim
           kind: cosmos/EventHandler
           filter:
             type: "withdraw_rewards"
             messageFilter:
               type: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
-        - handler: handleExecuteContractEvent
+        - handler: handleDelegatorWithdrawRewardEvent
           kind: cosmos/EventHandler
           filter:
-            type: "execute"
-            messageFilter:
-              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-        - handler: handleLegacyBridgeSwap
-          kind: cosmos/EventHandler
+            type: "withdraw_rewards"
+        - handler: handleAuthzExec
+          kind: cosmos/MessageHandler
           filter:
-            type: "execute"
-            messageFilter:
-              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-              # Filter to only messages with the swap function call
-              contractCall: "swap"
+            type: "/cosmos.authz.v1beta1.MsgExec"
+# -------- Bank
         - handler: handleNativeTransfer
           kind: cosmos/EventHandler
           filter:
             type: "transfer"
             messageFilter:
               type: "/cosmos.bank.v1beta1.MsgSend"
-        - handler: handleDelegatorWithdrawRewardEvent
-          kind: cosmos/EventHandler
-          filter:
-            type: "withdraw_rewards"
-        # TODO: perhaps merge this handler config and that of Cw20BalanceTransfer
-        - handler: handleCw20Transfer
-          kind: cosmos/EventHandler
-          filter:
-            type: "execute"
-            messageFilter:
-              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-              contractCall: "transfer"
         - handler: handleNativeBalanceDecrement
           kind: cosmos/EventHandler
           filter:
@@ -91,6 +77,35 @@ dataSources:
           kind: cosmos/EventHandler
           filter:
             type: "coin_received"
+# -------- Wasm
+        - handler: handleContractStoreEvent
+          kind: cosmos/EventHandler
+          filter:
+            type: "store_code"
+        - handler: handleContractInstantiateEvent
+          kind: cosmos/EventHandler
+          filter:
+            type: "instantiate"
+        - handler: handleExecuteContractEvent
+          kind: cosmos/EventHandler
+          filter:
+            type: "execute"
+        - handler: handleLegacyBridgeSwap
+          kind: cosmos/EventHandler
+          filter:
+            type: "execute"
+            messageFilter:
+              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+              # Filter to only messages with the swap function call
+              contractCall: "swap"
+        # TODO: perhaps merge this handler config and that of Cw20BalanceTransfer
+        - handler: handleCw20Transfer
+          kind: cosmos/EventHandler
+          filter:
+            type: "execute"
+            messageFilter:
+              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+              contractCall: "transfer"
         - handler: handleIBCTransfer
           kind: cosmos/EventHandler
           filter:
@@ -116,22 +131,7 @@ dataSources:
             messageFilter:
               type: "/cosmwasm.wasm.v1.MsgExecuteContract"
               contractCall: "mint"
-        - handler: handleContractStoreEvent
-          kind: cosmos/EventHandler
-          filter:
-            type: "store_code"
-            messageFilter:
-              type: "/cosmwasm.wasm.v1.MsgStoreCode"
-        - handler: handleContractInstantiateEvent
-          kind: cosmos/EventHandler
-          filter:
-            type: "instantiate"
-            messageFilter:
-              type: "/cosmwasm.wasm.v1.MsgInstantiateContract"
-        - handler: handleAuthzExec
-          kind: cosmos/MessageHandler
-          filter:
-            type: "/cosmos.authz.v1beta1.MsgExec"
+# -------- Agents
         - handler: handleAlmanacRegistration
           kind: cosmos/EventHandler
           filter:

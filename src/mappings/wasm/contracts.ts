@@ -33,8 +33,6 @@ export async function handleContractInstantiateEvent(event: CosmosEvent): Promis
 }
 
 async function _handleExecuteContractEvent(event: CosmosEvent): Promise<void> {
-  // logger.fatal(`${JSON.stringify(event.event.type, null, 2)}\n\n${JSON.stringify(event.event.attributes, null, 2)}\n\n`);
-  logger.fatal(`\n\n${JSON.stringify(event.msg.msg.decodedMsg, null, 2)}\n\n`);
   const msg: CosmosMessage<ExecuteContractMsg> = event.msg;
   logger.info(`[handleExecuteContractMessage] (tx ${msg.tx.hash}): indexing ExecuteContractMessage ${messageId(msg)}`);
   logger.debug(`[handleExecuteContractMessage] (event.msg.msg): ${JSON.stringify(msg.msg, null, 2)}`);
@@ -114,7 +112,7 @@ async function _handleContractInstantiateEvent(event: CosmosEvent): Promise<void
     const id = `${messageId(event.msg)}-${i}`;
     const contract_address = Object.entries(contract_addresses)[i][1].value;
 
-    if (!sender || !label || !payload || !codeId || !contract_address) {
+    if (!sender || !payload || !codeId || !contract_address) {
       logger.warn(`[handleContractInstantiateEvent] (tx ${event.tx.hash}): cannot index event (event.event): ${JSON.stringify(event.event, null, 2)}`);
       return;
     }
@@ -141,9 +139,7 @@ async function saveContractEvent(instantiateMsg: InstantiateContractMessage, con
   const storeCodeMsg = (await StoreContractMessage.getByCodeId(instantiateMsg.codeId))[0];
 
   if (!storeCodeMsg || !contract_address || !instantiateMsg) {
-    logger.warn(`[saveContractEvent] (tx ${event.tx.hash}): failed to save contract
-(storeCodeMsg): ${JSON.stringify(storeCodeMsg, null, 2)},
-(instantiateMsg): ${JSON.stringify(instantiateMsg, null, 2)})`);
+    logger.warn(`[saveContractEvent] (tx ${event.tx.hash}): failed to save contract (storeCodeMsg): ${(storeCodeMsg?.id)}, (instantiateMsg): ${(instantiateMsg?.id)})`);
     return;
   }
 

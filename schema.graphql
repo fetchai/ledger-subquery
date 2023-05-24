@@ -302,9 +302,9 @@ type StoreContractMessage @entity {
 type InstantiateContractMessage @entity {
   id: ID!
   sender: String! @index
-  admin: String!
+  admin: String
   codeId: Int!
-  label: String!
+  label: String
   payload: String!
   funds: [Coin]
   timeline: BigInt! @index

@@ -1,6 +1,23 @@
 version: "3"
 
 services:
+  genesis-processor:
+    build:
+      context: .
+      dockerfile: ./docker/genesis.dockerfile
+    environment:
+      DB_USER: "subquery"
+      DB_PASS: "subquery"
+      DB_DATABASE: "subquery"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_SCHEMA: app
+      JSON_URL: https://storage.googleapis.com/fetch-ai-testnet-genesis/genesis-dorado-827201.json
+      NETWORK: dorado
+    depends_on:
+      "subquery-node":
+          condition: service_started
+
   postgres:
     build:
       context: .
