@@ -138,7 +138,8 @@ async function _handleContractInstantiateEvent(event: CosmosEvent): Promise<void
 async function saveContractEvent(instantiateMsg: InstantiateContractMessage, contract_address: string, event: CosmosEvent) {
   const storeCodeMsg = (await StoreContractMessage.getByCodeId(instantiateMsg.codeId))[0];
 
-  if (!storeCodeMsg || !contract_address || !instantiateMsg) {
+  // Allow contracts to be created without a storeMsg, incase they are a re-instantiation of a genesis contract
+  if (!contract_address || !instantiateMsg) {
     logger.warn(`[saveContractEvent] (tx ${event.tx.hash}): failed to save contract (storeCodeMsg): ${(storeCodeMsg?.id)}, (instantiateMsg): ${(instantiateMsg?.id)})`);
     return;
   }
