@@ -106,7 +106,7 @@ type Contract @entity {
   interface: Interface!
   storeMessage: StoreContractMessage
   instantiateMessage: InstantiateContractMessage
-  codeId: Int!
+  codeId: Int! @index
 }
 
 type LegacyBridgeSwap @entity {
