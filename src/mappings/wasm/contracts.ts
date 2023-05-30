@@ -136,20 +136,22 @@ async function _handleContractInstantiateEvent(event: CosmosEvent): Promise<void
 }
 
 async function saveContractEvent(instantiateMsg: InstantiateContractMessage, contract_address: string, event: CosmosEvent) {
+  logger.info(`[saveContractFunction] (tx ${event.tx.hash}): constructing new contract entity`);
   const storeCodeMsg = (await StoreContractMessage.getByCodeId(instantiateMsg.codeId))[0];
+  const not_genesis: boolean = (await Contract.getByCodeId(instantiateMsg.codeId))[0]==undefined;
 
-  // Allow contracts to be created without a storeMsg, incase they are a re-instantiation of a genesis contract
-  if (!contract_address || !instantiateMsg) {
-    logger.warn(`[saveContractEvent] (tx ${event.tx.hash}): failed to save contract (storeCodeMsg): ${(storeCodeMsg?.id)}, (instantiateMsg): ${(instantiateMsg?.id)})`);
+  // Allow contracts to be created without a storeMsg, if there is genesis contract of the same code_id
+  if (!contract_address || !instantiateMsg || (not_genesis && !storeCodeMsg)) {
+    logger.warn(`[saveContractFunction] (tx ${event.tx.hash}): failed to save contract (storeCodeMsg): ${(storeCodeMsg?.id)}, (instantiateMsg): ${(instantiateMsg?.id)}), (genesis contract?): ${(!not_genesis).valueOf()}`);
     return;
   }
 
   const contract = Contract.create({
     id: contract_address,
     interface: getJaccardResult(JSON.parse(instantiateMsg.payload)),
-    storeMessageId: storeCodeMsg.id,
+    storeMessageId: storeCodeMsg?.id,
     instantiateMessageId: instantiateMsg.id,
-    codeId: storeCodeMsg.codeId
+    codeId: instantiateMsg.codeId
   });
   await contract.save();
 }
