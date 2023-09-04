@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fetch-node
+  labels:
+    app: fetch-node
+spec:
+  ports:
+    - name: p2p
+      port: 26656
+      targetPort: 26656
+    - name: tcp
+      port: 26657
+      targetPort: 26657
+    - name: prometheus
+      port: 26660
+      targetPort: 26660
+    - name: api
+      port: 1317
+      targetPort: 1317
+    - name: grpc
+      port: 9090
+      targetPort: 9090
+  selector:
+    app: fetch-node

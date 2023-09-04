@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  serviceName: postgres
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:14.5-bullseye
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: POSTGRES_USER
+              value: "{{ .Values.auth.user }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.auth.pass }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.auth.db }}"
+            - name: PGDATA
+              value: "{{ .Values.data.path }}"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgresdb
+      volumes:
+        - name: postgresdb
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim

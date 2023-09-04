@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: fetch-node
+spec:
+  selector:
+    matchLabels:
+      app: fetch-node # has to match .spec.template.metadata.labels
+  serviceName: "fetch-node"
+  replicas: 1
+  minReadySeconds: 10 # by default is 0
+  template:
+    metadata:
+      labels:
+        app: fetch-node # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: fetch-node
+          image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 26656
+            - containerPort: 26657
+            - containerPort: 26660
+            - containerPort: 1317
+            - containerPort: 9090
+
+          volumeMounts:
+            - name: data
+              mountPath: /root/.fetchd
+
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ .Values.storage.size | quote }}

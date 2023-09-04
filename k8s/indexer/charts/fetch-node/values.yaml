@@ -1,0 +1,6 @@
+image:
+  repo: jonathansumner/fetch-node
+  tag: v6
+
+storage:
+  size: 5Gi
