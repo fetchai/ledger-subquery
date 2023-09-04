@@ -1,0 +1,6 @@
+auth:
+  user: "subquery"
+  pass: "subquery"
+  db: "subquery"
+data:
+  path: "/var/lib/postgresql/data/db/"

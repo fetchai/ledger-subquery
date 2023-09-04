@@ -1,0 +1,12 @@
+image:
+  repo: jonathansumner/indexer
+  tag: v5
+auth:
+  username: "subquery"
+  password: "subquery"
+  db_name: "subquery"
+  db_port: "5432"
+  db_host: "postgres"
+  start_block: "1"
+  network_endpoint: "http://fetch-node:26657"
+  chain_id: "test"

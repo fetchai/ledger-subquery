@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subql-node
+  annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "3000"
+    prometheus.io/scrape: "true"
+spec:
+  selector:
+    matchLabels:
+      app: subql-node
+  template:
+    metadata:
+      labels:
+        app: subql-node
+    spec:
+      containers:
+        - name: subql-node
+          image: "{{.Values.image.repo}}:{{.Values.image.tag}}"
+          imagePullPolicy: "Always"
+          args:
+            - -f=/app
+            - --db-schema=app
+            - --batch-size=1
+            - --disable-historical=true
+            - --profiler
+          env:
+            - name: DB_USER
+              value: "{{ .Values.auth.username }}"
+            - name: DB_PASS
+              value: "{{ .Values.auth.password }}"
+            - name: DB_DATABASE
+              value: "{{ .Values.auth.db_name }}"
+            - name: DB_HOST
+              value: "{{ .Values.auth.db_host }}"
+            - name: DB_PORT
+              value: "{{ .Values.auth.db_port }}"
+            - name: START_BLOCK
+              value: "{{ .Values.auth.start_block }}"
+            - name: NETWORK_ENDPOINT
+              value: "{{ .Values.auth.network_endpoint }}"
+            - name: CHAIN_ID
+              value: "{{ .Values.auth.chain_id }}"
+          ports:
+            - containerPort: 3000

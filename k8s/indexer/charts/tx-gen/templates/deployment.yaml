@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fetch-tx
+spec:
+  selector:
+    matchLabels:
+      app: fetch-tx
+  template:
+    metadata:
+      labels:
+        app: fetch-tx
+    spec:
+      containers:
+        - name: fetch-tx
+          image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
