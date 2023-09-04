@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: subql-node
-          image: jonathansumner/subql-node@sha256:5effd757120c8a3137443a7c25c4b8c2a3fa1cb636254227af4b783a62f291c2
+          image: "{{.Values.image.repo}}:{{.Values.image.tag}}"
           imagePullPolicy: "Always"
           args:
             - -f=/app

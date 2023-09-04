@@ -26,8 +26,6 @@ psql -v ON_ERROR_STOP=1 \
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 EOF
 
-#sleep 1h
-
 node /app/node/dist/main.js $@
 
 #clinic flame -- node /app/node/dist/main.js $@ # Profiler outputs .html flame chart to /app/node/.clinic/

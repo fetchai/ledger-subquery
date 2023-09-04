@@ -12,15 +12,15 @@ cfg = NetworkConfig(
     chain_id="test",
     url="grpc+http://fetch-node:9090",
     fee_minimum_gas_price=1,
-    fee_denomination="atestfet",
-    staking_denomination="atestfet",
+    fee_denomination="stake",
+    staking_denomination="stake",
 )
 
 client = LedgerClient(cfg)
 
 while True:
-    query = client.query_bank_balance(validator_wallet.address(), "atestfet")
+    query = client.query_bank_balance(validator_wallet.address(), "stake")
     print(query)
-    tx = client.send_tokens(receiver_wallet.address(), 5, "atestfet", validator_wallet)
+    tx = client.send_tokens(receiver_wallet.address(), 5, "stake", validator_wallet)
     tx.wait_to_complete()
     time.sleep(5)

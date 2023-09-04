@@ -1,8 +1,6 @@
 image:
-#  repo: gcr.io/fetch-ai-sandbox/joe-subql-node
-#  tag: v1
   repo: jonathansumner/indexer
-  tag: test
+  tag: v5
 auth:
   username: "subquery"
   password: "subquery"
