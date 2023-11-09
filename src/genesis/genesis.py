@@ -25,3 +25,4 @@ def process_genesis(db_conn: Connection, genesis_data: dict):
     print("contracts...")
     contracts_manager.process_genesis(genesis_data)
     print("done.")
+    print("processing complete.")
