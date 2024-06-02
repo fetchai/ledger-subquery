@@ -14,7 +14,7 @@ theme:
 
 nav:
   - Introduction: 'introduction.md'
-
+  - Entity creation: 'entity_creation.md'
 extra_css:
   - css/style.css
 
