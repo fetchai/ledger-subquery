@@ -8,6 +8,8 @@ metadata:
 
 data:
   DB_DATABASE: {{ .Values.db.name | quote }}
+  SHADOW_DATABASE: {{ .Values.db.shadowDatabase | quote }}
+  ROOT_DATABASE: {{ .Values.db.rootDatabase | quote 
   DB_USER: {{ .Values.db.user | quote }}
   DB_HOST: "subquery-db"
   DB_PORT: "5432"

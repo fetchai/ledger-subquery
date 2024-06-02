@@ -32,13 +32,18 @@ subquery:
     genesisFile: https://storage.googleapis.com/fetch-ai-testnet-genesis/genesis-dorado-827201.json
 
 db:
-  image: postgres
+  image: postgres # TODO: change this to our custom image
   tag: 14-alpine
 
   name: subquery
   user: subquery
   schema: app
+  shadowDatabase: subquery_shadow
+  rootDatabase: postgres
+  
   gcpProject: fetch-ai-sandbox
   gcpSecret: sandbox_subquery_postgres
 
-  storageSize: 30Gi
+  storageSize: 100Gi
+  storageClass: csi-standard
+  dataSource: data-subquery-db-migration-source-0 # NOTE: specify this if PVC need to be copied from existing PVC 

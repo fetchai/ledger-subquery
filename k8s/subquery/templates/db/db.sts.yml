@@ -42,6 +42,13 @@ spec:
         name: data
       spec:
         accessModes: ["ReadWriteOnce"]
+        {{ if .Values.db.dataSource }}
+        dataSource:
+          kind: PersistentVolumeClaim
+          name: {{ .Values.db.dataSource }}
+        {{ end }}
         resources:
           requests:
             storage: {{ .Values.db.storageSize }}
+        volumeMode: Filesystem
+        storageClassName: {{ .Values.db.storageClass }}
